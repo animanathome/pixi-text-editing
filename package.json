@@ -1,0 +1,36 @@
+{
+  "name": "text-editing",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "build": "webpack --config webpack.prod.config.js",
+    "test": "webpack --config webpack.test.config.js && floss --path dist/test.js",
+    "server": "python3 -m http.server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "fontkit-next": "^1.8.3",
+    "lodash": "^4.17.21",
+    "pixi.js": "^6.2.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.0",
+    "@types/lodash": "^4.14.178",
+    "@types/mocha": "^9.0.0",
+    "@types/pixi.js": "^5.0.0",
+    "html-webpack-plugin": "^5.5.0",
+    "buffer": "^6.0.3",
+    "chai": "^4.3.4",
+    "floss": "^5.0.1",
+    "mocha": "^9.1.3",
+    "stream-browserify": "^3.0.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.4",
+    "webpack": "^5.65.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-node-externals": "^3.0.0"
+  }
+}
