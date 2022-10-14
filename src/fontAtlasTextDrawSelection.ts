@@ -45,7 +45,6 @@ export class FontAtlasTextDrawSelection extends PIXI.Container {
     extendSelection(glyph) {
         this._glyphSelection.push(glyph)
         this._dirty = true;
-        // console.log('extendSelection', this._glyphSelection)
     }
 
     resetSelection() {

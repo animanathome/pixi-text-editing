@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import {FontAtlasTextGeometry} from "./fontAtlasTextGeometry";
+import {FontAtlasTextGeometry, LEFT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 
 const vertexSrc = `
@@ -79,15 +79,23 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     containsGlyph(x: number, y: number) {
-        // console.log('containsGlyph', x, y);
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.containsGlyph(x, y, {start: 0, end: glyphCount});
     }
 
     closestGlyph(x: number, y: number) {
-        // console.log('closestGlyph', x, y);
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.closestGlyph(x, y, {start: 0, end: glyphCount});
+    }
+
+    closestWord(x: number, y: number) {
+        const [index, _] = this.closestGlyph(x, y);
+        return this.glyphWordIndex(index);
+    }
+
+    closestLine(x: number, y: number) {
+        const [index, _] = this.closestGlyph(x, y);
+        return this.glyphLineIndex(index);
     }
 
     closestGlyphWithinRange(x: number, y: number, glyphRange: {start: number, end: number}) {
@@ -95,7 +103,6 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     getClosestGlyphOnLine(glyphIndex: number, lineIndex: number) {
-        // console.log('getClosestGlyphOnLine', glyphIndex, lineIndex);
         const line = this.lines[lineIndex];
         const glyphCenter = this.getGlyphCenter(glyphIndex);
         const result = this.closestGlyphWithinRange(
@@ -106,14 +113,62 @@ export class FontAtlasText extends PIXI.Container {
         return result;
     }
 
+    getGlyphBefore(index) {
+        if (index === 0) {
+            return 0;
+        }
+        const indexBefore = index - 1;
+        if (this.lastGlyphIndex < indexBefore) {
+            return this.lastGlyphIndex;
+        }
+        return indexBefore;
+    }
+
+    getGlyphAfter(index) {
+        const nextIndex = index + 1;
+        if (this.lastGlyphIndex < nextIndex) {
+            return this.lastGlyphIndex;
+        }
+        return nextIndex;
+    }
+
+    getGlyphAbove(index) {
+        if (index === 0) {
+            return [0, LEFT];
+        }
+        const glyphLineIndex = this.glyphLineIndex(index);
+
+        // if the glyph is on the first line
+        if (!glyphLineIndex) {
+            return [index, LEFT];
+        }
+        // get the closest glyph on the previous line
+        const prevLineIndex = glyphLineIndex - 1;
+        return this.getClosestGlyphOnLine(index, prevLineIndex);
+    }
+
+    getGlyphBelow(index) {
+        const glyphLineIndex = this.glyphLineIndex(index);
+        if (glyphLineIndex === this.lastGlyphLineIndex) {
+            return [index, LEFT];
+        }
+
+        const nextLineIndex = glyphLineIndex + 1;
+        return this.getClosestGlyphOnLine(index, nextLineIndex);
+    }
+
     glyphWordIndex(index) {
-        return this.words.findIndex(line => index >= line[0] && index <= line[1])
+        return this.words.findIndex(word => word.indexOf(index) !== -1)
     }
 
     glyphLineIndex(index) {
         return this.lines.findIndex(line =>
             index >= line[0] && index <= line[line.length - 1]
         )
+    }
+
+    get lastGlyphIndex() {
+        return this.glyph.length - 1;
     }
 
     get lastGlyphLineIndex() {
@@ -140,8 +195,9 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _buildGlyphs() {
-        // console.log('_buildGlyphs')
         this._tokens = [];
+        this._lines = [];
+        this._words = [];
         this._tokenIndex = 0;
 
         // @ts-ignore
@@ -154,8 +210,6 @@ export class FontAtlasText extends PIXI.Container {
             }
             this._addWord(token);
         });
-
-        // console.log('tokens', this._tokens);
     }
 
     _moveGlyphs(glyphRange, xOffset, yOffset) {

@@ -4,7 +4,7 @@ import {drawRectangle} from "./drawRectangle";
 import {dist} from "./utils";
 import * as PIXI from 'pixi.js';
 
-export class EditingEvents {
+export class EditingEvents extends PIXI.utils.EventEmitter {
     element;
     stage;
     activeObject;
@@ -12,6 +12,7 @@ export class EditingEvents {
     boundsPreview;
 
     constructor(element: HTMLElement, stage) {
+        super()
         this.element = element;
         this.stage = stage;
 
@@ -100,6 +101,9 @@ export class EditingEvents {
             return;
         }
         this.activeManipulator.onInput(glyph);
+
+        // @ts-ignore
+        this.emit('change')
     }
 
     onDelete() {
@@ -107,6 +111,9 @@ export class EditingEvents {
             return;
         }
         this.activeManipulator.onDelete();
+
+        // @ts-ignore
+        this.emit('change')
     }
 
     onClick(e) {

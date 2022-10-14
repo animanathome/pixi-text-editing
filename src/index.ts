@@ -6,7 +6,8 @@ import {EditingEvents} from "./events";
 
 // const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim. Ne novum pertinacia assueverit duo, sint ferri altera has no'
 // const pseudoText = 'Lorem ipsum dolor sit amet'
-const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim.'
+// const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim.'
+const pseudoText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
 
 const app = new PIXI.Application({
     backgroundColor: 0xffffff,
@@ -33,18 +34,19 @@ const textEditingDemo = async() => {
     // pre-built characters
     const atlas = new FontAtlas({
         font: fontLoader.font,
-        resolution: 1024,
-        fontSize: 24,
+        resolution: 128,
+        fontSize: 12,
     })
-    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
-    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
-    atlas.addGlyphsForString('.!?');
+    global.atlas = atlas;
+    // atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
+    // atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
+    // atlas.addGlyphsForString('.!?');
 
     // display text
     const text = new FontAtlasText();
     text.atlas = atlas;
-    text.maxHeight = 512;
-    text.maxWidth = 512;
+    text.maxHeight = 128;
+    text.maxWidth = 128;
     // TODO: add fontSize
     // TODO: add leading (line height)
     text.text = pseudoText;
@@ -52,6 +54,12 @@ const textEditingDemo = async() => {
     global.text = text;
 
     const events = new EditingEvents(app.view, app.stage);
+    global.events = events;
+
+    // @ts-ignore
+    events.on('change', () => {
+        console.log('textures', atlas.texture.length);
+    })
 }
 
 textEditingDemo();

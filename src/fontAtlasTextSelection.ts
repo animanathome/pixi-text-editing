@@ -22,13 +22,11 @@ export class FontAtlasTextSelection {
     }
 
     getClosestWord(x: number, y: number) {
-        const index = this.getClosestGlyph(x, y);
-        return this.text.glyphWordIndex(index);
+        return this.text.closestWord(x, y);
     }
 
     getClosestLine(x: number, y: number) {
-        const index = this.getClosestGlyph(x, y);
-        return this.text.glyphLineIndex(index);
+        return this.text.closestLine(x, y);
     }
 
     _lastGlyphIndex() {
@@ -36,52 +34,18 @@ export class FontAtlasTextSelection {
     }
 
     getGlyphBefore(index) {
-        if (index === 0) {
-            return 0;
-        }
-        const indexBefore = index - 1;
-        if (this._lastGlyphIndex() < indexBefore) {
-            return this._lastGlyphIndex();
-        }
-
-        // @ts-ignore
-        if (PIXI.TextMetrics.isNewline(this.text.glyph[indexBefore].id)) {
-            return this.getGlyphBefore(indexBefore);
-        }
-        return indexBefore;
+        return this.text.getGlyphBefore(index);
     }
 
     getGlyphAfter(index) {
-        const nextIndex = index + 1;
-        if (this._lastGlyphIndex() < nextIndex) {
-            return this._lastGlyphIndex();
-        }
-        return nextIndex;
+        return this.text.getGlyphAfter(index);
     }
 
     getGlyphAbove(index) {
-        if (index === 0) {
-            return [0, LEFT];
-        }
-        const glyphLineIndex = this.text.glyphLineIndex(index);
-
-        // if the glyph is on the first line
-        if (!glyphLineIndex) {
-            return [index, LEFT];
-        }
-        // get the closest glyph on the previous line
-        const prevLineIndex = glyphLineIndex - 1;
-        return this.text.getClosestGlyphOnLine(index, prevLineIndex);
+        return this.text.getGlyphAbove(index);
     }
 
     getGlyphBelow(index) {
-        const glyphLineIndex = this.text.glyphLineIndex(index);
-        // console.log('glyphLineIndex', glyphLineIndex);
-        if (glyphLineIndex === this.text.lastGlyphLineIndex) {
-            return [index, LEFT];
-        }
-
-        const nextLineIndex = glyphLineIndex + 1;
-        return this.text.getClosestGlyphOnLine(index, nextLineIndex);
+        return this.text.getGlyphBelow(index);
     }
 }

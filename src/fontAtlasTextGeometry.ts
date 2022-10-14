@@ -155,7 +155,6 @@ export class FontAtlasTextGeometry {
         if (typeof index !== "number") {
             throw Error(`Invalid type ${typeof index} -- Expected number`)
         }
-
         if (!this._glyph[index]) {
             throw Error(`Invalid glyph index ${index} -- max id = ${this._glyph.length}`);
         }
@@ -234,7 +233,7 @@ export class FontAtlasTextGeometry {
     _getGlyphVertexArray(index) {
         const vertexRange = this._glyph[index]?.vertexRange;
         if (!vertexRange) {
-            throw Error(`Invalid index ${index}`);
+            throw Error(`Invalid index ${index} -- max ${this._glyph.length}`);
         }
         const vertexArray = this._vertexArray.slice(vertexRange[0], vertexRange[1] + 1);
         return vertexArray;
