@@ -28,7 +28,7 @@ export enum SELECTION_DIRECTION {
     RIGHT
 }
 
-export class FontAtlasTextDrawCaret extends PIXI.Container {
+export class FontAtlasTextCaret extends PIXI.Container {
     fontAtlasText = undefined;
     _dirty = false;
     _glyphIndex = 0;

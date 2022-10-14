@@ -11,10 +11,10 @@ const createFontAtlasText = async(
     height = 128,
     fontAtlasSize = 12,
     fontAtlasResolution = 128,
+    fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf'
 ) => {
     const fontLoader = new FontLoader();
-    const url = 'http://localhost:8000/resources/Roboto-Regular.ttf'
-    fontLoader.sourceUrl = url;
+    fontLoader.sourceUrl = fontUrl;
     await fontLoader.load();
 
     const atlas = new FontAtlas({

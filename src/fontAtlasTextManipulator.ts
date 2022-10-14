@@ -1,7 +1,7 @@
 import {FontAtlasText} from "./fontAtlasText";
-import {CARET_POSITION, FontAtlasTextDrawCaret} from "./fontAtlasTextDrawCaret";
+import {CARET_POSITION, FontAtlasTextCaret} from "./fontAtlasTextCaret";
 import * as PIXI from 'pixi.js';
-import {FontAtlasTextDrawSelection} from "./fontAtlasTextDrawSelection";
+import {FontAtlasTextSelection} from "./fontAtlasTextSelection";
 
 function insertCharacterAtIndex(string, character, index) {
     return string.substring(0, index) + character + string.substring(index, string.length)
@@ -21,10 +21,10 @@ export class FontAtlasTextManipulator extends PIXI.Container {
         super();
         this.text = text;
 
-        this.caret = new FontAtlasTextDrawCaret(text);
+        this.caret = new FontAtlasTextCaret(text);
         this.addChild(this.caret);
 
-        this.drawSelection = new FontAtlasTextDrawSelection(text);
+        this.drawSelection = new FontAtlasTextSelection(text);
         this.addChild(this.drawSelection);
     }
 
