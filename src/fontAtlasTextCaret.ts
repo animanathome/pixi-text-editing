@@ -31,12 +31,12 @@ export enum SELECTION_DIRECTION {
 export class FontAtlasTextCaret extends PIXI.Container {
     fontAtlasText = undefined;
     _dirty = false;
-    _glyphIndex = 0;
+    _glyphIndex = -1;
     _glyphPosition = CARET_POSITION.START;
     caretWidth = 2;
     _mesh = null;
     _caretLastVisibilitySwitch = Date.now();
-    _caretVisibleDuration = 500;
+    caretVisibleDuration = 500;
 
     constructor(fontAtlasText: FontAtlasText) {
         super();
@@ -46,6 +46,9 @@ export class FontAtlasTextCaret extends PIXI.Container {
     set glyphIndex(value) {
         if (this.glyphIndex === value) {
             return;
+        }
+        if (this.glyphIndex > this.fontAtlasText.text.length - 1) {
+            console.warn('-- to big --');
         }
         this._glyphIndex = value;
         this._dirty = true;
@@ -71,35 +74,64 @@ export class FontAtlasTextCaret extends PIXI.Container {
         if(!this._dirty) {
             return;
         }
-
         this._deleteMesh();
-
         if (this._glyphIndex === -1) {
             return;
         }
 
+        const token = this.fontAtlasText.text[this.glyphIndex]
         const vertexArray = this.fontAtlasText.getGlyphVertexArray(this.glyphIndex);
+        const lineHeight = this.fontAtlasText.atlas.fontSize;
+
         let x0, x1, y0, y1;
-        if (this.glyphPosition === CARET_POSITION.START) {
-            x0 = vertexArray[4] - this.caretWidth;
-            x1 = vertexArray[4];
+        // no text
+        if (this.fontAtlasText.text.length === 0) {
+            console.log('no text');
+            x0 = 0;
+            x1 = this.caretWidth;
+            y0 = 0;
+            y1 = lineHeight;
         }
+        // @ts-ignore
+        // new line
+        else if (PIXI.TextMetrics.isNewline(token)) {
+            x0 = 0;
+            x1 = this.caretWidth;
+
+            let line = Math.ceil(vertexArray[7] / lineHeight);
+            console.log('new line', line, this.glyphPosition);
+            if (this.glyphPosition === CARET_POSITION.START) {
+               line -= 1;
+            }
+            y0 = line * lineHeight;
+            y1 = (line + 1) * lineHeight;
+        }
+        // text
         else {
-            x0 = vertexArray[0];
-            x1 = vertexArray[0] + this.caretWidth;
+            console.log('text');
+            if (this.glyphPosition === CARET_POSITION.START) {
+                const x = vertexArray[4] < this.caretWidth ? this.caretWidth : vertexArray[4];
+                x0 = x - this.caretWidth;
+                x1 = x;
+            }
+            else {
+                const x = vertexArray[0] < 0 ? 0 : vertexArray[0];
+                x0 = x;
+                x1 = x + this.caretWidth;
+            }
+
+            const line = Math.ceil(vertexArray[7] / lineHeight);
+            y0 = (line - 1) * lineHeight;
+            y1 = line * lineHeight;
         }
-
-        const lineHeight = this.fontAtlasText.atlas.fontSize
-        const line = Math.ceil(vertexArray[7] / lineHeight);
-        y0 = (line - 1) * lineHeight;
-        y1 = line * lineHeight;
-
         const caretVertices = [
             x1, y1,
             x1, y0,
             x0, y0,
             x0, y1,
         ];
+
+        // console.log('caretVertices', caretVertices);
         const caretIndices = [0, 1, 2, 2, 3, 0];
 
         const geometry = new PIXI.Geometry();
@@ -109,6 +141,10 @@ export class FontAtlasTextCaret extends PIXI.Container {
         this._createMesh(geometry);
 
         this._dirty = false;
+    }
+
+    get hasMesh() {
+        return !!this._mesh;
     }
 
     _deleteMesh() {
@@ -132,7 +168,7 @@ export class FontAtlasTextCaret extends PIXI.Container {
 
     _toggleVisibility() {
         const now = Date.now();
-        if ((this._caretLastVisibilitySwitch + this._caretVisibleDuration) > now) {
+        if ((this._caretLastVisibilitySwitch + this.caretVisibleDuration) > now) {
             return;
         }
         this._caretLastVisibilitySwitch = Date.now();
@@ -150,8 +186,13 @@ export class FontAtlasTextCaret extends PIXI.Container {
     }
 
     _render(renderer: PIXI.Renderer) {
+        // we need to make sure our text is up to date
+        this.fontAtlasText._render(renderer);
+
         this._update();
-        this._toggleVisibility();
+        if (this.caretVisibleDuration !== 0) {
+            this._toggleVisibility();
+        }
         super._render(renderer);
     }
 }

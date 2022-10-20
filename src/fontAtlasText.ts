@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
-import {FontAtlasTextGeometry, LEFT} from "./fontAtlasTextGeometry";
+import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
+import {CARET_POSITION} from "./fontAtlasTextCaret";
 
 const vertexSrc = `
     attribute vec2 aVertexPosition;
@@ -70,6 +71,10 @@ export class FontAtlasText extends PIXI.Container {
         return this._text;
     }
 
+    get glyphCount() {
+        return this._fontAtlasTextGeometry.glyphCount
+    }
+
     getGlyphVertexArray(index) {
         return this._fontAtlasTextGeometry._getGlyphVertexArray(index);
     }
@@ -103,36 +108,39 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     getClosestGlyphOnLine(glyphIndex: number, lineIndex: number) {
-        const line = this.lines[lineIndex];
+        console.log('getClosestGlyphOnLine', glyphIndex, lineIndex)
+        const [start, end] = this._getLineGlyphRange(lineIndex);
+        console.log('range', start, end);
         const glyphCenter = this.getGlyphCenter(glyphIndex);
         const result = this.closestGlyphWithinRange(
             glyphCenter.x,
             glyphCenter.y,
-            {start: line[0], end: line[line.length - 1]}
+            {start, end}
         );
         return result;
     }
 
-    getGlyphBefore(index) {
+    getGlyphBefore(index, position) {
         if (index === 0) {
-            return 0;
+            return [0, CARET_POSITION.START];
         }
         const indexBefore = index - 1;
         if (this.lastGlyphIndex < indexBefore) {
-            return this.lastGlyphIndex;
+            return [this.lastGlyphIndex, position];
         }
-        return indexBefore;
+        return [indexBefore, position];
     }
 
-    getGlyphAfter(index) {
+    getGlyphAfter(index, position) {
         const nextIndex = index + 1;
         if (this.lastGlyphIndex < nextIndex) {
-            return this.lastGlyphIndex;
+            return [this.lastGlyphIndex, position];
         }
-        return nextIndex;
+        return [nextIndex, position];
     }
 
     getGlyphAbove(index) {
+        console.log('getGlyphAbove', index)
         if (index === 0) {
             return [0, LEFT];
         }
@@ -150,11 +158,27 @@ export class FontAtlasText extends PIXI.Container {
     getGlyphBelow(index) {
         const glyphLineIndex = this.glyphLineIndex(index);
         if (glyphLineIndex === this.lastGlyphLineIndex) {
+            // @ts-ignore
+            if (PIXI.TextMetrics.isNewline(this.text[this.lastGlyphIndex])) {
+                return [this.lastGlyphIndex, RIGHT]
+            }
             return [index, LEFT];
         }
 
         const nextLineIndex = glyphLineIndex + 1;
-        return this.getClosestGlyphOnLine(index, nextLineIndex);
+        let [indexBelow, _] = this.getClosestGlyphOnLine(index, nextLineIndex);
+
+        if (indexBelow === index) {
+            if (indexBelow + 1 > this.lastGlyphIndex) {
+                return [indexBelow, LEFT]
+            }
+            else {
+                indexBelow += 1;
+                return [indexBelow, RIGHT]
+            }
+        }
+
+        return [indexBelow, LEFT]
     }
 
     glyphWordIndex(index) {
@@ -162,9 +186,14 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     glyphLineIndex(index) {
-        return this.lines.findIndex(line =>
-            index >= line[0] && index <= line[line.length - 1]
-        )
+        for (let i = 0; i < this.lines.length; i++) {
+            const [start, end] = this._getLineGlyphRange(i)
+            if (index >= start && index <= end) {
+                return i;
+                break;
+            }
+        }
+        return -1;
     }
 
     get lastGlyphIndex() {
@@ -204,7 +233,12 @@ export class FontAtlasText extends PIXI.Container {
         const tokens = PIXI.TextMetrics.tokenize(this.text);
         tokens.forEach(token => {
             // @ts-ignore
-            if (PIXI.TextMetrics.isBreakingSpace(token) || PIXI.TextMetrics.isNewline(token)) {
+            if (PIXI.TextMetrics.isBreakingSpace(token)) {
+                this._addWhitespace(token);
+                return;
+            }
+            // @ts-ignore
+            if (PIXI.TextMetrics.isNewline(token)) {
                 this._addWhitespace(token);
                 return;
             }
@@ -270,17 +304,17 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _layoutGlyphs() {
-        // console.log('_layoutGlyphs')
         let xOffset = 0;
         let yOffset = 0;
-        let wordCount = 0;
-        let line = []
+        let lineCount = 0;
+        this._lines = [];
         this._tokens.forEach(token => {
+
             if (xOffset + token.width > this.maxWidth) { // new line
                 xOffset = 0;
                 yOffset += this.atlas.fontSize;
-                this._lines.push(line.flat());
-                line = [];
+
+                this._lines.push(lineCount);
             }
 
             if (yOffset > this.maxHeight) {
@@ -297,19 +331,13 @@ export class FontAtlasText extends PIXI.Container {
             if (PIXI.TextMetrics.isNewline(token.token)) { // new line
                 xOffset = 0;
                 yOffset += this.atlas.fontSize;
-                this._lines.push(line.flat());
-                line = [];
+
+                this._lines.push(lineCount);
            }
 
-            // @ts-ignore
-            if (!PIXI.TextMetrics.isNewline(token.token) &&
-                !PIXI.TextMetrics.isBreakingSpace(token.token))
-            { // new line
-                line.push(this._words[wordCount])
-                wordCount++;
-            }
+            lineCount += token.token.length;
         });
-        this._lines.push(line.flat());
+        // this._lines.push(lineCount);
     }
 
     _deleteMesh() {
@@ -334,10 +362,29 @@ export class FontAtlasText extends PIXI.Container {
         this.addChild(mesh);
     }
 
+    lineGlyphRanges() {
+        console.log('lineGlyphRanges')
+        const result = [];
+        for (let i = 0; i < this.lines.length; i++) {
+            result.push(this._getLineGlyphRange(i))
+        }
+        return result;
+    }
+
+    _getLineGlyphRange(index) {
+        const start = index === 0 ? 0 : this._lines[index - 1] + 1;
+        const end = this._lines[index];
+        console.log('range', index, '[', start, end, ']')
+        return [start, end];
+    }
+
     _calculateBounds() {
+        // console.log('_calculateBounds', this._lines)
         const bounds = new PIXI.Rectangle();
-        // TODO: we should really just use the first and last word
-        this._lines.forEach(line => bounds.enlarge(this._fontAtlasTextGeometry.getBounds(line)));
+        for (let i = 0; i < this._lines.length; i++) {
+            const range = this._getLineGlyphRange(i);
+            bounds.enlarge(this._fontAtlasTextGeometry.getBounds(range));
+        }
         return bounds;
     }
 

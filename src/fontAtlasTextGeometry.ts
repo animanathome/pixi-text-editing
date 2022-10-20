@@ -152,11 +152,12 @@ export class FontAtlasTextGeometry {
     }
 
     _getGlyphBounds(index : number) {
+        console.log('_getGlyphBounds', index);
         if (typeof index !== "number") {
             throw Error(`Invalid type ${typeof index} -- Expected number`)
         }
         if (!this._glyph[index]) {
-            throw Error(`Invalid glyph index ${index} -- max id = ${this._glyph.length}`);
+            throw Error(`Invalid glyph index ${index} -- max id = ${this._glyph.length - 1}`);
         }
         const x1Index = this._glyph[index].vertexRange[0];
         const y1Index = this._glyph[index].vertexRange[0] + 1;
@@ -176,6 +177,7 @@ export class FontAtlasTextGeometry {
     }
 
     getBounds(glyphIndexArray: number[]) {
+        console.log('getBounds', glyphIndexArray);
         if (glyphIndexArray.length === 0) {
             return new PIXI.Rectangle();
         }
@@ -230,10 +232,15 @@ export class FontAtlasTextGeometry {
         return glyphIndex;
     }
 
+    get glyphCount() {
+        return this._glyph.length
+    }
+
     _getGlyphVertexArray(index) {
         const vertexRange = this._glyph[index]?.vertexRange;
         if (!vertexRange) {
-            throw Error(`Invalid index ${index} -- max ${this._glyph.length}`);
+            // throw Error(`Invalid index ${index} -- max ${this._glyph.length}`);
+            return [];
         }
         const vertexArray = this._vertexArray.slice(vertexRange[0], vertexRange[1] + 1);
         return vertexArray;

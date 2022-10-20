@@ -3,25 +3,27 @@ import {FontLoader} from "./fontLoader";
 import {FontAtlas} from "./fontAtlas";
 import {FontAtlasText} from "./fontAtlasText";
 import {EditingEvents} from "./events";
+import {createFontAtlasTextApp} from "../tests/utils";
+import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 
 // const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim. Ne novum pertinacia assueverit duo, sint ferri altera has no'
 // const pseudoText = 'Lorem ipsum dolor sit amet'
 // const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim.'
-const pseudoText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-
-const app = new PIXI.Application({
-    backgroundColor: 0xffffff,
-    antialias: true,
-
-});
-document.body.appendChild(app.view);
-app.view.style.position = 'absolute';
-app.view.style.top = '0px';
-app.view.style.left = '0px';
-
-global.app = app;
+// const pseudoText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
+const pseudoText = 'a\nb\n'
 
 const textEditingDemo = async() => {
+    const app = new PIXI.Application({
+        backgroundColor: 0xffffff,
+        antialias: true,
+
+    });
+    document.body.appendChild(app.view);
+    app.view.style.position = 'absolute';
+    app.view.style.top = '0px';
+    app.view.style.left = '0px';
+
+    global.app = app;
     console.log('textEditingDemo');
 
     // load the font
@@ -38,9 +40,9 @@ const textEditingDemo = async() => {
         fontSize: 12,
     })
     global.atlas = atlas;
-    // atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
-    // atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
-    // atlas.addGlyphsForString('.!?');
+    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
+    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
+    atlas.addGlyphsForString('-.!?');
 
     // display text
     const text = new FontAtlasText();
@@ -56,10 +58,38 @@ const textEditingDemo = async() => {
     const events = new EditingEvents(app.view, app.stage);
     global.events = events;
 
+    let textureCount = 0;
     // @ts-ignore
     events.on('change', () => {
-        console.log('textures', atlas.texture.length);
+        if (textureCount !== atlas.texture.length) {
+            const texture = atlas.texture[textureCount];
+            const sprite = new PIXI.Sprite(texture);
+            sprite.y = 100 + (textureCount * 128);
+            app.stage.addChild(sprite)
+            textureCount++
+        }
     })
 }
 
 textEditingDemo();
+
+const test = async() => {
+    const {app, text} = await createFontAtlasTextApp(
+    'What',
+    64,
+    64
+    );
+    global.app = app;
+
+    const manipulator = new FontAtlasTextManipulator(text);
+    manipulator.caret.caretVisibleDuration = 0;
+    app.stage.addChildAt(manipulator, 0);
+    global.manip = manipulator;
+
+    manipulator.click(0, 0, false);
+    app.ticker.update();
+
+    (window as any).__PIXI_INSPECTOR_GLOBAL_HOOK__ &&  (window as any).__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
+}
+
+// test();

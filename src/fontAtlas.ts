@@ -64,6 +64,7 @@ export class FontAtlas {
         this.canvas.height = this.resolution;
         this.context = this.canvas.getContext('2d');
 
+        // background color
         // this.context.beginPath();
         // this.context.fillRect(0, 0, this.resolution, this.resolution);
         // this.context.fillStyle = "red";

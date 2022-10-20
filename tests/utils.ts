@@ -5,6 +5,15 @@ import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import {FontAtlasText} from "../src/fontAtlasText";
 
+export const roundBounds = (bounds) => {
+    return {
+        x: Math.round(bounds.x),
+        y: Math.round(bounds.y),
+        width: Math.round(bounds.width),
+        height: Math.round(bounds.height),
+    }
+}
+
 export const writeDataUrlToDisk = (url, outputFile = 'test') => {
     const base64Data = url.replace(/^data:image\/png;base64,/, "");
     fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {
@@ -22,10 +31,12 @@ export const createFontAtlasTextApp = async(
 ) => {
     const app = new PIXI.Application({
         backgroundColor: 0xffffff,
-        width,
-        height,
+        autoStart: false,
+        width: width,
+        height: height,
     });
-    app.ticker.stop();
+    document.body.appendChild(app.view)
+    // app.ticker.stop();
 
     const {fontLoader, atlas, text} = await createFontAtlasText(
         displayText,
@@ -52,7 +63,7 @@ export const createFontAtlasText = async(
     width = 128,
     height = 128,
     fontAtlasSize = 12,
-    fontAtlasResolution = 128,
+    fontAtlasResolution = 1024,
     fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf'
 ) => {
     const fontLoader = new FontLoader();
@@ -64,6 +75,10 @@ export const createFontAtlasText = async(
         resolution: fontAtlasResolution,
         fontSize: fontAtlasSize,
     })
+    // pre-load glyphs
+    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
+    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
+    atlas.addGlyphsForString('.!?');
 
     const text = new FontAtlasText();
     text.atlas = atlas;

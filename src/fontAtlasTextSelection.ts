@@ -44,6 +44,7 @@ export class FontAtlasTextSelection extends PIXI.Container {
 
     extendSelection(glyph) {
         this._glyphSelection.push(glyph)
+        console.log('selection', this._glyphSelection);
         this._dirty = true;
     }
 
@@ -171,6 +172,10 @@ export class FontAtlasTextSelection extends PIXI.Container {
         return geometry
     }
 
+    get hasMesh() {
+        return !!this._mesh;
+    }
+
     _deleteMesh() {
         if (!this._mesh) {
             return;
@@ -191,6 +196,9 @@ export class FontAtlasTextSelection extends PIXI.Container {
     }
 
     _render(renderer: PIXI.Renderer) {
+        // we need to make sure our text is up to date
+        this.fontAtlasText._render(renderer);
+
         this._update();
         super._render(renderer);
     }
