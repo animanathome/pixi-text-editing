@@ -4,9 +4,10 @@ import {FontAtlasText} from "./fontAtlasText";
 const vertexSrc = `    
     attribute vec2 aVertexPosition;
     uniform mat3 projectionMatrix;
+    uniform mat3 translationMatrix;
 
     void main() {
-        gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
     }
 `;
 
@@ -41,6 +42,7 @@ export class FontAtlasTextCaret extends PIXI.Container {
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this.fontAtlasText = fontAtlasText;
+        this._createMesh(new PIXI.Geometry());
     }
 
     set glyphIndex(value) {
@@ -74,7 +76,7 @@ export class FontAtlasTextCaret extends PIXI.Container {
         if(!this._dirty) {
             return;
         }
-        this._deleteMesh();
+
         if (this._glyphIndex === -1) {
             return;
         }
@@ -133,22 +135,12 @@ export class FontAtlasTextCaret extends PIXI.Container {
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', caretVertices, 2);
         geometry.addIndex(caretIndices);
-
-        this._createMesh(geometry);
-
+        this._mesh.geometry = geometry;
         this._dirty = false;
     }
 
     get hasMesh() {
         return !!this._mesh;
-    }
-
-    _deleteMesh() {
-        if (!this._mesh) {
-            return;
-        }
-        this._mesh.destroy(true);
-        this._mesh = null;
     }
 
     _createMesh(geometry) {

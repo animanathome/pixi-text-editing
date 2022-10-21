@@ -146,6 +146,8 @@ export class EditingEvents extends PIXI.utils.EventEmitter {
         if (this.activeObject instanceof FontAtlasText) {
             this.activeManipulator = new FontAtlasTextManipulator(this.activeObject);
             this.stage.addChildAt(this.activeManipulator, 0);
+            this.activeManipulator.x = this.activeObject.x;
+            this.activeManipulator.y = this.activeObject.y;
             this.activeManipulator.click(x, y, shiftKey);
         }
     }

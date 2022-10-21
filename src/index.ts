@@ -10,13 +10,12 @@ import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 // const pseudoText = 'Lorem ipsum dolor sit amet'
 // const pseudoText = 'Lorem ipsum dolor sit amet, ex mutat choro vim.'
 // const pseudoText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-const pseudoText = 'a\nb\n'
+const pseudoText = 'Hello\nWorld\n'
 
 const textEditingDemo = async() => {
     const app = new PIXI.Application({
         backgroundColor: 0xffffff,
         antialias: true,
-
     });
     document.body.appendChild(app.view);
     app.view.style.position = 'absolute';
@@ -36,8 +35,8 @@ const textEditingDemo = async() => {
     // pre-built characters
     const atlas = new FontAtlas({
         font: fontLoader.font,
-        resolution: 128,
-        fontSize: 12,
+        resolution: 256,
+        fontSize: 24,
     })
     global.atlas = atlas;
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
@@ -46,6 +45,8 @@ const textEditingDemo = async() => {
 
     // display text
     const text = new FontAtlasText();
+    text.x = 20;
+    text.y = 20;
     text.atlas = atlas;
     text.maxHeight = 128;
     text.maxWidth = 128;
@@ -80,6 +81,9 @@ const test = async() => {
     64
     );
     global.app = app;
+
+    text.x = 10;
+    text.y = 10;
 
     const manipulator = new FontAtlasTextManipulator(text);
     manipulator.caret.caretVisibleDuration = 0;
