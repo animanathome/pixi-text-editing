@@ -43,8 +43,10 @@ export class FontAtlasTextSelection extends PIXI.Container {
     }
 
     extendSelection(glyph) {
+        if (this._glyphSelection.indexOf(glyph) !== -1) {
+            return;
+        }
         this._glyphSelection.push(glyph)
-        console.log('selection', this._glyphSelection);
         this._dirty = true;
     }
 

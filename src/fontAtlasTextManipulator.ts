@@ -2,6 +2,7 @@ import {FontAtlasText} from "./fontAtlasText";
 import {CARET_POSITION, FontAtlasTextCaret} from "./fontAtlasTextCaret";
 import * as PIXI from 'pixi.js';
 import {FontAtlasTextSelection} from "./fontAtlasTextSelection";
+import {LEFT, RIGHT} from "./fontAtlasTextGeometry";
 
 function insertCharacterAtIndex(string, character, index) {
     return string.substring(0, index) + character + string.substring(index, string.length)
@@ -28,26 +29,29 @@ export class FontAtlasTextManipulator extends PIXI.Container {
         this.addChild(this.drawSelection);
     }
 
-    select(glyphIndex, glyphPosition) {
+    select(glyphIndex, glyphPosition, shiftkey = false) {
+        const index = this.caret.glyphIndex;
+        const position = this.caret.glyphPosition;
+
         this.caret.glyphIndex = glyphIndex;
         this.caret.glyphPosition = glyphPosition;
 
         this._activeGlyph();
-        this.drawSelection.resetSelection()
+        this._glyphSelection(index, position, shiftkey)
+        this._glyphSelection(glyphIndex, glyphPosition, shiftkey);
     }
 
     click(x : number, y : number, shiftKey : boolean) {
         const prevGlyphIndex = this.caret.glyphIndex;
-        const [glyphIndex, glyphPosition] = this.text.closestGlyph(x, y);
+        const prevGlyphPosition = this.caret.glyphPosition;
 
-        // when we don't have any text we want to default to 0
+        const [glyphIndex, glyphPosition] = this.text.closestGlyph(x, y);
         this.caret.glyphIndex = Math.max(0, glyphIndex);
         this.caret.glyphPosition = glyphPosition;
 
-        console.log('click', this.caret.glyphIndex, this.caret.glyphPosition);
-
         this._activeGlyph();
-        this._glyphSelection(glyphIndex, prevGlyphIndex, shiftKey);
+        this._glyphSelection(prevGlyphIndex, prevGlyphPosition, shiftKey);
+        this._glyphSelection(glyphIndex, glyphPosition, shiftKey);
     }
 
     _activeGlyph() {
@@ -55,9 +59,14 @@ export class FontAtlasTextManipulator extends PIXI.Container {
         return [this.caret.glyphIndex, this.caret.glyphPosition]
     }
 
-    _glyphSelection(glyphIndex, prevGlyphIndex, shiftKey) {
-        // if (shiftKey && this.drawSelection.selectionLength === 0) {
-        //     this.drawSelection.extendSelection(prevGlyphIndex);
+    _glyphSelection(
+        prevGlyphIndex : number,
+        prevGlyphPosition : number,
+        shiftKey : boolean
+    ) {
+        // console.log('_glyphSelection', prevGlyphIndex, prevGlyphPosition, shiftKey);
+        // if (prevGlyphPosition === RIGHT) {
+        //     prevGlyphIndex += 1;
         // }
         this.drawSelection.extendSelection(prevGlyphIndex);
         if (!shiftKey) {
@@ -66,82 +75,58 @@ export class FontAtlasTextManipulator extends PIXI.Container {
     }
 
     arrowUp(shiftKey = false) {
-        console.warn('arrowUp', this.caret.glyphIndex, this.caret.glyphPosition);
         const index = this.caret.glyphIndex;
-        const [indexAbove, _] = this.text.getGlyphAbove(index);
-        if (index === indexAbove) {
-            this.caret.glyphPosition = CARET_POSITION.START;
-            return;
-        }
+        const position = this.caret.glyphPosition;
+        const [indexAbove, positionAbove] = this.text.getGlyphAbove(index, position);
         this.caret.glyphIndex = indexAbove;
-        this.caret.glyphPosition = CARET_POSITION.START;
+        this.caret.glyphPosition = positionAbove;
 
-        // @ts-ignore
-        if (PIXI.TextMetrics.isNewline(this.text.text[indexAbove])) {
-            this.caret.glyphPosition = CARET_POSITION.END;
-        }
-
-        this._glyphSelection(indexAbove, index, shiftKey);
+        this._glyphSelection(index, position, shiftKey);
         this._activeGlyph();
     }
 
     arrowDown(shiftKey = false) {
-        console.warn('arrowDown', this.caret.glyphIndex, this.caret.glyphPosition);
         const index = this.caret.glyphIndex;
+        const position = this.caret.glyphPosition;
         let [indexBelow, positionBelow] = this.text.getGlyphBelow(index);
         this.caret.glyphIndex = indexBelow;
         this.caret.glyphPosition = positionBelow;
 
-        this._glyphSelection(indexBelow, index, shiftKey);
+        this._glyphSelection(index, position, shiftKey);
         this._activeGlyph();
     }
 
     arrowLeft(shiftKey = false) {
-        const index = this.caret.glyphIndex;
+        let index = this.caret.glyphIndex;
         const position = this.caret.glyphPosition;
-
         const [indexBefore, positionBefore] = this.text.getGlyphBefore(index, position);
-
         this.caret.glyphIndex = indexBefore;
         this.caret.glyphPosition = positionBefore;
 
-        this._glyphSelection(indexBefore, index, shiftKey);
+        if (position === LEFT) {
+            index -= 1;
+        }
+        this._glyphSelection(index, position, shiftKey);
         this._activeGlyph();
     }
 
     arrowRight(shiftKey = false) {
-        const index = this.caret.glyphIndex;
+        let index = this.caret.glyphIndex;
         const position = this.caret.glyphPosition;
-        const lastIndex = this.text.text.length - 1;
-
-        // last glyph
-        if (index === lastIndex && position === CARET_POSITION.START) {
-            this.caret.glyphPosition = CARET_POSITION.END;
-            this._glyphSelection(index, index, shiftKey);
-            this._activeGlyph();
-            return;
-        }
 
         const [indexAfter, positionAfter] = this.text.getGlyphAfter(index, position);
 
-        // next glyph is a new line
-        const tokenAfter = this.text.text[indexAfter]
-        // @ts-ignore
-        if (PIXI.TextMetrics.isNewline(tokenAfter) && position === CARET_POSITION.START) {
-            this.caret.glyphPosition = CARET_POSITION.END;
-            this._glyphSelection(index, index, shiftKey);
-            this._activeGlyph();
-            return;
-        }
         this.caret.glyphIndex = indexAfter;
-        // this.caret.glyphPosition = positionAfter;
+        this.caret.glyphPosition = positionAfter;
 
-        this._glyphSelection(indexAfter, index, shiftKey);
+        if (position === RIGHT) {
+            index += 1;
+        }
+        this._glyphSelection(index, position, shiftKey);
         this._activeGlyph();
     }
 
     onInput(character) {
-        console.log('onInput', character)
         if (character === 'Enter') {
             character = '\n'
         }
@@ -162,17 +147,13 @@ export class FontAtlasTextManipulator extends PIXI.Container {
 
         // @ts-ignore
         if (PIXI.TextMetrics.isNewline(this.text.text[nextIndex])) {
-            console.warn('-> new line')
             nextIndex -= 1;
             nextPosition = CARET_POSITION.END;
         }
-        console.log(this.caret.glyphIndex, this.caret.glyphPosition, '->', nextIndex, nextPosition)
-
         this.caret.glyphIndex = nextIndex;
         this.caret.glyphPosition = nextPosition;
 
         this.drawSelection.resetSelection()
-        console.log(`result "${this.text.text}"`);
     }
 
     onDelete() {
@@ -211,7 +192,6 @@ export class FontAtlasTextManipulator extends PIXI.Container {
         else {
             newText = removeCharacterAtIndex(text, end, start);
         }
-        console.log('delete', newText, Math.max(0, glyphIndex), newText.length);
         this.text.text = newText;
         this.caret.glyphIndex = Math.max(0, glyphIndex);
         if (newText.length === 0 || start === 0) {

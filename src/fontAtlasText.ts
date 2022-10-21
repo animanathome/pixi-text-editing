@@ -108,9 +108,7 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     getClosestGlyphOnLine(glyphIndex: number, lineIndex: number) {
-        console.log('getClosestGlyphOnLine', glyphIndex, lineIndex)
         const [start, end] = this._getLineGlyphRange(lineIndex);
-        console.log('range', start, end);
         const glyphCenter = this.getGlyphCenter(glyphIndex);
         const result = this.closestGlyphWithinRange(
             glyphCenter.x,
@@ -132,15 +130,22 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     getGlyphAfter(index, position) {
+        if (index === this.lastGlyphIndex && position === LEFT) {
+            return [index, RIGHT]
+        }
         const nextIndex = index + 1;
+        const nextToken = this.text[nextIndex]
+        // @ts-ignore
+        if (PIXI.TextMetrics.isNewline(nextToken) && position === LEFT) {
+            return [index, RIGHT];
+        }
         if (this.lastGlyphIndex < nextIndex) {
             return [this.lastGlyphIndex, position];
         }
         return [nextIndex, position];
     }
 
-    getGlyphAbove(index) {
-        console.log('getGlyphAbove', index)
+    getGlyphAbove(index, position) {
         if (index === 0) {
             return [0, LEFT];
         }
@@ -152,7 +157,18 @@ export class FontAtlasText extends PIXI.Container {
         }
         // get the closest glyph on the previous line
         const prevLineIndex = glyphLineIndex - 1;
-        return this.getClosestGlyphOnLine(index, prevLineIndex);
+        let [indexAbove, _] = this.getClosestGlyphOnLine(index, prevLineIndex);
+
+        if (indexAbove === index) {
+            return [indexAbove, LEFT];
+        }
+
+        // @ts-ignore
+        if (PIXI.TextMetrics.isNewline(this.text[indexAbove])) {
+            return [indexAbove, RIGHT]
+        }
+
+        return [indexAbove, LEFT]
     }
 
     getGlyphBelow(index) {
@@ -363,7 +379,6 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     lineGlyphRanges() {
-        console.log('lineGlyphRanges')
         const result = [];
         for (let i = 0; i < this.lines.length; i++) {
             result.push(this._getLineGlyphRange(i))
@@ -374,12 +389,10 @@ export class FontAtlasText extends PIXI.Container {
     _getLineGlyphRange(index) {
         const start = index === 0 ? 0 : this._lines[index - 1] + 1;
         const end = this._lines[index];
-        console.log('range', index, '[', start, end, ']')
         return [start, end];
     }
 
     _calculateBounds() {
-        // console.log('_calculateBounds', this._lines)
         const bounds = new PIXI.Rectangle();
         for (let i = 0; i < this._lines.length; i++) {
             const range = this._getLineGlyphRange(i);

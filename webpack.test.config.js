@@ -1,8 +1,6 @@
 const path = require("path");
 const nodeExternals = require('webpack-node-externals');
 
-console.log(nodeExternals());
-
 module.exports = {
   entry: './tests/all_tests.ts',
   mode: 'development',

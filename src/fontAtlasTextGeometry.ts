@@ -152,7 +152,6 @@ export class FontAtlasTextGeometry {
     }
 
     _getGlyphBounds(index : number) {
-        console.log('_getGlyphBounds', index);
         if (typeof index !== "number") {
             throw Error(`Invalid type ${typeof index} -- Expected number`)
         }
@@ -177,7 +176,6 @@ export class FontAtlasTextGeometry {
     }
 
     getBounds(glyphIndexArray: number[]) {
-        console.log('getBounds', glyphIndexArray);
         if (glyphIndexArray.length === 0) {
             return new PIXI.Rectangle();
         }

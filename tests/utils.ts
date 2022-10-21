@@ -36,7 +36,6 @@ export const createFontAtlasTextApp = async(
         height: height,
     });
     document.body.appendChild(app.view)
-    // app.ticker.stop();
 
     const {fontLoader, atlas, text} = await createFontAtlasText(
         displayText,

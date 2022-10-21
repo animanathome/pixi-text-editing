@@ -86,7 +86,6 @@ export class FontAtlasTextCaret extends PIXI.Container {
         let x0, x1, y0, y1;
         // no text
         if (this.fontAtlasText.text.length === 0) {
-            console.log('no text');
             x0 = 0;
             x1 = this.caretWidth;
             y0 = 0;
@@ -99,7 +98,6 @@ export class FontAtlasTextCaret extends PIXI.Container {
             x1 = this.caretWidth;
 
             let line = Math.ceil(vertexArray[7] / lineHeight);
-            console.log('new line', line, this.glyphPosition);
             if (this.glyphPosition === CARET_POSITION.START) {
                line -= 1;
             }
@@ -108,7 +106,6 @@ export class FontAtlasTextCaret extends PIXI.Container {
         }
         // text
         else {
-            console.log('text');
             if (this.glyphPosition === CARET_POSITION.START) {
                 const x = vertexArray[4] < this.caretWidth ? this.caretWidth : vertexArray[4];
                 x0 = x - this.caretWidth;
@@ -131,7 +128,6 @@ export class FontAtlasTextCaret extends PIXI.Container {
             x0, y1,
         ];
 
-        // console.log('caretVertices', caretVertices);
         const caretIndices = [0, 1, 2, 2, 3, 0];
 
         const geometry = new PIXI.Geometry();
