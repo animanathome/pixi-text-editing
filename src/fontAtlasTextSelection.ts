@@ -20,7 +20,8 @@ const fragmentSrc = `
     }
 `;
 
-export class FontAtlasTextSelection extends PIXI.Container {
+// TODO: inherit from Mesh instead!!!
+export class FontAtlasTextSelection extends PIXI.Mesh {
     _glyphSelection = []
     _dirty = false;
     _mesh = undefined;
