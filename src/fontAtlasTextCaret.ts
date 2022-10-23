@@ -83,7 +83,7 @@ export class FontAtlasTextCaret extends PIXI.Container {
 
         const token = this.fontAtlasText.text[this.glyphIndex]
         const vertexArray = this.fontAtlasText.getGlyphVertexArray(this.glyphIndex);
-        const lineHeight = this.fontAtlasText.atlas.fontSize;
+        const lineHeight = this.fontAtlasText.atlas.fontSize * this.fontAtlasText._fontFactor;
 
         let x0, x1, y0, y1;
         // no text
@@ -137,10 +137,6 @@ export class FontAtlasTextCaret extends PIXI.Container {
         geometry.addIndex(caretIndices);
         this._mesh.geometry = geometry;
         this._dirty = false;
-    }
-
-    get hasMesh() {
-        return !!this._mesh;
     }
 
     _createMesh(geometry) {

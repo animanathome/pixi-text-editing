@@ -42,13 +42,9 @@ export class FontAtlasTextManipulator extends PIXI.Container {
     }
 
     click(x : number, y : number, shiftKey : boolean) {
-        console.log('click', x, y);
-
         // localize position
-        console.log(this.text._textMesh.transform.worldTransform);
         const worldMatrix = this.text._textMesh.transform.worldTransform;
         const localPoint = worldMatrix.applyInverse(new PIXI.Point(x, y));
-        console.log('localPoint', localPoint);
 
         const prevGlyphIndex = this.caret.glyphIndex;
         const prevGlyphPosition = this.caret.glyphPosition;
@@ -56,7 +52,6 @@ export class FontAtlasTextManipulator extends PIXI.Container {
         const [glyphIndex, glyphPosition] = this.text.closestGlyph(localPoint.x, localPoint.y);
         this.caret.glyphIndex = Math.max(0, glyphIndex);
         this.caret.glyphPosition = glyphPosition;
-        console.log('result', glyphIndex, glyphPosition);
 
         this._activeGlyph();
         this._glyphSelection(prevGlyphIndex, prevGlyphPosition, shiftKey);

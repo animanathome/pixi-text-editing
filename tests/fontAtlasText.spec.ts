@@ -4,6 +4,7 @@ import {FontAtlasText} from "../src/fontAtlasText";
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import * as PIXI from "pixi.js";
+import {roundBounds} from "./utils";
 
 const createFontAtlasText = async(
     displayText = 'abc',
@@ -11,6 +12,7 @@ const createFontAtlasText = async(
     height = 128,
     fontAtlasSize = 12,
     fontAtlasResolution = 128,
+    fontSize = 12,
     fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf'
 ) => {
     const fontLoader = new FontLoader();
@@ -25,6 +27,7 @@ const createFontAtlasText = async(
 
     const text = new FontAtlasText();
     text.atlas = atlas;
+    text.fontSize = fontSize;
     text.maxHeight = width;
     text.maxWidth = height;
     text.text = displayText;
@@ -38,6 +41,54 @@ const createFontAtlasText = async(
 }
 
 describe('fontAtlasText', () => {
+    it.only('can change font size', async() => {
+        // Assemble + act
+        const {text} = await createFontAtlasText('abc',
+            128, 128, 24, 128,
+            24);
+
+        // Assert
+        let {x, y, width, height} = roundBounds(text.getBounds());
+        expect(x).to.equal(1);
+        expect(y).to.equal(0);
+        expect(width).to.equal(37);
+        expect(height).to.equal(18);
+
+        // Act
+        text.fontSize = 12;
+        text._build();
+
+        // Assert
+        ({x, y, width, height} = roundBounds(text.getBounds()));
+        expect(x).to.equal(1);
+        expect(y).to.equal(0);
+        expect(width).to.equal(19);
+        expect(height).to.equal(9);
+    });
+
+    it.only('can change line height', async() => {
+        // Assemble + act
+        const {text} = await createFontAtlasText('a\nb');
+
+        // Assert
+        let {x, y, width, height} = roundBounds(text.getBounds());
+        expect(x).to.equal(1);
+        expect(y).to.equal(0);
+        expect(width).to.equal(9);
+        expect(height).to.equal(21);
+
+        // Act
+        text.lineHeight = 2.0;
+        text._build();
+
+        // Assert
+        ({x, y, width, height} = roundBounds(text.getBounds()));
+        expect(x).to.equal(1);
+        expect(y).to.equal(0);
+        expect(width).to.equal(9);
+        expect(height).to.equal(33);
+    });
+
     it('can render latin text', async () => {
         // Arrange
         // TODO: look into shared loader

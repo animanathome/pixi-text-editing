@@ -40,6 +40,9 @@ export class FontAtlasText extends PIXI.Container {
     maxWidth = 512;
     maxHeight = 512;
     _atlas = undefined;
+    _fontSize = 12;
+    _lineHeight = 1;
+    _fontFactor = 1;
     align = ALIGN_OPTION.LEFT;
     _tokenIndex = 0;
     _tokens = [];
@@ -70,6 +73,38 @@ export class FontAtlasText extends PIXI.Container {
 
     get text() {
         return this._text;
+    }
+
+    get fontSize() {
+        return this._fontSize;
+    }
+
+    set fontSize(value) {
+        if (value === this.fontSize) {
+            return;
+        }
+        this._fontSize = value;
+        this._dirty = true;
+    }
+
+    get lineHeight() {
+        return this._lineHeight;
+    }
+
+    set lineHeight(value) {
+        if (value === this.lineHeight) {
+            return;
+        }
+        this._lineHeight = value;
+        this._dirty = true;
+    }
+
+    _calculateFontFactor() {
+        if (!this.atlas) {
+            return;
+        }
+        this._fontFactor = this.fontSize / this.atlas.fontSize
+        console.log('fontFactor', this._fontFactor)
     }
 
     get glyphCount() {
@@ -233,6 +268,7 @@ export class FontAtlasText extends PIXI.Container {
         if (!this._dirty) {
             return;
         }
+        this._calculateFontFactor();
         this._deleteMesh();
         this._buildGlyphs();
         this._layoutGlyphs();
@@ -270,8 +306,8 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _addWhitespace(token) {
-        const width = this.atlas.wordSpacing;
-        const height = this.atlas.fontSize;
+        const width = this.atlas.wordSpacing * this._fontFactor;
+        const height = this.atlas.fontSize * this._fontFactor;
         const glyphIndex = this._fontAtlasTextGeometry.addWhitespace(token, width, height);
 
         this._tokens.push({
@@ -288,16 +324,16 @@ export class FontAtlasText extends PIXI.Container {
         const glyphIds = this.atlas.getGlyphsForWord(word);
 
         const width = glyphIds
-                .map(glyphId => this.atlas.glyph[glyphId].advanceWidth)
+                .map(glyphId => this.atlas.glyph[glyphId].advanceWidth * this._fontFactor)
                 .reduce((a, b) => a + b);
-        const advanceHeight = this.atlas.glyph[glyphIds[0]].advanceHeight;
+        const advanceHeight = this.atlas.glyph[glyphIds[0]].advanceHeight * this._fontFactor;
 
         let xOffset = 0;
         const glyphIndexBounds = [];
         const wordIndices = []
         glyphIds.forEach((id, index) => {
             const metrics = this.atlas.glyph[id];
-            const glyphIndex = this._fontAtlasTextGeometry.addGlyph(id, metrics);
+            const glyphIndex = this._fontAtlasTextGeometry.addGlyph(id, metrics, this._fontFactor);
             if (index === 0) {
                 glyphIndexBounds.push(glyphIndex);
             }
@@ -305,7 +341,7 @@ export class FontAtlasText extends PIXI.Container {
                 glyphIndexBounds.push(glyphIndex);
             }
             this._fontAtlasTextGeometry.moveGlyph(glyphIndex, xOffset, 0);
-            xOffset += metrics.advanceWidth;
+            xOffset += metrics.advanceWidth * this._fontFactor;
 
             wordIndices.push(this._tokenIndex++)
         });
@@ -327,9 +363,9 @@ export class FontAtlasText extends PIXI.Container {
         this._lines = [];
         this._tokens.forEach(token => {
 
-            if (xOffset + token.width > this.maxWidth) { // new line
+            if (xOffset + (token.width * this._fontFactor) > this.maxWidth) { // new line
                 xOffset = 0;
-                yOffset += this.atlas.fontSize;
+                yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
 
                 this._lines.push(lineCount);
             }
@@ -347,7 +383,7 @@ export class FontAtlasText extends PIXI.Container {
             // @ts-ignore
             if (PIXI.TextMetrics.isNewline(token.token)) { // new line
                 xOffset = 0;
-                yOffset += this.atlas.fontSize;
+                yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
 
                 this._lines.push(lineCount);
            }
@@ -374,7 +410,9 @@ export class FontAtlasText extends PIXI.Container {
             uColor: color,
         };
         const shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
+        console.log('shader precision', shader.program.fragmentSrc);
         const mesh = new PIXI.Mesh(geometry, shader);
+        console.log('mesh round pixels', mesh.roundPixels)
         this._textMesh = mesh;
         this.addChild(mesh);
     }

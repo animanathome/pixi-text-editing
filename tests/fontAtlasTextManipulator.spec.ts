@@ -23,7 +23,6 @@ describe('FontAtlasTextManipulator', () => {
             app.ticker.update();
 
             // Assert
-            expect(manipulator.caret.hasMesh).to.be.true;
             expect(manipulator.caret.getBounds().x).to.equal(0);
             expect(manipulator.caret.getBounds().y).to.equal(0);
         });
@@ -48,7 +47,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -60,7 +58,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -72,7 +69,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -84,7 +80,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
                 });
@@ -105,7 +100,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -116,7 +110,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
                 });
@@ -139,7 +132,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -151,7 +143,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(7);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -163,7 +154,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -175,7 +165,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -187,7 +176,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -199,7 +187,6 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
                 });
@@ -225,7 +212,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -237,7 +224,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -250,7 +237,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -263,7 +250,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
                 })
@@ -284,7 +271,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -295,7 +282,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -306,7 +293,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
                 })
@@ -328,7 +315,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -340,7 +327,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -352,7 +339,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -364,7 +351,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(7);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -377,7 +364,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -390,7 +377,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
                 })
@@ -417,7 +404,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -429,7 +416,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -441,7 +428,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
                 });
@@ -464,7 +451,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -476,7 +463,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -488,7 +475,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -515,7 +502,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -527,7 +514,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -540,7 +527,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -553,7 +540,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
                 });
@@ -575,7 +562,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
@@ -587,7 +574,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
@@ -600,7 +587,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
 
@@ -613,7 +600,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(manipulator.caret.hasMesh).to.be.true;
+
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
                 });
@@ -666,7 +653,6 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(15);
                 expect(bounds.y).to.equal(0);
@@ -683,7 +669,6 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(15);
                 expect(bounds.y).to.equal(0);
@@ -712,7 +697,6 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
@@ -740,7 +724,6 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
                 const bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
@@ -766,7 +749,7 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
+
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(15);
                 expect(bounds.y).to.equal(0);
@@ -783,7 +766,7 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
+
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(15);
                 expect(bounds.y).to.equal(0);
@@ -812,7 +795,7 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
+
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
@@ -832,7 +815,7 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
+
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
@@ -855,7 +838,7 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-                expect(manipulator.drawSelection.hasMesh).to.be.true;
+
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
@@ -885,7 +868,7 @@ describe('FontAtlasTextManipulator', () => {
             // Assert
             expect(text.text).to.equal("");
             expect(manipulator._activeGlyph()).to.eql([0, 0]);
-            expect(manipulator.caret.hasMesh).to.be.true;
+
 
             // Act - add word
             manipulator.onInput('H')
@@ -899,7 +882,7 @@ describe('FontAtlasTextManipulator', () => {
             writeDataUrlToDisk(app.view.toDataURL(), 'test')
             expect(text.text).to.equal("Hello");
             expect(manipulator._activeGlyph()).to.eql([4, 1]);
-            expect(manipulator.caret.hasMesh).to.be.true;
+
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(1);
             expect(bounds.y).to.equal(0);
@@ -1112,7 +1095,7 @@ describe('FontAtlasTextManipulator', () => {
         writeDataUrlToDisk(app.view.toDataURL(), 'test')
         expect(text.text).to.equal('');
         expect(manipulator._activeGlyph()).to.eql([0,0])
-        expect(manipulator.caret.hasMesh).to.be.true;
+
         let bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
         expect(bounds.y).to.equal(0);
@@ -1131,7 +1114,7 @@ describe('FontAtlasTextManipulator', () => {
         writeDataUrlToDisk(app.view.toDataURL(), 'test')
         expect(text.text).to.equal('World');
         expect(manipulator._activeGlyph()).to.eql([4, 1]);
-        expect(manipulator.caret.hasMesh).to.be.true;
+
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
         expect(bounds.y).to.equal(0);
@@ -1150,7 +1133,7 @@ describe('FontAtlasTextManipulator', () => {
         writeDataUrlToDisk(app.view.toDataURL(), 'test')
         expect(text.text).to.equal('world');
         expect(manipulator._activeGlyph()).to.eql([0, 0]);
-        expect(manipulator.caret.hasMesh).to.be.true;
+
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
         expect(bounds.y).to.equal(0);
@@ -1166,7 +1149,7 @@ describe('FontAtlasTextManipulator', () => {
         writeDataUrlToDisk(app.view.toDataURL(), 'test')
         expect(text.text).to.equal('a world');
         expect(manipulator._activeGlyph()).to.eql([2, 0]);
-        expect(manipulator.caret.hasMesh).to.be.true;
+
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(1);
         expect(bounds.y).to.equal(0);
@@ -1187,7 +1170,7 @@ describe('FontAtlasTextManipulator', () => {
         writeDataUrlToDisk(app.view.toDataURL(), 'test')
         expect(text.text).to.equal("What a world");
         expect(manipulator._activeGlyph()).to.eql([5, 0]);
-        expect(manipulator.caret.hasMesh).to.be.true;
+
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
         expect(bounds.y).to.equal(0);

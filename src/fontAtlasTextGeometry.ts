@@ -201,8 +201,8 @@ export class FontAtlasTextGeometry {
         return this.addGlyph(id, metrics)
     }
 
-    addGlyph(id, metrics) {
-        const vertices = this._generateGlyphVertices(metrics);
+    addGlyph(id, metrics, multi = 1) {
+        const vertices = this._generateGlyphVertices(metrics, multi);
 
         // vertex order to create a triangle/polygon
         const indexOffset = this._glyph.length * 4;
@@ -245,11 +245,11 @@ export class FontAtlasTextGeometry {
     }
 
     // renaming to vertex array
-    _generateGlyphVertices(metrics) {
-        const x0 = 0 + metrics.leftBearing;
-        const x1 = metrics.width + metrics.leftBearing;
-        const y0 = 0 + metrics.topBearing;
-        const y1 = metrics.height + metrics.topBearing;
+    _generateGlyphVertices(metrics, multi) {
+        const x0 = (0 + metrics.leftBearing) * multi;
+        const x1 = (metrics.width + metrics.leftBearing) * multi;
+        const y0 = (0 + metrics.topBearing) * multi;
+        const y1 = (metrics.height + metrics.topBearing) * multi;
 
         const glyphVertices = [
             x1, y1,

@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import {FontAtlasText} from "./fontAtlasText";
-import {printVertexArray} from "./utils";
 
 const vertexSrc = `    
     attribute vec2 aVertexPosition;
@@ -20,8 +19,7 @@ const fragmentSrc = `
     }
 `;
 
-// TODO: inherit from Mesh instead!!!
-export class FontAtlasTextSelection extends PIXI.Mesh {
+export class FontAtlasTextSelection extends PIXI.Container {
     _glyphSelection = []
     _dirty = false;
     _mesh = undefined;
@@ -30,6 +28,7 @@ export class FontAtlasTextSelection extends PIXI.Mesh {
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this.fontAtlasText = fontAtlasText;
+        this._createMesh();
     }
 
     get empty() {
@@ -62,9 +61,8 @@ export class FontAtlasTextSelection extends PIXI.Mesh {
             return;
         }
 
-        this._deleteMesh();
-
         if (this._glyphSelection.length === 0) {
+            this._mesh.visible = false;
             return;
         }
 
@@ -90,12 +88,13 @@ export class FontAtlasTextSelection extends PIXI.Mesh {
         else {
             geometry = this._multiLine(start, end)
         }
-        this._createMesh(geometry);
+        this._mesh.geometry = geometry;
+        this._mesh.visible = true;
         this._dirty = false;
     }
 
     _singleLine(start, end) : PIXI.Geometry {
-        const lineHeight = this.fontAtlasText.atlas.fontSize
+        const lineHeight = this.fontAtlasText.atlas.fontSize * this.fontAtlasText._fontFactor;
         const line = Math.ceil(start[7] / lineHeight);
 
         const x0 = start[4];
@@ -125,7 +124,7 @@ export class FontAtlasTextSelection extends PIXI.Mesh {
         const minX = bounds.x
         const maxX = bounds.x + bounds.width;
 
-        const lineHeight = this.fontAtlasText.atlas.fontSize
+        const lineHeight = this.fontAtlasText.atlas.fontSize * this.fontAtlasText._fontFactor;
         const line = Math.ceil(start[7] / lineHeight);
         const lines = Math.ceil((end[1] - start[3]) / lineHeight);
 
@@ -176,19 +175,13 @@ export class FontAtlasTextSelection extends PIXI.Mesh {
         return geometry
     }
 
-    get hasMesh() {
-        return !!this._mesh;
-    }
-
-    _deleteMesh() {
-        if (!this._mesh) {
-            return;
+    _createMesh(geometry = undefined) {
+        if (!geometry) {
+            geometry = new PIXI.Geometry();
+            geometry.addAttribute('aVertexPosition', [0, 0, 0, 0, 0, 0], 2);
+            geometry.addIndex([0, 1, 2])
         }
-        this._mesh.destroy(true);
-        this._mesh = null;
-    }
 
-    _createMesh(geometry) {
         const color = [0.75, 0, 0, 0.75];
         const uniforms = {
             uColor: color,

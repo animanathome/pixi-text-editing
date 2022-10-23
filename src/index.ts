@@ -13,10 +13,22 @@ import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 const pseudoText = 'Hello\nWorld\n'
 
 const textEditingDemo = async() => {
+    // @ts-ignore
+    PIXI.settings.PRECISION_FRAGMENT = 'highp';
+    // @ts-ignore
+    PIXI.settings.PRECISION_VERTEX = 'highp';
+    PIXI.settings.ROUND_PIXELS = true;
+
     const app = new PIXI.Application({
         backgroundColor: 0xffffff,
-        antialias: true,
+        antialias: false,
+        // transparent: true,
+        height: 512,
+        width: 512,
     });
+    console.log(app.renderer)
+    // app.renderer.multisample = 8;
+
     document.body.appendChild(app.view);
     app.view.style.position = 'absolute';
     app.view.style.top = '0px';
@@ -35,8 +47,8 @@ const textEditingDemo = async() => {
     // pre-built characters
     const atlas = new FontAtlas({
         font: fontLoader.font,
-        resolution: 256,
-        fontSize: 24,
+        resolution: 512,
+        fontSize: 48,
     })
     global.atlas = atlas;
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
@@ -48,6 +60,8 @@ const textEditingDemo = async() => {
     text.x = 20;
     text.y = 20;
     text.atlas = atlas;
+    text.fontSize = 12;
+    text.lineHeight = 2;
     text.maxHeight = 128;
     text.maxWidth = 128;
     // TODO: add fontSize
@@ -59,17 +73,16 @@ const textEditingDemo = async() => {
     const events = new EditingEvents(app.view, app.stage);
     global.events = events;
 
-    let textureCount = 0;
-    // @ts-ignore
-    events.on('change', () => {
-        if (textureCount !== atlas.texture.length) {
-            const texture = atlas.texture[textureCount];
-            const sprite = new PIXI.Sprite(texture);
-            sprite.y = 100 + (textureCount * 128);
-            app.stage.addChild(sprite)
-            textureCount++
-        }
-    })
+
+    const texture = atlas.texture[0];
+    const sprite = new PIXI.Sprite(texture);
+    sprite.y = 128;
+    app.stage.addChild(sprite)
+
+    document.body.appendChild(atlas.canvas);
+    atlas.canvas.style.position = 'absolute';
+    atlas.canvas.style.top = '334px';
+
 }
 
 textEditingDemo();
