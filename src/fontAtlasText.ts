@@ -11,9 +11,33 @@ const vertexSrc = `
     
     varying vec2 vUvs;
     
+    // curve
+    uniform sampler2D texture;
+    uniform float pathOffset;
+    uniform float pathSegment;
+    uniform float spineOffset;
+    uniform float spineLength;
+    uniform int flow;
+    float textureLayers = 4.; // look up takes (i + 0.5) / textureLayers
+    
     void main() {
+        vec4 worldPos = vec4(aVertexPosition.xy, 0.0, 1.0);
+        bool bend = flow > 0;
+        float xWeight = bend ? 0.0 : 1.0;
+        float spinePortion = bend ? (worldPos.x + spineOffset) / spineLength : 0.;
+        float mt = spinePortion * pathSegment + pathOffset;
+        
+        vec3 spinePos = texture2D(texture, vec2(mt, (0.5) / textureLayers)).xyz;
+        vec3 a = texture2D(texture, vec2(mt, (1. + 0.5) / textureLayers)).xyz;
+        vec3 b = texture2D(texture, vec2(mt, (2. + 0.5) / textureLayers)).xyz;
+        vec3 c = vec3(0.0, 0.0, 1.0);
+        mat3 basis = mat3(a, b, c);
+        
+        vec3 transformed = basis
+                * vec3(worldPos.x * xWeight, worldPos.y * 1., 0)
+                + spinePos;
         vUvs = aUvs;
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(transformed.xy, 1.0)).xy, 0.0, 1.0);
     }
 `;
 
@@ -27,12 +51,6 @@ const fragmentSrc = `
     }
 `;
 
-export enum ALIGN_OPTION {
-    LEFT,
-    CENTER,
-    RIGHT
-}
-
 export class FontAtlasText extends PIXI.Container {
     _text = 'hello world!';
     _textMesh = null;
@@ -43,8 +61,16 @@ export class FontAtlasText extends PIXI.Container {
     _fontSize = 12;
     _lineHeight = 1;
     _fontFactor = 1;
-    align = ALIGN_OPTION.LEFT;
     _tokenIndex = 0;
+
+    // curve deformer
+    _curveTexture = undefined;
+    _pathSegment = 1;
+    _spineOffset = 0;
+    _spineLength = 1;
+    _pathOffset = 0;
+    _flow = 1;
+
     _tokens = [];
     _lines = [];
     _words = [];
@@ -97,6 +123,58 @@ export class FontAtlasText extends PIXI.Container {
         }
         this._lineHeight = value;
         this._dirty = true;
+    }
+
+    _setUniform(property, value) {
+        if (!this._textMesh) {
+            return
+        }
+        this._textMesh.shader.uniforms[property] = value;
+    }
+
+    get pathOffset() {
+        return this._pathOffset;
+    }
+
+    set pathOffset(value) {
+        this._pathOffset = value;
+        this._setUniform('pathOffset', value);
+    }
+
+    get pathSegment() {
+        return this._pathSegment;
+    }
+
+    set pathSegment(value) {
+        this._pathSegment = value;
+        this._setUniform('pathSegment', value);
+    }
+
+    set flow(value) {
+        this._flow = value;
+        this._setUniform('flow', value);
+    }
+
+    get flow() {
+        return this._flow;
+    }
+
+    get spineOffset() {
+        return this._spineOffset;
+    }
+
+    set spineOffset(value) {
+        this._spineOffset = value;
+        this._setUniform('spineOffset', value);
+    }
+
+    get spineLength() {
+        return this._spineLength;
+    }
+
+    set spineLength(value) {
+        this._spineLength = value;
+        this._setUniform('spineLength', value);
     }
 
     _calculateFontFactor() {
@@ -404,15 +482,23 @@ export class FontAtlasText extends PIXI.Container {
 
     _createMesh() {
         const geometry = this._fontAtlasTextGeometry.build();
-        const color = [1.0, 1.0, 1.0, 1.0];
+        const color = [1.0, 0.0, 0.0, 1.0];
         const uniforms = {
+            // color
             uSampler2: this.atlas.texture[0],
             uColor: color,
+
+            // deform
+            texture: this._curveTexture,
+            pathOffset: this._pathOffset,
+            pathSegment: this._pathSegment,
+            spineOffset: this._spineOffset,
+            spineLength: this._spineLength,
+            flow: this._flow,
         };
-        const shader = PIXI.Shader.from(vertexSrc, fragmentSrc, uniforms);
-        console.log('shader precision', shader.program.fragmentSrc);
+        const shader = PIXI.Shader.from(
+            vertexSrc, fragmentSrc, uniforms);
         const mesh = new PIXI.Mesh(geometry, shader);
-        console.log('mesh round pixels', mesh.roundPixels)
         this._textMesh = mesh;
         this.addChild(mesh);
     }

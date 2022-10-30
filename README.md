@@ -1,37 +1,25 @@
-pr to refactor: https://github.com/Lumen5/luminary/pull/3662/files
+TODO
+- [ ] Text editing mesh generation. When the text gets transformed it jumps back and forward between the origin and the final position while editing. That's because we destroy and re-create the mesh for every edit. We should instead edit the geometry.
+
+Add bend option:
+https://github.com/zz85/threejs-path-flow
+https://github.com/zz85/threejs-path-flow/blob/gh-pages/flow.js
+https://github.com/zz85/threejs-path-flow/blob/gh-pages/bend.html
+
+Layering geometry
+In one shader? Or multiple?
+
+https://jsfiddle.net/d7vjzgbc/2/
+
+// 1 mesh, 2 materials
+https://jsfiddle.net/osvugLyq/10/
 
 
-https://www.learnwithjason.dev/blog/learn-rollup-js
+how can we subtract one shape from another?
+https://medium.com/@Zadvorsky/webgl-masking-composition-75b82dd4cdfd
+https://stackoverflow.com/questions/18550226/images-and-mask-in-opengl-es-2-0
+
+// batch rendering
+https://www.npmjs.com/package/pixi-batch-renderer
 
 
-
-
-|t|e|x|t| | |m|e|
-
-0 - t
-1 - e
-2 - x
-3 - t
-4 - space
-5 - space
-6 - m
-7 - e
-8 - space (end of line)
-
-
-string -> tokens -> glyphs -> generate geometry
-                      |
-                      V
-                  selection
-
-for each token in text:
-  - get metrics (if available, what about spaces and new lines?)
-  - represent as rectangle (4 points)
-  - collect all rectangle as points
-  - transform individual token
-
-then
-  - transform all tokens as points (if necessary) -> deformers
-
-  - create a rectangle for each token used for selection
-  - if necessary, create a vertex (rectangle), index and uv array for each token for rendering
