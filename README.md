@@ -1,5 +1,5 @@
 TODO
-- [ ] Text editing mesh generation. When the text gets transformed it jumps back and forward between the origin and the final position while editing. That's because we destroy and re-create the mesh for every edit. We should instead edit the geometry.
+- [ ] Add more subdivisions in x for selection so we can properly deform it.
 
 Add bend option:
 https://github.com/zz85/threejs-path-flow
