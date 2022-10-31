@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js'
+import * as dat from 'dat.gui';
+
 import {FontLoader} from "./fontLoader";
 import {FontAtlas} from "./fontAtlas";
 import {FontAtlasText} from "./fontAtlasText";
@@ -243,6 +245,17 @@ const textEditingDemo = async() => {
 
     const events = new EditingEvents(app.view, app.stage);
     global.events = events;
+
+    const gui = new dat.GUI();
+    const params = {
+        path: 0,
+        flow: text.flow,
+        spineOffset: text.spineOffset,
+        pathOffset: text.pathOffset,
+    }
+    gui.add( params, 'flow' ).onChange( value => text.flow = value );
+    gui.add( params, 'spineOffset').onChange( value => text.spineOffset = value )
+    gui.add( params, 'pathOffset').onChange( value => text.pathOffset = value )
 
     // parent curve texture to dom
     // const sprite = new PIXI.Sprite(dataTexture);

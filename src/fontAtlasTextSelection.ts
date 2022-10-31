@@ -117,7 +117,49 @@ export class FontAtlasTextSelection extends PIXI.Container {
         this._dirty = false;
     }
 
-    _singleLine(start, end) : PIXI.Geometry {
+    _subdivideRectangle(x0 : number, y0 : number, x1 : number, y1 : number, segments = 1) {
+        const xOffset = (x1 - x0) / segments;
+        const xpos = []
+        for (let i = 0; i < (segments + 1); i++) {
+            xpos.push(x0 + (xOffset * i));
+        }
+
+        const vertices = [];
+        for (let i = 0; i < xpos.length; i++) {
+            // bottom
+            vertices.push(xpos[i]);
+            vertices.push(y1);
+
+            // top
+            vertices.push(xpos[i]);
+            vertices.push(y0);
+        }
+
+        const indices = [];
+        for (let i = 0; i < (vertices.length - 4) / 4; i++) {
+            const indexOffset = i * 2;
+            const f0 = [
+                indexOffset + 0,
+                indexOffset + 1,
+                indexOffset + 3
+            ]
+
+            const f1 = [
+                indexOffset + 0,
+                indexOffset + 3,
+                indexOffset + 2
+            ]
+            indices.push(...f0);
+            indices.push(...f1);
+        }
+
+        return {
+            vertices,
+            indices
+        }
+    }
+
+    _singleLine(start, end, segments = 10) : PIXI.Geometry {
         const lineHeight = this.fontAtlasText.atlas.fontSize * this.fontAtlasText._fontFactor;
         const line = Math.ceil(start[7] / lineHeight);
 
@@ -125,17 +167,7 @@ export class FontAtlasTextSelection extends PIXI.Container {
         const x1 = end[0];
         const y0 = (line - 1) * lineHeight;
         const y1 = line * lineHeight;
-
-        const vertices = [
-            x1, y1,
-            x1, y0,
-            x0, y0,
-            x0, y1,
-        ];
-        const indices = [
-            0, 1, 2,
-            2, 3, 0
-        ];
+        const {vertices, indices} = this._subdivideRectangle(x0, y0, x1, y1, 10);
 
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', vertices, 2);
