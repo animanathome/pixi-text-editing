@@ -12,10 +12,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bezier-js": "^6.1.0",
     "fontkit-next": "^1.8.3",
     "lodash": "^4.17.21",
-    "pixi.js": "^6.2.0"
+    "pixi.js": "^6.2.0",
+    "three": "^0.146.0"
   },
   "devDependencies": {
     "@types/chai": "^4.3.0",
