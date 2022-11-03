@@ -51,6 +51,7 @@ const fragmentSrc = `
     }
 `;
 
+
 export class FontAtlasText extends PIXI.Container {
     _text = 'hello world!';
     _textMesh = null;
@@ -65,6 +66,7 @@ export class FontAtlasText extends PIXI.Container {
 
     // curve deformer
     _curveTexture = undefined;
+    _curveData = undefined;
     _pathSegment = 1;
     _spineOffset = 0;
     _spineLength = 1;
@@ -198,21 +200,33 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     containsGlyph(x: number, y: number) {
+        if (this._curveData) {
+            ({x, y} = this._curveData.invertPosition(x, y));
+        }
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.containsGlyph(x, y, {start: 0, end: glyphCount});
     }
 
     closestGlyph(x: number, y: number) {
+        if (this._curveData) {
+            ({x, y} = this._curveData.invertPosition(x, y));
+        }
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.closestGlyph(x, y, {start: 0, end: glyphCount});
     }
 
     closestWord(x: number, y: number) {
+        if (this._curveData) {
+            ({x, y} = this._curveData.invertPosition(x, y));
+        }
         const [index, _] = this.closestGlyph(x, y);
         return this.glyphWordIndex(index);
     }
 
     closestLine(x: number, y: number) {
+        if (this._curveData) {
+            ({x, y} = this._curveData.invertPosition(x, y));
+        }
         const [index, _] = this.closestGlyph(x, y);
         return this.glyphLineIndex(index);
     }

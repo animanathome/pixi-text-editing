@@ -5,8 +5,8 @@ import {FloatBufferResource} from "./FloatBufferResource";
 
 const BITS = 3;
 
-export const buildCurveData = (points, nSegments = 20) => {
-    const curve = new THREE.CatmullRomCurve3(points, true, 'catmullrom', 0.825)
+export const buildCurveData = (points, nSegments = 20, closed = true) => {
+    const curve = new THREE.CatmullRomCurve3(points, closed, 'catmullrom', 0.825)
     const positions = curve.getSpacedPoints( nSegments );
     const {binormals, tangents} = curve.computeFrenetFrames(nSegments, false);
 

@@ -10,6 +10,34 @@ import {createFontAtlasTextApp} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
 
+const curveDemo = async() => {
+    const app = new PIXI.Application({
+        backgroundColor: 0xffffff,
+        antialias: true,
+        height: 512,
+        width: 512,
+    });
+
+    document.body.appendChild(app.view);
+    app.view.style.position = 'absolute';
+    app.view.style.top = '0px';
+    app.view.style.left = '0px';
+    global.app = app;
+
+    const offsetX = 100;
+    const offsetY = 100;
+    const points = [
+        new THREE.Vector3( 0 + offsetX, 0 + offsetY, 0),
+        new THREE.Vector3( 50 + offsetX, 0 + offsetY, 0),
+        new THREE.Vector3( 100 + offsetX, 0 + offsetY, 0),
+    ]
+    const nSegments = 2;
+    const {positions, tangents, normals} = buildCurveData(points, nSegments, false);
+    buildCurve(positions, tangents, normals, app.stage);
+}
+
+curveDemo();
+
 const textEditingDemo = async() => {
     // @ts-ignore
     PIXI.settings.PRECISION_FRAGMENT = 'highp';
@@ -42,10 +70,9 @@ const textEditingDemo = async() => {
         new THREE.Vector3( radius + offsetX, radius + offsetY, 0),
         new THREE.Vector3( radius + offsetX, 0 + offsetY, 0),
     ]
-
     const nSegments = 32;
     const {positions, tangents, normals, length} = buildCurveData(points, nSegments);
-    // buildCurve(positions, tangents, normals, app.stage);
+    buildCurve(positions, tangents, normals, app.stage);
     const dataTexture = createCurveTexture(positions, normals, tangents);
 
     // load the font
@@ -84,6 +111,12 @@ const textEditingDemo = async() => {
     app.stage.addChild(text);
     global.text = text;
     text._curveTexture = dataTexture
+    text._curveData = {
+        positions,
+        tangents,
+        normals,
+        length
+    }
 
     const events = new EditingEvents(app.view, app.stage);
     global.events = events;
@@ -111,7 +144,7 @@ const textEditingDemo = async() => {
     // atlas.canvas.style.top = '334px';
 }
 
-textEditingDemo();
+// textEditingDemo();
 
 const test = async() => {
     const {app, text} = await createFontAtlasTextApp(
