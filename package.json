@@ -6,7 +6,9 @@
   "private": true,
   "scripts": {
     "build": "webpack --config webpack.prod.config.js",
-    "test": "webpack --config webpack.test.config.js && floss --path dist/test.js",
+    "test:build": "webpack --config webpack.test.config.js",
+    "test:run": "floss --path dist/test.js",
+    "test": "npm run test:build && npm run test:run",
     "server": "python3 -m http.server"
   },
   "author": "",
