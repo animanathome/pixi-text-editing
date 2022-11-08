@@ -23,6 +23,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: echo $(pwd)
       - run: echo $NODE_ENV
+      - run: npm install -g floss electron
       - run: npm install --production=false
       - run: npm run test:build
       - run: bash ./file_check.sh
