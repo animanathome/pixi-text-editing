@@ -4,4 +4,5 @@
 // import('./fontAtlasTextCaret.spec');
 // import('./fontAtlasTextSelection.spec');
 // import('./fontAtlasTextManipulator.spec');
-import('./curveData.spec');
+// import('./curveData.spec');
+import('./test.spec');

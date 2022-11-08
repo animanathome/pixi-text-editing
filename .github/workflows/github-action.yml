@@ -25,4 +25,5 @@ jobs:
       - run: npm run test:build
       - run: echo $(pwd)
       - run: bash ./file_check.sh
+      - run: floss -h
       - run: npm run test:run
