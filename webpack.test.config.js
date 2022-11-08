@@ -3,6 +3,7 @@ const nodeExternals = require('webpack-node-externals');
 
 module.exports = {
   entry: './tests/all_tests.ts',
+  watch: false,
   mode: 'development',
   target: 'node',
   externals: [nodeExternals()],
