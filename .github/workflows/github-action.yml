@@ -28,4 +28,4 @@ jobs:
       - run: npm run test:build
       - run: bash ./file_check.sh
       - run: floss -h
-      - run: npm run test:run
+      - run: floss --path ./dist/test.js
