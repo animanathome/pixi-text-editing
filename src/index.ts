@@ -22,7 +22,7 @@ const curveDemo = async() => {
     app.view.style.position = 'absolute';
     app.view.style.top = '0px';
     app.view.style.left = '0px';
-    global.app = app;
+    // global.app = app;
 
     const offsetX = 100;
     const offsetY = 100;
@@ -59,7 +59,7 @@ const textEditingDemo = async() => {
     app.view.style.position = 'absolute';
     app.view.style.top = '0px';
     app.view.style.left = '0px';
-    global.app = app;
+    // global.app = app;
 
     const offsetX = 100;
     const offsetY = 100;
@@ -80,7 +80,7 @@ const textEditingDemo = async() => {
     const url = 'http://localhost:8000/resources/Roboto-Regular.ttf'
     fontLoader.sourceUrl = url;
     await fontLoader.load();
-    global.font = fontLoader;
+    // global.font = fontLoader;
 
     // pre-built characters
     const atlas = new FontAtlas({
@@ -88,7 +88,7 @@ const textEditingDemo = async() => {
         resolution: 512,
         fontSize: 48,
     })
-    global.atlas = atlas;
+    // global.atlas = atlas;
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
     atlas.addGlyphsForString('_-.!?');
@@ -109,7 +109,7 @@ const textEditingDemo = async() => {
     text.flow = 1;
     text.text = 'Hello World! How are you?';
     app.stage.addChild(text);
-    global.text = text;
+    // global.text = text;
     text._curveTexture = dataTexture
     text._curveData = {
         positions,
@@ -119,7 +119,7 @@ const textEditingDemo = async() => {
     }
 
     const events = new EditingEvents(app.view, app.stage);
-    global.events = events;
+    // global.events = events;
 
     // interactive UI
     const gui = new dat.GUI();
@@ -152,7 +152,7 @@ const test = async() => {
     64,
     64
     );
-    global.app = app;
+    // global.app = app;
 
     text.x = 10;
     text.y = 10;
@@ -160,7 +160,7 @@ const test = async() => {
     const manipulator = new FontAtlasTextManipulator(text);
     manipulator.caret.caretVisibleDuration = 0;
     app.stage.addChildAt(manipulator, 0);
-    global.manip = manipulator;
+    // global.manip = manipulator;
 
     manipulator.click(0, 0, false);
     app.ticker.update();
