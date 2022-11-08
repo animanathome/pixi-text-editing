@@ -21,9 +21,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: npm i
-      - run: npm run test:build
       - run: echo $(pwd)
+      - run: echo $NODE_ENV
+      - run: npm install --production=false
+      - run: npm run test:build
       - run: bash ./file_check.sh
       - run: floss -h
       - run: npm run test:run
