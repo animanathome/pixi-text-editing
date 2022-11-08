@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: 16
       - run: npm install -g floss electron
-      - run: npm install --production=false
+      - run: npm install
       - run: npm run test:build
       - uses: GabrielBB/xvfb-action@v1.6
         with:
