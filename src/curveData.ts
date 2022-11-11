@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {dist} from "./utils";
+import {buildCurveData} from "./curveDeformer";
 
 export class CurveData {
     _positions = undefined;
@@ -9,6 +10,18 @@ export class CurveData {
         this._positions = positions;
         this._tangents = tangents;
         this._normals = normals;
+    }
+
+    get positions() {
+        return this._positions;
+    }
+
+    get tangents() {
+        return this._tangents;
+    }
+
+    get normals() {
+        return this._normals;
     }
 
     getMatrix(index) {
@@ -48,5 +61,10 @@ export class CurveData {
         const invMatrix = this.getMatrix(index).invert();
         const vec3 = new THREE.Vector3(x, y, 0).applyMatrix4(invMatrix);
         return {x: vec3.x, y: vec3.y};
+    }
+
+    static fromCurve(points, nSegments, closed = false) {
+        const {positions, tangents, normals} = buildCurveData(points, nSegments, closed);
+        return new CurveData(positions, tangents, normals);
     }
 }

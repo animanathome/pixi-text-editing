@@ -6,9 +6,10 @@ import {FontLoader} from "./fontLoader";
 import {FontAtlas} from "./fontAtlas";
 import {FontAtlasText} from "./fontAtlasText";
 import {EditingEvents} from "./events";
-import {createFontAtlasTextApp} from "../tests/utils";
+import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
+import {CurveData} from "./curveData";
 
 const curveDemo = async() => {
     const app = new PIXI.Application({
@@ -36,7 +37,7 @@ const curveDemo = async() => {
     buildCurve(positions, tangents, normals, app.stage);
 }
 
-curveDemo();
+// curveDemo();
 
 const textEditingDemo = async() => {
     // @ts-ignore
@@ -77,10 +78,9 @@ const textEditingDemo = async() => {
 
     // load the font
     const fontLoader = new FontLoader();
-    const url = 'http://localhost:8000/resources/Roboto-Regular.ttf'
+    const url = LOCALHOST + 'Roboto-Regular.ttf'
     fontLoader.sourceUrl = url;
     await fontLoader.load();
-    // global.font = fontLoader;
 
     // pre-built characters
     const atlas = new FontAtlas({
@@ -110,13 +110,8 @@ const textEditingDemo = async() => {
     text.text = 'Hello World! How are you?';
     app.stage.addChild(text);
     // global.text = text;
-    text._curveTexture = dataTexture
-    text._curveData = {
-        positions,
-        tangents,
-        normals,
-        length
-    }
+    // text._curveTexture = dataTexture
+    // text._curveData = new CurveData(positions, tangents, normals);
 
     const events = new EditingEvents(app.view, app.stage);
     // global.events = events;
@@ -144,7 +139,7 @@ const textEditingDemo = async() => {
     // atlas.canvas.style.top = '334px';
 }
 
-// textEditingDemo();
+textEditingDemo();
 
 const test = async() => {
     const {app, text} = await createFontAtlasTextApp(

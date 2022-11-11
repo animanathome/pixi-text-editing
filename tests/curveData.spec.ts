@@ -5,6 +5,23 @@ import {buildCurveData} from "../src/curveDeformer";
 import {CurveData} from "../src/curveData";
 
 describe('curveData', () => {
+    it('from curve', () => {
+        // Assemble
+        const points = [
+            new THREE.Vector3( 0, 0, 0),
+            new THREE.Vector3( 50, 0, 0),
+            new THREE.Vector3( 100, 0, 0),
+        ]
+
+        // Act
+        const curveData = CurveData.fromCurve(points, 2, false);
+
+        // Assert
+        expect(curveData.positions.length).to.equal(3);
+        expect(curveData.tangents.length).to.equal(3);
+        expect(curveData.normals.length).to.equal(3);
+    })
+
     it('can get closest index', () => {
         // Assemble
         const points = [

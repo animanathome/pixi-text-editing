@@ -3,12 +3,11 @@ import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
 
-const vertexSrc = `
+const deformVertexSrc = `
     attribute vec2 aVertexPosition;
     attribute vec2 aUvs;
     uniform mat3 projectionMatrix;
     uniform mat3 translationMatrix;
-    
     varying vec2 vUvs;
     
     // curve
@@ -36,10 +35,23 @@ const vertexSrc = `
         vec3 transformed = basis
                 * vec3(worldPos.x * xWeight, worldPos.y * 1., 0)
                 + spinePos;
-        vUvs = aUvs;
         gl_Position = vec4((projectionMatrix * translationMatrix * vec3(transformed.xy, 1.0)).xy, 0.0, 1.0);
+        vUvs = aUvs;
     }
 `;
+
+const simpleVertexSrc = `
+    attribute vec2 aVertexPosition;
+    attribute vec2 aUvs;
+    uniform mat3 projectionMatrix;
+    uniform mat3 translationMatrix;
+    varying vec2 vUvs;
+    
+    void main() {
+        vUvs = aUvs;
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+    }
+`
 
 const fragmentSrc = `
     varying vec2 vUvs;
@@ -65,7 +77,7 @@ export class FontAtlasText extends PIXI.Container {
     _tokenIndex = 0;
 
     // curve deformer
-    _curveTexture = undefined;
+    _curveTexture:PIXI.Texture= undefined;
     _curveData = undefined;
     _pathSegment = 1;
     _spineOffset = 0;
@@ -482,7 +494,7 @@ export class FontAtlasText extends PIXI.Container {
 
             lineCount += token.token.length;
         });
-        // this._lines.push(lineCount);
+        this._lines.push(lineCount);
     }
 
     _deleteMesh() {
@@ -497,21 +509,34 @@ export class FontAtlasText extends PIXI.Container {
     _createMesh() {
         const geometry = this._fontAtlasTextGeometry.build();
         const color = [1.0, 0.0, 0.0, 1.0];
-        const uniforms = {
-            // color
-            uSampler2: this.atlas.texture[0],
-            uColor: color,
 
-            // deform
-            texture: this._curveTexture,
-            pathOffset: this._pathOffset,
-            pathSegment: this._pathSegment,
-            spineOffset: this._spineOffset,
-            spineLength: this._spineLength,
-            flow: this._flow,
-        };
-        const shader = PIXI.Shader.from(
-            vertexSrc, fragmentSrc, uniforms);
+        let shader;
+        // simple
+        if (!this._curveData || !this._curveTexture) {
+            const uniforms = {
+                uSampler2: this.atlas.texture[0],
+                uColor: color,
+            };
+            shader = PIXI.Shader.from(simpleVertexSrc, fragmentSrc, uniforms);
+        }
+        // deformed
+        else {
+            const uniforms = {
+                // color
+                uSampler2: this.atlas.texture[0],
+                uColor: color,
+
+                // deform
+                texture: this._curveTexture,
+                pathOffset: this._pathOffset,
+                pathSegment: this._pathSegment,
+                spineOffset: this._spineOffset,
+                spineLength: this._spineLength,
+                flow: this._flow,
+            };
+            shader = PIXI.Shader.from(deformVertexSrc, fragmentSrc, uniforms);
+        }
+
         const mesh = new PIXI.Mesh(geometry, shader);
         this._textMesh = mesh;
         this.addChild(mesh);

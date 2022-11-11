@@ -5,6 +5,8 @@ import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import {FontAtlasText} from "../src/fontAtlasText";
 
+export const LOCALHOST = 'http://localhost:8080/resources/'
+
 export const roundBounds = (bounds) => {
     return {
         x: Math.round(bounds.x),
@@ -12,6 +14,15 @@ export const roundBounds = (bounds) => {
         width: Math.round(bounds.width),
         height: Math.round(bounds.height),
     }
+}
+
+export const getRenderedPixels = (renderer:PIXI.Renderer) => {
+    const width = renderer.width;
+    const height = renderer.height;
+    const pixels = new Uint8Array(width * height * 4);
+    const gl = renderer.gl;
+    gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    return pixels
 }
 
 export const writeDataUrlToDisk = (url, outputFile = 'test') => {
@@ -27,7 +38,7 @@ export const createFontAtlasTextApp = async(
     height = 128,
     fontAtlasSize = 12,
     fontAtlasResolution = 128,
-    fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf'
+    fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
 ) => {
     const app = new PIXI.Application({
         backgroundColor: 0xffffff,

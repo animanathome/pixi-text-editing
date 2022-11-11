@@ -23,8 +23,8 @@ export class FontAtlas {
     texture = [];
     textureId = 0;
 
-    canvas = undefined;
-    context = undefined;
+    canvas:HTMLCanvasElement = undefined;
+    context:CanvasRenderingContext2D = undefined;
 
     glyph = {};
     familyName = undefined;
@@ -59,10 +59,10 @@ export class FontAtlas {
     }
 
     _setupCanvas() {
-        this.canvas = document.createElement('canvas');
+        this.canvas = document.createElement('canvas') as HTMLCanvasElement;
         this.canvas.width = this.resolution;
         this.canvas.height = this.resolution;
-        this.context = this.canvas.getContext('2d');
+        this.context = this.canvas.getContext('2d') as CanvasRenderingContext2D;
 
         // background color
         // this.context.beginPath();
