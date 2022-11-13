@@ -195,8 +195,7 @@ export class FontAtlasText extends PIXI.Container {
         if (!this.atlas) {
             return;
         }
-        this._fontFactor = this.fontSize / this.atlas.fontSize
-        console.log('fontFactor', this._fontFactor)
+        this._fontFactor = this.fontSize / this.atlas.fontSize;
     }
 
     get glyphCount() {
@@ -285,7 +284,7 @@ export class FontAtlasText extends PIXI.Container {
         return [nextIndex, position];
     }
 
-    getGlyphAbove(index, position) {
+    getGlyphAbove(index) {
         if (index === 0) {
             return [0, LEFT];
         }
@@ -409,6 +408,7 @@ export class FontAtlasText extends PIXI.Container {
         }
     }
 
+    // add space or new line
     _addWhitespace(token) {
         const width = this.atlas.wordSpacing * this._fontFactor;
         const height = this.atlas.fontSize * this._fontFactor;
@@ -471,7 +471,7 @@ export class FontAtlasText extends PIXI.Container {
                 xOffset = 0;
                 yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
 
-                this._lines.push(lineCount);
+                this._lines.push(lineCount - 1);
             }
 
             if (yOffset > this.maxHeight) {
@@ -489,12 +489,12 @@ export class FontAtlasText extends PIXI.Container {
                 xOffset = 0;
                 yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
 
-                this._lines.push(lineCount);
+                this._lines.push(lineCount - 1);
            }
 
             lineCount += token.token.length;
         });
-        this._lines.push(lineCount);
+        this._lines.push(lineCount - 1);
     }
 
     _deleteMesh() {

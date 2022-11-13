@@ -1,4 +1,5 @@
 import * as PIXI from "pixi.js";
+import {dist} from "./utils";
 
 export const LEFT = 0;
 export const RIGHT = 1;
@@ -95,11 +96,12 @@ export class FontAtlasTextGeometry {
         let shortestDistance = Infinity;
         let index = -1;
         for (let i = glyphRange.start; i <= glyphRange.end; i++) {
+            // @ts-ignore
+            if (PIXI.TextMetrics.isNewline(this._glyph[i].id)) {
+                continue;
+            }
 
-            const difX = this._glyphCenters[i].x - x;
-            const difY = this._glyphCenters[i].y - y;
-
-            const distance = Math.sqrt((difX * difX) + (difY * difY));
+            const distance = dist(this._glyphCenters[i], {x, y});
             if (shortestDistance > distance) {
                 shortestDistance = distance;
                 index = i;

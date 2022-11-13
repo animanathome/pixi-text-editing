@@ -5,6 +5,7 @@ import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import {createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
 import {LOCALHOST} from "./utils";
+import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
 
 const createFontAtlasText = async(
     displayText = 'abc',
@@ -117,18 +118,14 @@ describe('fontAtlasText', () => {
             expect(height).to.equal(35.49609375);
         });
 
-        // TODO: fix me
         it('line index array', async() => {
             // Assemble
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasTextApp(displayText)
+            const {text} = await createFontAtlasText(displayText)
 
             // Act and assert
-            // TODO: 37 also seems to be the first letter of a new word???
-            // TODO: 47 should be 46!!!
-            let expectedLines = [12, 37, 47]
+            let expectedLines = [11, 36, 46]
             expect(text.lines).to.eql(expectedLines);
-            expect(expectedLines[2]).to.equal(text.glyphCount)
         });
 
         it('word index array', async() => {
@@ -138,15 +135,18 @@ describe('fontAtlasText', () => {
 
             // Act and assert
             const expectedWords = [
-              [ 0, 1, 2, 3, 4 ],
-              [ 6, 7, 8, 9, 10, 11 ],
-              [ 13, 14, 15, 16 ],
-              [ 18 ],
-              [ 20, 21, 22 ],
-              [ 24, 25, 26 ],
-              [ 28, 29, 30 ],
-              [ 32, 33, 34, 35 ],
-              [ 37, 38, 39, 40, 41, 42, 43, 44, 45, 46]
+                // line 1
+                [ 0, 1, 2, 3, 4 ], // Hello
+                [ 6, 7, 8, 9, 10, 11 ], // World!
+                // line 2
+                [ 13, 14, 15, 16 ], // It's
+                [ 18 ], // a
+                [ 20, 21, 22 ], // new
+                [ 24, 25, 26 ], // day
+                [ 28, 29, 30 ], // for
+                [ 32, 33, 34, 35 ], // text
+                // line 3
+                [ 37, 38, 39, 40, 41, 42, 43, 44, 45, 46] // rendering.
             ]
             expect(text.words).to.eql(expectedWords);
         });
@@ -180,7 +180,7 @@ describe('fontAtlasText', () => {
         });
     })
 
-    describe('can select', () => {
+    describe('can get', () => {
         describe('glyph', () => {
             it('closest to position', async() => {
                 // Assemble
@@ -194,52 +194,59 @@ describe('fontAtlasText', () => {
                 expect(text.closestGlyph(39, 4)).to.eql([6, 1]);
                 expect(text.closestGlyph(37, 16)).to.eql([21, 0]);
             })
-            it('to the left', async() => {
+
+            it('before', async() => {
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
                 const {text} = await createFontAtlasText(displayText)
 
-                // expect(text.getGlyphBefore(0, 0)).to.equal(0);
-                // expect(text.getGlyphBefore(5, 0)).to.equal(4);
-                // expect(text.getGlyphBefore(7, 0)).to.equal(6);
-                // expect(text.getGlyphBefore(12, 0)).to.equal(11);
-                // expect(text.getGlyphBefore(100, 0)).to.equal(46);
+                // Act and aser
+                expect(text.getGlyphBefore(0, 0)).to.eql([0, LEFT]);
+                expect(text.getGlyphBefore(5, 0)).to.eql([4, LEFT]);
+                expect(text.getGlyphBefore(7, 0)).to.eql([6, LEFT]);
+                expect(text.getGlyphBefore(12, 0)).to.eql([11, LEFT]);
+                expect(text.getGlyphBefore(100, 0)).to.eql([46, LEFT]);
            });
 
-            it('to the right', async() => {
+            it('after', async() => {
+                // Hello World!
+                // It's a new day for text
+                // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
                 const {text} = await createFontAtlasText(displayText)
 
-                // expect(text.getGlyphAfter(0)).to.equal(1);
-                // expect(text.getGlyphAfter(5)).to.equal(6);
-                // expect(text.getGlyphAfter(11)).to.equal(12);
-                // expect(text.getGlyphAfter(38)).to.equal(39);
-                // expect(text.getGlyphAfter(100)).to.equal(46);
+                // Act and assert
+                expect(text.getGlyphAfter(0, LEFT)).to.eql([1,LEFT]);
+                expect(text.getGlyphAfter(5, LEFT)).to.eql([6,LEFT]);
+                expect(text.getGlyphAfter(11, LEFT)).to.eql([11, RIGHT]);
+                expect(text.getGlyphAfter(38, LEFT)).to.eql([39,LEFT]);
+                expect(text.getGlyphAfter(100, LEFT)).to.eql([46,LEFT]);
            });
 
             it('above', async() => {
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
                 const {text} = await createFontAtlasText(displayText)
 
-                // expect(text.getGlyphAbove(0)).to.eql([0, 0]);
-                // expect(text.getGlyphAbove(13)).to.eql([0, 0]);
-                // expect(text.getGlyphAbove(15)).to.eql([1, 0]);
-                // expect(text.getGlyphAbove(23)).to.eql([8, 1]);
-                // expect(text.getGlyphAbove(35)).to.eql([11, 1]);
+                expect(text.getGlyphAbove(0)).to.eql([0, 0]);
+                expect(text.getGlyphAbove(13)).to.eql([0, 0]);
+                expect(text.getGlyphAbove(15)).to.eql([1, 0]);
+                expect(text.getGlyphAbove(23)).to.eql([8, 0]);
+                expect(text.getGlyphAbove(35)).to.eql([11, 0]);
            });
 
             it('below', async() => {
+                // Hello World!
+                // It's a new day for text
+                // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
                 const {text} = await createFontAtlasText(displayText)
 
-                // NOTE: we should always select the LEFT position unless
-                // we're at the end of the line
+                // Act and assert
                 expect(text.getGlyphBelow(0)).to.eql([15, 0]);
-                expect(text.getGlyphBelow(4)).to.eql([18, 1]);
+                expect(text.getGlyphBelow(4)).to.eql([18, 0]);
                 expect(text.getGlyphBelow(9)).to.eql([24, 0]);
-                expect(text.getGlyphBelow(11)).to.eql([25, 1]);
+                expect(text.getGlyphBelow(11)).to.eql([25, 0]);
+                expect(text.getGlyphBelow(13)).to.eql([37, 0]);
                 expect(text.getGlyphBelow(46)).to.eql([46, 0]);
-                // TODO: this is a bug - it jumps to the left instead of below
-                // expect(text.getGlyphBelow(12)).to.eql([25, 0]);
            });
         });
 
