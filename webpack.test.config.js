@@ -6,6 +6,7 @@ module.exports = {
   watch: true,
   mode: 'development',
   target: 'node',
+  devtool: 'eval-source-map',
   externals: [nodeExternals()],
   output: {
     filename: 'test.js',

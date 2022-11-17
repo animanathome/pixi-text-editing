@@ -1,4 +1,6 @@
 import * as PIXI from 'pixi.js';
+import * as THREE from 'three';
+
 import { expect } from 'chai';
 import {FontAtlasText} from "../src/fontAtlasText";
 import {FontLoader} from "../src/fontLoader";
@@ -6,6 +8,8 @@ import {FontAtlas} from "../src/fontAtlas";
 import {createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
 import {LOCALHOST} from "./utils";
 import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
+import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
+import {CurveData} from "../src/curveData";
 
 const createFontAtlasText = async(
     displayText = 'abc',
@@ -41,30 +45,32 @@ const createFontAtlasText = async(
     }
 }
 
+// TODO: fix fontAtlasSize
+// TODO: glyph lookup across multiple textures
+
 describe('fontAtlasText', () => {
     it('can change font size', async() => {
         // Assemble + act
-        const {text} = await createFontAtlasText('abc',
-            128, 128, 24, 128,
-            24);
+        const displayText = "hello world!\nWhat's up?";
+        const {text} = await createFontAtlasText(displayText, 256 , 256, 12);
 
         // Assert
         let {x, y, width, height} = roundBounds(text.getBounds());
-        expect(x).to.equal(1);
+        expect(x).to.equal(0);
         expect(y).to.equal(0);
-        expect(width).to.equal(37);
-        expect(height).to.equal(18);
+        expect(width).to.equal(64);
+        expect(height).to.equal(24);
 
         // Act
-        text.fontSize = 12;
+        text.fontSize = 24;
         text._build();
 
         // Assert
         ({x, y, width, height} = roundBounds(text.getBounds()));
         expect(x).to.equal(1);
         expect(y).to.equal(0);
-        expect(width).to.equal(19);
-        expect(height).to.equal(9);
+        expect(width).to.equal(128);
+        expect(height).to.equal(48);
     });
 
     it('can change line height', async() => {
@@ -118,14 +124,62 @@ describe('fontAtlasText', () => {
             expect(height).to.equal(35.49609375);
         });
 
-        it('line index array', async() => {
-            // Assemble
-            const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+        describe('line index array for', () => {
+            it('broken lines with new lines', async() => {
+                // Assemble
+                const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
+                const {text} = await createFontAtlasText(displayText)
 
-            // Act and assert
-            let expectedLines = [11, 36, 46]
-            expect(text.lines).to.eql(expectedLines);
+                // Act and assert
+                let expectedLines = [12, 36, 46]
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            });
+
+            it('two broken lines do not start with a space', async() => {
+                const displayText = 'ab cd ef gh'
+                const {text} = await createFontAtlasText(displayText, 32, 32)
+
+                let expectedLines = [5, 10]
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            })
+
+            it('two broken lines do not start with multiple spaces', async() => {
+                const displayText = 'ab cd   ef gh'
+                const {text} = await createFontAtlasText(displayText, 32, 32)
+
+                let expectedLines = [7, 12]
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            })
+
+            it('new line at the end of the line', async() => {
+                const displayText = 'ab cd\nef gh'
+                const {text} = await createFontAtlasText(displayText, 32, 32)
+
+                let expectedLines = [5, 10]
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            })
+
+            it('two new lines', async() => {
+                const displayText = '\n\n'
+                const {text} = await createFontAtlasText(displayText, 32, 32)
+
+                let expectedLines = [0, 1]
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            })
+
+            it('two characters with each a new line', async() => {
+                const displayText = 'a\nb\n'
+                const {text} = await createFontAtlasText(displayText)
+
+                let expectedLines = [1, 3];
+                // console.log(text._logGlyphs(text.lines))
+                expect(text.lines).to.eql(expectedLines);
+            })
         });
 
         it('word index array', async() => {
@@ -178,9 +232,7 @@ describe('fontAtlasText', () => {
             expect(text.glyphLineIndex(37)).to.equal(2)
             expect(text.glyphLineIndex(46)).to.equal(2)
         });
-    })
 
-    describe('can get', () => {
         describe('glyph', () => {
             it('closest to position', async() => {
                 // Assemble
@@ -223,14 +275,17 @@ describe('fontAtlasText', () => {
            });
 
             it('above', async() => {
+                // Hello World!
+                // It's a new day for text
+                // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
                 const {text} = await createFontAtlasText(displayText)
 
-                expect(text.getGlyphAbove(0)).to.eql([0, 0]);
-                expect(text.getGlyphAbove(13)).to.eql([0, 0]);
-                expect(text.getGlyphAbove(15)).to.eql([1, 0]);
-                expect(text.getGlyphAbove(23)).to.eql([8, 0]);
-                expect(text.getGlyphAbove(35)).to.eql([11, 0]);
+                expect(text.getGlyphAbove(0)).to.eql([0, LEFT]);
+                expect(text.getGlyphAbove(13)).to.eql([0, LEFT]);
+                expect(text.getGlyphAbove(15)).to.eql([1, LEFT]);
+                expect(text.getGlyphAbove(23)).to.eql([8, LEFT]);
+                expect(text.getGlyphAbove(35)).to.eql([12, RIGHT]);
            });
 
             it('below', async() => {
@@ -241,12 +296,12 @@ describe('fontAtlasText', () => {
                 const {text} = await createFontAtlasText(displayText)
 
                 // Act and assert
-                expect(text.getGlyphBelow(0)).to.eql([15, 0]);
-                expect(text.getGlyphBelow(4)).to.eql([18, 0]);
-                expect(text.getGlyphBelow(9)).to.eql([24, 0]);
-                expect(text.getGlyphBelow(11)).to.eql([25, 0]);
-                expect(text.getGlyphBelow(13)).to.eql([37, 0]);
-                expect(text.getGlyphBelow(46)).to.eql([46, 0]);
+                expect(text.getGlyphBelow(0)).to.eql([15, LEFT]);
+                expect(text.getGlyphBelow(4)).to.eql([18, LEFT]);
+                expect(text.getGlyphBelow(9)).to.eql([24, LEFT]);
+                expect(text.getGlyphBelow(11)).to.eql([25, LEFT]);
+                expect(text.getGlyphBelow(13)).to.eql([37, LEFT]);
+                expect(text.getGlyphBelow(46)).to.eql([46, LEFT]);
            });
         });
 
@@ -307,4 +362,47 @@ describe('fontAtlasText', () => {
             expect(height).to.equal(12);
        })
     });
+
+    describe('can deform', () => {
+        it('using a linear curve', () => {
+
+        })
+
+        it('using a bezier curve', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp(displayText, 96 , 96, 12);
+
+            const offsetX = 20;
+            const offsetY = -16;
+            const radius = 48;
+            const points = [
+                new THREE.Vector3( 0 + offsetX, 0 + offsetY, 0),
+                new THREE.Vector3( 0 + offsetX, radius + offsetY, 0),
+                new THREE.Vector3( radius + offsetX, radius + offsetY, 0),
+                new THREE.Vector3( radius + offsetX, 0 + offsetY, 0),
+            ]
+            const nSegments = 32;
+            const {positions, tangents, normals, length} = buildCurveData(points, nSegments);
+            const dataTexture = createCurveTexture(positions, normals, tangents);
+
+            // Act
+            // TODO: need a cleaner way to deal with deformers
+            text.curveTexture = dataTexture;
+            text.curveData = new CurveData(positions, tangents, normals);
+            text.flow = 1;
+            text.spineLength = length;
+            text.pathSegment = 1.0;
+            text.spineOffset = 0;
+            text.pathOffset = 0.24;
+            app.ticker.update();
+
+            // Assert
+            const program = text._textMesh.shader.program;
+            expect(program.vertexSrc).to.include('spinePortion');
+            expect(program.fragmentSrc).to.include('uSampler2');
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(9132246);
+        })
+    })
 });

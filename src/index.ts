@@ -98,16 +98,16 @@ const textEditingDemo = async() => {
     // text.x = 20;
     // text.y = 20;
     text.atlas = atlas;
-    text.fontSize = 18;
-    text.lineHeight = 1.2;
-    text.maxHeight = 128;
-    text.maxWidth = 196;
-    text.spineLength = length;
-    text.pathSegment = 1.0;
-    text.spineOffset = 0;
-    text.pathOffset = 0.15;
-    text.flow = 1;
-    text.text = 'Hello World! How are you?';
+    // text.fontSize = 18;
+    // text.lineHeight = 1.2;
+    // text.maxHeight = 128;
+    // text.maxWidth = 196;
+    // text.spineLength = length;
+    // text.pathSegment = 1.0;
+    // text.spineOffset = 0;
+    // text.pathOffset = 0.15;
+    // text.flow = 1;
+    text.text = 'Hello World!';
     app.stage.addChild(text);
     // global.text = text;
     // text._curveTexture = dataTexture
@@ -139,18 +139,18 @@ const textEditingDemo = async() => {
     // atlas.canvas.style.top = '334px';
 }
 
-textEditingDemo();
+// textEditingDemo();
 
 const test = async() => {
     const {app, text} = await createFontAtlasTextApp(
-    'What',
+    'What now?',
     64,
     64
     );
     // global.app = app;
 
-    text.x = 10;
-    text.y = 10;
+    text.x = 0;
+    text.y = 0;
 
     const manipulator = new FontAtlasTextManipulator(text);
     manipulator.caret.caretVisibleDuration = 0;

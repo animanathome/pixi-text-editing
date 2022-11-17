@@ -97,9 +97,9 @@ export class FontAtlasTextGeometry {
         let index = -1;
         for (let i = glyphRange.start; i <= glyphRange.end; i++) {
             // @ts-ignore
-            if (PIXI.TextMetrics.isNewline(this._glyph[i].id)) {
-                continue;
-            }
+            // if (PIXI.TextMetrics.isNewline(this._glyph[i].id)) {
+            //     continue;
+            // }
 
             const distance = dist(this._glyphCenters[i], {x, y});
             if (shortestDistance > distance) {

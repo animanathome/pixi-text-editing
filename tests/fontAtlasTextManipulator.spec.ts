@@ -700,7 +700,7 @@ describe('FontAtlasTextManipulator', () => {
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(63);
+                expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(24);
             });
         });
@@ -795,11 +795,10 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(63);
+                expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(24);
 
                 // Act
@@ -815,11 +814,10 @@ describe('FontAtlasTextManipulator', () => {
 
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
-
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(63);
+                expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(24);
             });
 
@@ -842,14 +840,13 @@ describe('FontAtlasTextManipulator', () => {
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(63);
+                expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(36);
             });
         })
     })
 
     // TODO: use select instead of click
-    // TODO: don't render space when it's at the start of a new line!
 
     describe('can add glyphs', () => {
         it('when starting from an empty element', async() => {

@@ -2,67 +2,9 @@ import * as PIXI from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-
-const deformVertexSrc = `
-    attribute vec2 aVertexPosition;
-    attribute vec2 aUvs;
-    uniform mat3 projectionMatrix;
-    uniform mat3 translationMatrix;
-    varying vec2 vUvs;
-    
-    // curve
-    uniform sampler2D texture;
-    uniform float pathOffset;
-    uniform float pathSegment;
-    uniform float spineOffset;
-    uniform float spineLength;
-    uniform int flow;
-    float textureLayers = 4.; // look up takes (i + 0.5) / textureLayers
-    
-    void main() {
-        vec4 worldPos = vec4(aVertexPosition.xy, 0.0, 1.0);
-        bool bend = flow > 0;
-        float xWeight = bend ? 0.0 : 1.0;
-        float spinePortion = bend ? (worldPos.x + spineOffset) / spineLength : 0.;
-        float mt = spinePortion * pathSegment + pathOffset;
-        
-        vec3 spinePos = texture2D(texture, vec2(mt, (0.5) / textureLayers)).xyz;
-        vec3 a = texture2D(texture, vec2(mt, (1. + 0.5) / textureLayers)).xyz;
-        vec3 b = texture2D(texture, vec2(mt, (2. + 0.5) / textureLayers)).xyz;
-        vec3 c = vec3(0.0, 0.0, 1.0);
-        mat3 basis = mat3(a, b, c);
-        
-        vec3 transformed = basis
-                * vec3(worldPos.x * xWeight, worldPos.y * 1., 0)
-                + spinePos;
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(transformed.xy, 1.0)).xy, 0.0, 1.0);
-        vUvs = aUvs;
-    }
-`;
-
-const simpleVertexSrc = `
-    attribute vec2 aVertexPosition;
-    attribute vec2 aUvs;
-    uniform mat3 projectionMatrix;
-    uniform mat3 translationMatrix;
-    varying vec2 vUvs;
-    
-    void main() {
-        vUvs = aUvs;
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
-    }
-`
-
-const fragmentSrc = `
-    varying vec2 vUvs;
-    uniform sampler2D uSampler2;
-    uniform vec4 uColor;
-
-    void main() {
-        gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
-    }
-`;
-
+import {simpleVertexSrc, deformVertexSrc} from "./vertexShader";
+import {textureFragmentSrc} from "./fragmentShader";
+import {CurveData} from "./curveData";
 
 export class FontAtlasText extends PIXI.Container {
     _text = 'hello world!';
@@ -460,41 +402,62 @@ export class FontAtlasText extends PIXI.Container {
         this._words.push(wordIndices);
     }
 
+    _logGlyphs(array) {
+        array.forEach((a, index) => {
+            let info = `${index} ${a}: `
+            if (a > 0) {
+                info += `"${this.glyph[a - 1].id}"` + '<'
+            }
+            info += `"${this.glyph[a].id}"`
+            if (this.glyphCount - 1 > a) {
+                info += '>' + `"${this.glyph[a + 1].id}"`
+            }
+            console.log(info);
+        })
+    }
+
     _layoutGlyphs() {
+        if (this.glyphCount === 0) {
+            return;
+        }
         let xOffset = 0;
         let yOffset = 0;
         let lineCount = 0;
         this._lines = [];
-        this._tokens.forEach(token => {
+        let lines = new Set();
 
-            if (xOffset + (token.width * this._fontFactor) > this.maxWidth) { // new line
-                xOffset = 0;
-                yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
+        const localLineHeight = (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
 
-                this._lines.push(lineCount - 1);
-            }
+        // console.log('max', this.maxWidth, this.maxHeight);
+        // console.log(0, `${xOffset}, ${yOffset}`, this._tokens[0]);
 
-            if (yOffset > this.maxHeight) {
-                // console.log('reached bottom edge');
-                return;
-            }
-
-            // console.log(JSON.stringify(token), xOffset, yOffset);
-
-            this._moveGlyphs(token.glyphIndexBounds, xOffset, yOffset);
-            xOffset += token.width;
+        for (let i = 0; i < this._tokens.length - 1; i++) {
+            xOffset += this._tokens[i].width;
 
             // @ts-ignore
-            if (PIXI.TextMetrics.isNewline(token.token)) { // new line
+            if (xOffset + this._tokens[i + 1].width > this.maxWidth && !PIXI.TextMetrics.isNewline(this._tokens[i + 1].token) && !PIXI.TextMetrics.isBreakingSpace(this._tokens[i + 1].token)) {
                 xOffset = 0;
-                yOffset += (this.atlas.fontSize * this._fontFactor) * this._lineHeight;
+                yOffset += localLineHeight;
+                // console.log('break')
+                lines.add(lineCount);
+            }
+            // @ts-ignore
+            else if (PIXI.TextMetrics.isNewline(this._tokens[i].token)) {
+                xOffset = 0;
+                yOffset += localLineHeight;
+                // console.log('new line')
+                lines.add(lineCount);
+            }
 
-                this._lines.push(lineCount - 1);
-           }
+            // console.log(i + 1, `${xOffset}, ${yOffset}`, this._tokens[i + 1]);
+            lineCount += this._tokens[i].token.length;
+            this._moveGlyphs(this._tokens[i + 1].glyphIndexBounds, xOffset, yOffset);
+        }
+        lineCount += this._tokens[this._tokens.length - 1].token.length;
 
-            lineCount += token.token.length;
-        });
-        this._lines.push(lineCount - 1);
+        // console.log('glyphCount', this.glyphCount, lineCount)
+        lines.add(this.glyphCount - 1)
+        this._lines = Array.from(lines);
     }
 
     _deleteMesh() {
@@ -506,6 +469,16 @@ export class FontAtlasText extends PIXI.Container {
         this._textMesh = null;
     }
 
+    set curveData(value: CurveData) {
+        this._curveData = value;
+        this._dirty = true;
+    }
+
+    set curveTexture(value: PIXI.Texture) {
+        this._curveTexture = value;
+        this._dirty = true;
+    }
+
     _createMesh() {
         const geometry = this._fontAtlasTextGeometry.build();
         const color = [1.0, 0.0, 0.0, 1.0];
@@ -513,14 +486,17 @@ export class FontAtlasText extends PIXI.Container {
         let shader;
         // simple
         if (!this._curveData || !this._curveTexture) {
+            console.log('not deformed')
             const uniforms = {
                 uSampler2: this.atlas.texture[0],
                 uColor: color,
             };
-            shader = PIXI.Shader.from(simpleVertexSrc, fragmentSrc, uniforms);
+            let vertexShader = simpleVertexSrc(true);
+            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
         // deformed
         else {
+            console.log('curve deformed')
             const uniforms = {
                 // color
                 uSampler2: this.atlas.texture[0],
@@ -534,7 +510,8 @@ export class FontAtlasText extends PIXI.Container {
                 spineLength: this._spineLength,
                 flow: this._flow,
             };
-            shader = PIXI.Shader.from(deformVertexSrc, fragmentSrc, uniforms);
+            let vertexShader = deformVertexSrc(true);
+            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
 
         const mesh = new PIXI.Mesh(geometry, shader);

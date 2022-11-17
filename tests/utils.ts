@@ -94,6 +94,7 @@ export const createFontAtlasText = async(
     text.atlas = atlas;
     text.maxHeight = width;
     text.maxWidth = height;
+    text.fontSize = fontAtlasSize;
     text.text = displayText;
     text._build();
 
