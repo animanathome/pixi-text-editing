@@ -14,7 +14,11 @@ describe('curveData', () => {
         ]
 
         // Act
-        const curveData = CurveData.fromCurve(points, 2, false);
+        const curveData = CurveData.fromCurve({
+            points,
+            nSegments: 2,
+            closed: false
+        });
 
         // Assert
         expect(curveData.positions.length).to.equal(3);
@@ -29,7 +33,11 @@ describe('curveData', () => {
             new THREE.Vector3( 50, 0, 0),
             new THREE.Vector3( 100, 0, 0),
         ]
-        const {positions, tangents, normals, length} = buildCurveData(points, 2, false);
+        const {positions, tangents, normals, length} = buildCurveData({
+            points,
+            nSegments: 2,
+            closed: false,
+        });
         const curveData = new CurveData(positions, tangents, normals);
 
         // Assert
@@ -45,7 +53,11 @@ describe('curveData', () => {
             new THREE.Vector3( 50, 0, 0),
             new THREE.Vector3( 100, 0, 0),
         ]
-        const {positions, tangents, normals, length} = buildCurveData(points, 2, false);
+        const {positions, tangents, normals, length} = buildCurveData({
+            points,
+            nSegments: 2,
+            closed: false,
+        });
         const curveData = new CurveData(positions, tangents, normals);
 
         // Assert
@@ -60,7 +72,11 @@ describe('curveData', () => {
             new THREE.Vector3( 50, 10, 0),
             new THREE.Vector3( 100, 10, 0),
         ]
-        const {positions, tangents, normals, length} = buildCurveData(points, 2, false);
+        const {positions, tangents, normals, length} = buildCurveData({
+            points,
+            nSegments: 2,
+            closed: false,
+        });
         const curveData = new CurveData(positions, tangents, normals);
 
         // Assert

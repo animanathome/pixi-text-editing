@@ -63,8 +63,8 @@ export class CurveData {
         return {x: vec3.x, y: vec3.y};
     }
 
-    static fromCurve(points, nSegments, closed = false) {
-        const {positions, tangents, normals} = buildCurveData(points, nSegments, closed);
+    static fromCurve({points, nSegments, closed = false}) {
+        const {positions, tangents, normals} = buildCurveData({points, nSegments, closed});
         return new CurveData(positions, tangents, normals);
     }
 }

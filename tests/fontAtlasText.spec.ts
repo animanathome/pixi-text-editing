@@ -8,7 +8,7 @@ import {FontAtlas} from "../src/fontAtlas";
 import {createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
 import {LOCALHOST} from "./utils";
 import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
-import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
+import {buildCurve, buildCurveData, createCurveTexture} from "../src/curveDeformer";
 import {CurveData} from "../src/curveData";
 
 const createFontAtlasText = async(
@@ -99,7 +99,18 @@ describe('fontAtlasText', () => {
     it('can render simple text', async () => {
         // Assemble
         const displayText = 'hello World!\n' + 'It\'s a new day for text rendering.';
-        const {app} = await createFontAtlasTextApp(displayText)
+        const fontAtlasSize = 36; // a multiple of the fontSize results in sharper text
+        const fontSize = 12;
+        const fontAtlasResolution = 256;
+        const {app} = await createFontAtlasTextApp({
+            width: 128,
+            height: 128,
+            resolution: 2, // 2 results in sharper text
+            displayText,
+            fontAtlasSize,
+            fontAtlasResolution,
+            fontSize
+        })
 
         // Act
         const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
@@ -364,14 +375,68 @@ describe('fontAtlasText', () => {
     });
 
     describe('can deform', () => {
-        it('using a linear curve', () => {
+        it('using a linear curve', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                fontAtlasSize: 36,
+                fontSize: 12,
+                fontAtlasResolution: 256,
+                width: 96,
+                height: 96,
+                resolution: 2,
+            });
 
+            const offsetX = 20;
+            const offsetY = 20;
+            const points = [
+                new THREE.Vector3( 0 + offsetX, 0 + offsetY, 0),
+                new THREE.Vector3( 20 + offsetX, 20 + offsetY, 0),
+                new THREE.Vector3( 40 + offsetX, 40 + offsetY, 0),
+                new THREE.Vector3( 60 + offsetX, 60 + offsetY, 0),
+            ]
+            const nSegments = 32;
+            const normal = {x: 0, y: 1, z: 0};
+            const {positions, tangents, normals, length} = buildCurveData({
+                points,
+                nSegments,
+                closed: false,
+                normalOverride: normal
+            });
+            const dataTexture = createCurveTexture(positions, normals, tangents);
+
+            // Act
+            // TODO: need a cleaner way to deal with deformers
+            text.curveTexture = dataTexture;
+            text.curveData = new CurveData(positions, tangents, normals);
+            text.flow = 1;
+            text.spineLength = length;
+            text.pathSegment = 1.0;
+            text.spineOffset = 0;
+            text.pathOffset = 0.0;
+            app.ticker.update()
+
+            // Assert
+            const program = text._textMesh.shader.program;
+            expect(program.vertexSrc).to.include('spinePortion');
+            expect(program.fragmentSrc).to.include('uSampler2');
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(37046568);
         })
 
         it('using a bezier curve', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp(displayText, 96 , 96, 12);
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                fontAtlasSize: 36,
+                fontSize: 12,
+                fontAtlasResolution: 256,
+                width: 96,
+                height: 96,
+                resolution: 2,
+            });
 
             const offsetX = 20;
             const offsetY = -16;
@@ -383,7 +448,10 @@ describe('fontAtlasText', () => {
                 new THREE.Vector3( radius + offsetX, 0 + offsetY, 0),
             ]
             const nSegments = 32;
-            const {positions, tangents, normals, length} = buildCurveData(points, nSegments);
+            const {positions, tangents, normals, length} = buildCurveData({
+                points,
+                nSegments
+            });
             const dataTexture = createCurveTexture(positions, normals, tangents);
 
             // Act
@@ -402,7 +470,7 @@ describe('fontAtlasText', () => {
             expect(program.vertexSrc).to.include('spinePortion');
             expect(program.fragmentSrc).to.include('uSampler2');
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(9132246);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(36460083);
         })
     })
 });

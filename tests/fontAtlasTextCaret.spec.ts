@@ -8,7 +8,11 @@ describe('FontAtlasTextCaret', () => {
     describe('can draw caret', () => {
         it('at the start', async() => {
             // Assemble
-            const {app, text} = await createFontAtlasTextApp('hello', 28, 28)
+            const {app, text} = await createFontAtlasTextApp({
+                displayText: 'hello',
+                width: 28,
+                height: 28
+            })
             const caret = new FontAtlasTextCaret(text);
             caret.caretWidth = 1;
             app.stage.addChild(caret);
@@ -30,7 +34,11 @@ describe('FontAtlasTextCaret', () => {
 
         it('at the end', async() => {
             // Assemble
-            const {app, text} = await createFontAtlasTextApp('hello', 28, 28)
+            const {app, text} = await createFontAtlasTextApp({
+                displayText: "hello",
+                width: 28,
+                height: 28,
+            })
             const caret = new FontAtlasTextCaret(text);
             caret.caretWidth = 2;
             app.stage.addChild(caret);

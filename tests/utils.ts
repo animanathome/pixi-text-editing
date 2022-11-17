@@ -32,21 +32,28 @@ export const writeDataUrlToDisk = (url, outputFile = 'test') => {
     });
 }
 
-export const createFontAtlasTextApp = async(
-    displayText = 'abc',
-    width = 128,
-    height = 128,
-    fontAtlasSize = 12,
-    fontAtlasResolution = 128,
-    fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
-) => {
+export const createFontAtlasTextApp = async({
+        displayText = 'abc',
+        width = 128,
+        height = 128,
+        resolution = 2,
+        fontSize = 12,
+        fontAtlasSize = 12,
+        fontAtlasResolution = 128,
+        fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
+    }) => {
+
     const app = new PIXI.Application({
         backgroundColor: 0xffffff,
+        antialias: true,
         autoStart: false,
-        width: width,
-        height: height,
+        width,
+        height,
+        resolution,
     });
-    document.body.appendChild(app.view)
+    document.body.appendChild(app.view);
+    app.view.style.height = `${height}px`;
+    app.view.style.width = `${width}px`;
 
     const {fontLoader, atlas, text} = await createFontAtlasText(
         displayText,
@@ -55,6 +62,7 @@ export const createFontAtlasTextApp = async(
         fontAtlasSize,
         fontAtlasResolution,
         fontUrl,
+        fontSize,
     )
 
     app.stage.addChild(text);
@@ -74,7 +82,8 @@ export const createFontAtlasText = async(
     height = 128,
     fontAtlasSize = 12,
     fontAtlasResolution = 1024,
-    fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf'
+    fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf',
+    fontSize = 12,
 ) => {
     const fontLoader = new FontLoader();
     fontLoader.sourceUrl = fontUrl;
@@ -94,7 +103,7 @@ export const createFontAtlasText = async(
     text.atlas = atlas;
     text.maxHeight = width;
     text.maxWidth = height;
-    text.fontSize = fontAtlasSize;
+    text.fontSize = fontSize;
     text.text = displayText;
     text._build();
 
