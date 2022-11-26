@@ -20,6 +20,36 @@ const funEnd = `
     }
 `;
 
+export const transformVertexSrc = (
+    includeUv = false,
+    transformCount = 2,
+) => {
+    const varsTrans = `
+        attribute float aWeight;
+        uniform vec2 transforms[${transformCount}];
+    `
+    const funTrans = `
+        int transformIndex = int(aWeight);
+        vec2 vertexOffset = transforms[transformIndex];
+        vec2 vertexPosition = aVertexPosition + vertexOffset;
+        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(vertexPosition, 1.0)).xy, 0.0, 1.0);
+    `
+    // assemble
+    let shader;
+    shader = varsPos;
+    if (includeUv) {
+        shader += varsUV;
+    }
+    shader += varsTrans;
+    shader += funStart;
+    if (includeUv) {
+        shader += funUV;
+    }
+    shader += funTrans;
+    shader += funEnd;
+    return shader;
+}
+
 export const deformVertexSrc = (includeUv = false) => {
     const varsCurve = `
         uniform sampler2D texture;

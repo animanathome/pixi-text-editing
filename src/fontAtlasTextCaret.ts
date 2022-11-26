@@ -14,12 +14,12 @@ export enum SELECTION_DIRECTION {
 }
 
 export class FontAtlasTextCaret extends PIXI.Container {
-    fontAtlasText = undefined;
-    _dirty = false;
-    _glyphIndex = -1;
-    _glyphPosition = CARET_POSITION.START;
-    caretWidth = 2;
-    _mesh = null;
+    fontAtlasText:FontAtlasText = undefined;
+    _dirty:boolean = false;
+    _glyphIndex: number = -1;
+    _glyphPosition : CARET_POSITION = CARET_POSITION.START;
+    caretWidth: number = 2;
+    _mesh: PIXI.Mesh = null;
     _caretLastVisibilitySwitch = Date.now();
     caretVisibleDuration = 500;
 

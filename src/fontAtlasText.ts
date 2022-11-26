@@ -69,6 +69,8 @@ export class FontAtlasText extends PIXI.Container {
         this._dirty = true;
     }
 
+    // TODO: adding wordSpacing
+
     get lineHeight() {
         return this._lineHeight;
     }
@@ -305,7 +307,7 @@ export class FontAtlasText extends PIXI.Container {
         return this._lines;
     }
 
-    get words() {
+    get words() : number[][] {
         return this._words;
     }
 
@@ -486,7 +488,6 @@ export class FontAtlasText extends PIXI.Container {
         let shader;
         // simple
         if (!this._curveData || !this._curveTexture) {
-            console.log('not deformed')
             const uniforms = {
                 uSampler2: this.atlas.texture[0],
                 uColor: color,
