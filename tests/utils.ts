@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
-import {FontAtlasText} from "../src/fontAtlasText";
+import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
 
 export const LOCALHOST = 'http://localhost:8080/resources/'
 
@@ -34,6 +34,7 @@ export const writeDataUrlToDisk = (url, outputFile = 'test') => {
 
 export const createFontAtlasTextApp = async({
         displayText = 'abc',
+        transformType = TRANSFORM_TYPE.LINE,
         width = 128,
         height = 128,
         resolution = 2,
@@ -55,15 +56,16 @@ export const createFontAtlasTextApp = async({
     app.view.style.height = `${height}px`;
     app.view.style.width = `${width}px`;
 
-    const {fontLoader, atlas, text} = await createFontAtlasText(
+    const {fontLoader, atlas, text} = await createFontAtlasText({
         displayText,
+        transformType,
         width,
         height,
         fontAtlasSize,
         fontAtlasResolution,
         fontUrl,
         fontSize,
-    )
+    })
 
     app.stage.addChild(text);
     app.ticker.update();
@@ -76,15 +78,16 @@ export const createFontAtlasTextApp = async({
     }
 }
 
-export const createFontAtlasText = async(
-    displayText = 'abc',
-    width = 128,
-    height = 128,
-    fontAtlasSize = 12,
-    fontAtlasResolution = 1024,
-    fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf',
-    fontSize = 12,
-) => {
+export const createFontAtlasText = async({
+     displayText = 'abc',
+     transformType= TRANSFORM_TYPE.LINE,
+     width = 128,
+     height = 128,
+     fontAtlasSize = 12,
+     fontAtlasResolution = 1024,
+     fontUrl = 'http://localhost:8000/resources/Roboto-Regular.ttf',
+     fontSize = 12,
+ }) => {
     const fontLoader = new FontLoader();
     fontLoader.sourceUrl = fontUrl;
     await fontLoader.load();
@@ -103,6 +106,7 @@ export const createFontAtlasText = async(
     text.atlas = atlas;
     text.maxHeight = width;
     text.maxWidth = height;
+    text.transformType = transformType;
     text.fontSize = fontSize;
     text.text = displayText;
     text._build();

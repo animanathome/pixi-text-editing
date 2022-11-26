@@ -7,7 +7,7 @@ import {expect} from "chai";
 import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
 import {CurveData} from "../src/curveData";
 
-describe.only('FontAtlasTextGraphic', () => {
+describe('FontAtlasTextGraphic', () => {
     describe('bounds', () => {
         it('can color', async() => {
             // Assemble
@@ -78,7 +78,7 @@ describe.only('FontAtlasTextGraphic', () => {
             app.ticker.update()
         })
 
-        it.only('can deform', async() => {
+        it('can deform', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {app, text} = await createFontAtlasTextApp({

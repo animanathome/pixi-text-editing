@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import * as THREE from 'three';
 
 import { expect } from 'chai';
-import {FontAtlasText} from "../src/fontAtlasText";
+import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import {createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
@@ -48,7 +48,7 @@ const createFontAtlasText = async(
 // TODO: fix fontAtlasSize
 // TODO: glyph lookup across multiple textures
 
-describe('fontAtlasText', () => {
+describe.only('fontAtlasText', () => {
     it('can change font size', async() => {
         // Assemble + act
         const displayText = "hello world!\nWhat's up?";
@@ -421,6 +421,8 @@ describe('fontAtlasText', () => {
             const program = text._textMesh.shader.program;
             expect(program.vertexSrc).to.include('spinePortion');
             expect(program.fragmentSrc).to.include('uSampler2');
+
+            // TODO: make a convenience method for this
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
             expect(pixels.reduce((a, b) => a + b)).to.equal(37046568);
         })
@@ -472,5 +474,41 @@ describe('fontAtlasText', () => {
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
             expect(pixels.reduce((a, b) => a + b)).to.equal(36460083);
         })
+    })
+
+    describe('can transform', () => {
+        it('line', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.LINE, // TODO: make dynamic (not just on init)
+                width: 96,
+                height: 96,
+            });
+            text.transforms = [0, 0, 15, 0];
+            app.ticker.update();
+
+            // ASSERT
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(36820281);
+        });
+
+        it.only('word', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.WORD, // TODO: make dynamic (not just on init)
+                width: 96,
+                height: 96,
+            });
+            text.transforms = [0, 2, 0, 4, 0, 2, 0, 4];
+            app.ticker.update();
+
+            // ASSERT
+            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            // expect(pixels.reduce((a, b) => a + b)).to.equal(36820281);
+        });
     })
 });

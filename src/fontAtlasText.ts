@@ -2,9 +2,16 @@ import * as PIXI from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-import {simpleVertexSrc, deformVertexSrc} from "./vertexShader";
+import {simpleVertexSrc, deformVertexSrc, transformVertexSrc} from "./vertexShader";
 import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
+
+export enum TRANSFORM_TYPE {
+    BOUNDS,
+    LINE,
+    WORD,
+    GLYPH
+}
 
 export class FontAtlasText extends PIXI.Container {
     _text = 'hello world!';
@@ -18,6 +25,11 @@ export class FontAtlasText extends PIXI.Container {
     _fontFactor = 1;
     _tokenIndex = 0;
 
+    // TODO: make into a mixin and re-use in text
+    _transformType = TRANSFORM_TYPE.LINE;
+    _transforms = [0.0, 0.0];
+
+    // TODO: make into a mixin and re-use in graphic
     // curve deformer
     _curveTexture:PIXI.Texture= undefined;
     _curveData = undefined;
@@ -90,6 +102,43 @@ export class FontAtlasText extends PIXI.Container {
         this._textMesh.shader.uniforms[property] = value;
     }
 
+    get transformType() {
+        return this._transformType;
+    }
+
+    set transformType(value) {
+        this._transformType = value;
+        this._dirty = true;
+    }
+
+    get transforms() {
+        return this._transforms;
+    }
+
+    set transforms(value: number[]) {
+        this._validateTransforms(value);
+        this._setUniform('transforms', value);
+    }
+
+    _validateTransforms(value: number[]) {
+        let expectedLength = -1;
+        switch (this.transformType) {
+            case TRANSFORM_TYPE.BOUNDS:
+                expectedLength = 2;
+                break;
+            case TRANSFORM_TYPE.LINE:
+                expectedLength = this.lines.length * 2;
+                break;
+            case TRANSFORM_TYPE.WORD:
+                expectedLength = this.words.length * 2;
+                break;
+        }
+        if (value.length !== expectedLength) {
+            throw Error(`Invalid number of values, expected ${expectedLength}`);
+        }
+    }
+
+    // curve deform
     get pathOffset() {
         return this._pathOffset;
     }
@@ -481,18 +530,82 @@ export class FontAtlasText extends PIXI.Container {
         this._dirty = true;
     }
 
+    _generateWeights() {
+        let weights = [];
+        switch (this.transformType) {
+            case TRANSFORM_TYPE.BOUNDS: weights = this._generateBoundWeights(); break;
+            case TRANSFORM_TYPE.LINE: weights = this._generateLineWeights(); break;
+            case TRANSFORM_TYPE.WORD: weights = this._generateWordWeights(); break;
+            case TRANSFORM_TYPE.GLYPH: weights = this._generateGlyphWeights(); break;
+        }
+        return weights;
+    }
+
+    _generateBoundWeights() {
+        return [1.0, 1.0, 1.0, 1.0];
+    }
+
+    _generateLineWeights() {
+        const weights = [];
+        const lineRanges = this.lineGlyphRanges();
+        for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
+            const lineStart = lineRanges[lineIndex][0];
+            const lineEnd = lineRanges[lineIndex][1];
+            for (let i = lineStart; i <= lineEnd; i++) {
+                // each glyph has 4 vertices so we need to provide a weight for each one
+                weights.push([lineIndex, lineIndex, lineIndex, lineIndex])
+            }
+        }
+        return weights.flat();
+    }
+
+    _generateWordWeights() {
+        const weights = [];
+        const wordRanges = this.words;
+        let prevEnd = 0;
+        for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
+            const wordRange = wordRanges[wordIndex];
+            const wordStart = wordRange[0];
+            const wordEnd = wordRange[wordRange.length - 1];
+
+            // TODO: fill in any spaces
+
+            console.log(wordIndex, wordStart, wordEnd);
+            for (let i = wordStart; i <= wordEnd; i++) {
+                // each glyph has 4 vertices so we need to provide a weight for each one
+                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
+            }
+        }
+        return weights.flat();
+
+        return []
+    }
+
+    _generateGlyphWeights() {
+        return []
+    }
+
     _createMesh() {
-        const geometry = this._fontAtlasTextGeometry.build();
+        // TODO: this is a bit strange ... we generate weights from the geometry which we're building next?
+        const weights = this._generateWeights();
+        console.log('weights', weights.length);
+        console.log('glyphs', this.glyphCount * 4)
+        const geometry = this._fontAtlasTextGeometry.build(weights);
+
+        // TODO: make into a property
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let shader;
         // simple
+        // TODO: add transforms support
         if (!this._curveData || !this._curveTexture) {
             const uniforms = {
                 uSampler2: this.atlas.texture[0],
                 uColor: color,
+                transforms: this.transforms,
             };
-            let vertexShader = simpleVertexSrc(true);
+            // TODO: when the transform count changes, we need to rebuild this shader
+            let vertexShader = transformVertexSrc(true, 2);
             shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
         // deformed
@@ -500,10 +613,10 @@ export class FontAtlasText extends PIXI.Container {
             console.log('curve deformed')
             const uniforms = {
                 // color
-                uSampler2: this.atlas.texture[0],
-                uColor: color,
+                uSampler2: this.atlas.texture[0], // glyph texture
+                uColor: color, // glyph color
 
-                // deform
+                // curve deform
                 texture: this._curveTexture,
                 pathOffset: this._pathOffset,
                 pathSegment: this._pathSegment,

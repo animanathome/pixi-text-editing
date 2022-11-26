@@ -1,5 +1,6 @@
 import * as PIXI from "pixi.js";
 import {dist} from "./utils";
+import {TRANSFORM_TYPE} from "./fontAtlasText";
 
 export const LEFT = 0;
 export const RIGHT = 1;
@@ -277,10 +278,11 @@ export class FontAtlasTextGeometry {
         return glyphUVs;
     }
 
-    build() {
+    build(weights: number[]) {
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', this._vertexArray, 2);
         geometry.addAttribute('aUvs', this._uvArray, 2);
+        geometry.addAttribute('aWeight', weights, 1)
         geometry.addIndex(this._indexArray);
         return geometry;
     }
