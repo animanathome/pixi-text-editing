@@ -276,10 +276,10 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         const wordHeight = this._fontAtlasText.atlas.fontSize * this._fontAtlasText._fontFactor;
         const lineHeight = wordHeight * this._fontAtlasText._lineHeight;
 
-        const allVertices:Array<number> = [];
-        const allIndices:Array<number> = [];
-        const allUvs:Array<number> = [];
-        const allWeights:Array<number> = [];
+        const allVertices:number[][] = [];
+        const allIndices:number[][] = [];
+        const allUvs:number[][] = [];
+        const allWeights:number[][] = [];
         let wordIndex = 0;
         for(let word of selection) {
             const glyphStartIndex = word[0];
@@ -301,7 +301,12 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             allWeights.push(weights);
             wordIndex++;
         }
-        const geometry = this._buildGeometry(allVertices.flat(), allUvs.flat(), allIndices.flat(), allWeights.flat());
+        const geometry = this._buildGeometry(
+            (allVertices as any).flat(),
+            (allUvs as any).flat(),
+            (allIndices as any).flat(),
+            (allWeights as any).flat()
+        );
         this._mesh.geometry = geometry;
         this._dirty = false;
     }

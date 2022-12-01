@@ -121,16 +121,20 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _validateTransforms(value: number[]) {
+        let coordinateCount = 2; // x and y
         let expectedLength = -1;
         switch (this.transformType) {
             case TRANSFORM_TYPE.BOUNDS:
-                expectedLength = 2;
+                expectedLength = coordinateCount;
                 break;
             case TRANSFORM_TYPE.LINE:
-                expectedLength = this.lines.length * 2;
+                expectedLength = this.lines.length * coordinateCount;
                 break;
             case TRANSFORM_TYPE.WORD:
-                expectedLength = this.words.length * 2;
+                expectedLength = this.words.length * coordinateCount;
+                break;
+            case TRANSFORM_TYPE.GLYPH:
+                expectedLength = this.glyph.length * coordinateCount;
                 break;
         }
         if (value.length !== expectedLength) {
@@ -546,7 +550,7 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _generateLineWeights() {
-        const weights = [];
+        const weights:number[][] = [];
         const lineRanges = this.lineGlyphRanges();
         for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
             const lineStart = lineRanges[lineIndex][0];
@@ -556,11 +560,11 @@ export class FontAtlasText extends PIXI.Container {
                 weights.push([lineIndex, lineIndex, lineIndex, lineIndex])
             }
         }
-        return weights.flat();
+        return (weights as any).flat();
     }
 
     _generateWordWeights() {
-        const weights = [];
+        const weights:number[][] = [];
         const wordRanges = this.words;
         let prevEnd = 0;
         for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
@@ -568,28 +572,28 @@ export class FontAtlasText extends PIXI.Container {
             const wordStart = wordRange[0];
             const wordEnd = wordRange[wordRange.length - 1];
 
-            // TODO: fill in any spaces
+            // generate weights for any spaces or new lines
+            for (let i = prevEnd + 1; i < wordStart; i++) {
+                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
+            }
 
-            console.log(wordIndex, wordStart, wordEnd);
+            // fill in the same weight for each glyph within a word
             for (let i = wordStart; i <= wordEnd; i++) {
                 // each glyph has 4 vertices so we need to provide a weight for each one
                 weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
             }
+            prevEnd = wordEnd;
         }
-        return weights.flat();
-
-        return []
+        return (weights as any).flat();
     }
 
     _generateGlyphWeights() {
-        return []
+        return this.glyph.map((glyph, index) => [index, index, index, index]).flat();
     }
 
     _createMesh() {
         // TODO: this is a bit strange ... we generate weights from the geometry which we're building next?
         const weights = this._generateWeights();
-        console.log('weights', weights.length);
-        console.log('glyphs', this.glyphCount * 4)
         const geometry = this._fontAtlasTextGeometry.build(weights);
 
         // TODO: make into a property
@@ -605,7 +609,7 @@ export class FontAtlasText extends PIXI.Container {
                 transforms: this.transforms,
             };
             // TODO: when the transform count changes, we need to rebuild this shader
-            let vertexShader = transformVertexSrc(true, 2);
+            let vertexShader = transformVertexSrc(true, this.glyph.length);
             shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
         // deformed
