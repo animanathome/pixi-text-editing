@@ -33,7 +33,11 @@ const curveDemo = async() => {
         new THREE.Vector3( 100 + offsetX, 0 + offsetY, 0),
     ]
     const nSegments = 2;
-    const {positions, tangents, normals} = buildCurveData(points, nSegments, false);
+    const {positions, tangents, normals} = buildCurveData({
+        points,
+        nSegments,
+        closed:false
+    });
     buildCurve(positions, tangents, normals, app.stage);
 }
 
@@ -72,7 +76,7 @@ const textEditingDemo = async() => {
         new THREE.Vector3( radius + offsetX, 0 + offsetY, 0),
     ]
     const nSegments = 32;
-    const {positions, tangents, normals, length} = buildCurveData(points, nSegments);
+    const {positions, tangents, normals, length} = buildCurveData({points, nSegments});
     buildCurve(positions, tangents, normals, app.stage);
     const dataTexture = createCurveTexture(positions, normals, tangents);
 
@@ -142,11 +146,11 @@ const textEditingDemo = async() => {
 // textEditingDemo();
 
 const test = async() => {
-    const {app, text} = await createFontAtlasTextApp(
-    'What now?',
-    64,
-    64
-    );
+    const {app, text} = await createFontAtlasTextApp({
+        displayText: 'What now?',
+        width: 64,
+        height: 64
+    });
     // global.app = app;
 
     text.x = 0;

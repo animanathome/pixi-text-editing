@@ -49,7 +49,7 @@ const createFontAtlasText = async(
 // TODO: fix fontAtlasSize
 // TODO: glyph lookup across multiple textures
 
-describe.only('fontAtlasText', () => {
+describe('fontAtlasText', () => {
     it('can change font size', async() => {
         // Assemble + act
         const displayText = "hello world!\nWhat's up?";
@@ -528,7 +528,9 @@ describe.only('fontAtlasText', () => {
                 for (const c in text) result.push(c)
                 return result;
             }
-            const transforms = glyphs(displayText).map((glyph, index) => [0, index]).flat()
+            const transforms = glyphs(displayText)
+                .map((glyph, index) => [0, index])
+                .flat()
             text.transforms = transforms;
             app.ticker.update();
 

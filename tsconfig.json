@@ -5,7 +5,13 @@
     "module": "es2020",
     "target": "es5",
     "allowJs": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "lib": [
+      // ... other libs
+      "es2019",
+      "dom",
+      "dom.iterable"
+    ]
   },
   "typeRoots": [
     "./typings",

@@ -614,7 +614,6 @@ export class FontAtlasText extends PIXI.Container {
         }
         // deformed
         else {
-            console.log('curve deformed')
             const uniforms = {
                 // color
                 uSampler2: this.atlas.texture[0], // glyph texture

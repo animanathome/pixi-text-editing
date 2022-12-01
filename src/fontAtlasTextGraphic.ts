@@ -302,10 +302,10 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             wordIndex++;
         }
         const geometry = this._buildGeometry(
-            (allVertices as any).flat(),
-            (allUvs as any).flat(),
-            (allIndices as any).flat(),
-            (allWeights as any).flat()
+            allVertices.flat(),
+            allUvs.flat(),
+            allIndices.flat(),
+            allWeights.flat()
         );
         this._mesh.geometry = geometry;
         this._dirty = false;
