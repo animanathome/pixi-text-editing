@@ -1,4 +1,11 @@
 // variable snippets
+const varsScale = `
+    attribute vec2 aVertexPosition;
+    uniform mat3 projectionMatrix;
+    uniform mat3 translationMatrix;
+    uniform vec2 uScaleAnchor;
+    uniform vec2 uScale;
+`
 const varsPos = `
     attribute vec2 aVertexPosition;
     uniform mat3 projectionMatrix;
@@ -113,6 +120,38 @@ export const simpleVertexSrc = (includeUv = false) => {
     if (includeUv) {
         shader += funUV;
     }
+    shader += funEnd;
+    return shader;
+}
+
+export const scaleVertexSrc = () => {
+    // function
+    const funPos = `
+        mat3 posMatrix = mat3(
+            1, 0, 0,
+            0, 1, 0,
+            uScaleAnchor.x, uScaleAnchor.y, 1
+        );
+        mat3 scaleMatrix = mat3(
+            uScale.x, 0, 0,
+            0, uScale.y, 0,
+            0, 0, 1
+        );
+        mat3 invPosMatrix = mat3(
+            1, 0, 0,
+            0, 1, 0,
+            -uScaleAnchor.x, -uScaleAnchor.y, 1
+        );
+        
+        vec3 vertexPosition = vec3(aVertexPosition, 1.0);        
+        gl_Position = vec4((projectionMatrix * translationMatrix * posMatrix * scaleMatrix * invPosMatrix * vertexPosition).xy, 0.0, 1.0);
+    `;
+
+    // assemble
+    let shader;
+    shader = varsScale;
+    shader += funStart;
+    shader += funPos;
     shader += funEnd;
     return shader;
 }
