@@ -20,7 +20,7 @@ export class FontAtlas {
     paddingInY = 6;
     debugBounds = false;
 
-    texture = [];
+    texture: PIXI.Texture[] = [];
     textureId = 0;
 
     canvas:HTMLCanvasElement = undefined;

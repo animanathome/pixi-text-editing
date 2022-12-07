@@ -8,6 +8,19 @@ export const textureFragmentSrc = `
     }
 `;
 
+export const imageFragmentSrc = `
+    varying vec2 vUvs;
+    uniform sampler2D uSampler2;
+    uniform vec4 uColor;
+
+    void main() {
+         if(gl_FragCoord.x > 25.0 && gl_FragCoord.x < 75.0)
+            gl_FragColor = texture2D(uSampler2, (vUvs * 0.5));
+        else
+            gl_FragColor = uColor;
+    }
+`
+
 export const rectangleFragmentSrc = `
     varying vec2 vUvs;
     uniform bool xInvert;
