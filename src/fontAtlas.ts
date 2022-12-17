@@ -102,6 +102,13 @@ export class FontAtlas {
         }
     }
 
+    /**
+     * If we want to render (see) a glyph, we need a few things (data):
+     * - rasterize a glyph into pixels so we can see it
+     * - position data so we know how to position it
+     * This method takes in a string and creates the necessary data for each character
+     * @param string
+     */
     addGlyphsForString(string) {
         // NOTE: we shouldn't be able to change this once this is set.
         this.script = forString(string);

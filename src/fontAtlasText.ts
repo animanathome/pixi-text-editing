@@ -1,10 +1,12 @@
 import * as PIXI from 'pixi.js';
+import {DRAW_MODES} from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-import {simpleVertexSrc, deformVertexSrc, transformVertexSrc} from "./vertexShader";
+import {deformVertexSrc, transformVertexSrc} from "./vertexShader";
 import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
+import {MeshMixin} from "./meshMixin";
 
 export enum TRANSFORM_TYPE {
     BOUNDS,
@@ -13,10 +15,11 @@ export enum TRANSFORM_TYPE {
     GLYPH
 }
 
-export class FontAtlasText extends PIXI.Container {
+// TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
+export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _text = 'hello world!';
     _textMesh = null;
-    _dirty = true;
+    _dirty = true; // should use PIXI update properties so as _transformID, see Mesh
     maxWidth = 512;
     maxHeight = 512;
     _atlas = undefined;
@@ -42,6 +45,7 @@ export class FontAtlasText extends PIXI.Container {
     _tokens = [];
     _lines = [];
     _words = [];
+    // TODO: rename to GeometryBuilder instead?
     _fontAtlasTextGeometry = new FontAtlasTextGeometry();
 
     set atlas(atlas: FontAtlas) {
@@ -96,10 +100,10 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _setUniform(property, value) {
-        if (!this._textMesh) {
+        if (!this._shader) {
             return
         }
-        this._textMesh.shader.uniforms[property] = value;
+        this._shader.uniforms[property] = value;
     }
 
     get transformType() {
@@ -188,6 +192,10 @@ export class FontAtlasText extends PIXI.Container {
         this._setUniform('spineLength', value);
     }
 
+    /**
+     * The font atlas size can be different from this font size. Therefore, we have to come up with a value by which
+     * we need to multiply our atlas font glyphs to get the requested font size.
+     */
     _calculateFontFactor() {
         if (!this.atlas) {
             return;
@@ -369,10 +377,11 @@ export class FontAtlasText extends PIXI.Container {
             return;
         }
         this._calculateFontFactor();
-        this._deleteMesh();
+        this._deleteGeometry();
         this._buildGlyphs();
         this._layoutGlyphs();
-        this._createMesh();
+        this._buildGeometry();
+        this._buildShader();
         this._dirty = false;
     }
 
@@ -515,13 +524,14 @@ export class FontAtlasText extends PIXI.Container {
         this._lines = Array.from(lines);
     }
 
-    _deleteMesh() {
-        if (!this._textMesh) {
+    _deleteGeometry() {
+        if (!this._geometry) {
             return;
         }
         this._fontAtlasTextGeometry.clear();
-        this._textMesh.destroy(true);
-        this._textMesh = null;
+        // Question: is this expensive? We could re-use the same one...
+        this._geometry.destroy();
+        this._geometry = null;
     }
 
     set curveData(value: CurveData) {
@@ -591,12 +601,18 @@ export class FontAtlasText extends PIXI.Container {
         return this.glyph.map((glyph, index) => [index, index, index, index]).flat();
     }
 
-    _createMesh() {
+    _buildGeometry() {
+        // build geometry
         // TODO: this is a bit strange ... we generate weights from the geometry which we're building next?
         const weights = this._generateWeights();
         const geometry = this._fontAtlasTextGeometry.build(weights);
+        this._geometry = geometry;
+    }
 
+    _buildShader() {
+        // build shader
         // TODO: make into a property
+        // is this the same as tint?
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let shader;
@@ -630,10 +646,7 @@ export class FontAtlasText extends PIXI.Container {
             let vertexShader = deformVertexSrc(true);
             shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
-
-        const mesh = new PIXI.Mesh(geometry, shader);
-        this._textMesh = mesh;
-        this.addChild(mesh);
+        this._shader = shader;
     }
 
     lineGlyphRanges() {
@@ -651,12 +664,8 @@ export class FontAtlasText extends PIXI.Container {
     }
 
     _calculateBounds() {
-        const bounds = new PIXI.Rectangle();
-        for (let i = 0; i < this._lines.length; i++) {
-            const range = this._getLineGlyphRange(i);
-            bounds.enlarge(this._fontAtlasTextGeometry.getBounds(range));
-        }
-        return bounds;
+        this._bounds.clear();
+        this._bounds = this._fontAtlasTextGeometry.buildBounds();
     }
 
     center() {
@@ -669,6 +678,6 @@ export class FontAtlasText extends PIXI.Container {
 
     _render(renderer: PIXI.Renderer) {
         this._build();
-        super._render(renderer);
+        this._renderDefault(renderer);
     }
 }

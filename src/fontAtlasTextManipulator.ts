@@ -44,7 +44,7 @@ export class FontAtlasTextManipulator extends PIXI.Container {
     click(x : number, y : number, shiftKey : boolean) {
         // console.log('click', x, y, shiftKey);
         // localize position
-        const worldMatrix = this.text._textMesh.transform.worldTransform;
+        const worldMatrix = this.text.transform.worldTransform;
         const localPoint = worldMatrix.applyInverse(new PIXI.Point(x, y));
 
         const prevGlyphIndex = this.caret.glyphIndex;

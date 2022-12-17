@@ -278,12 +278,18 @@ export class FontAtlasTextGeometry {
         return glyphUVs;
     }
 
-    build(weights: number[]) {
+    build(weights: number[]) : PIXI.Geometry {
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', this._vertexArray, 2);
         geometry.addAttribute('aUvs', this._uvArray, 2);
         geometry.addAttribute('aWeight', weights, 1)
         geometry.addIndex(this._indexArray);
         return geometry;
+    }
+
+    buildBounds() : PIXI.Bounds {
+        const bounds = new PIXI.Bounds;
+        bounds.addVertexData(this._vertexArray as any, 0, this._vertexArray.length);
+        return bounds;
     }
 }

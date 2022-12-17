@@ -28,7 +28,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(14570359);
+            expect(pixelSum).to.equal(14415988);
         })
 
         it('can mask', async() => {
@@ -58,7 +58,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(16261005);
+            expect(pixelSum).to.equal(16260867);
         })
 
         it('can transform', async() => {
@@ -76,6 +76,11 @@ describe('FontAtlasTextGraphic', () => {
             graphicColor.transforms = [0, 10];
             app.stage.addChildAt(graphicColor, 0);
             app.ticker.update()
+
+            // Assert
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+            const pixelSum = pixels.reduce((a, b) => a + b);
+            expect(pixelSum).to.equal(12620690);
         })
 
         it('can deform', async() => {
@@ -103,6 +108,7 @@ describe('FontAtlasTextGraphic', () => {
                 nSegments,
                 closed: false,
             });
+            // deform text
             const dataTexture = createCurveTexture(positions, normals, tangents);
             text.curveTexture = dataTexture;
             text.curveData = new CurveData(positions, tangents, normals);
@@ -118,6 +124,7 @@ describe('FontAtlasTextGraphic', () => {
             graphicColor.graphicType = GRAPHIC_TYPE.BOUNDS;
             app.stage.addChildAt(graphicColor, 0);
 
+            // TODO: deform graphic
             app.ticker.update();
         });
     })
@@ -143,7 +150,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(14651317);
+            expect(pixelSum).to.equal(14488266);
         })
 
         it('can mask', async() => {
@@ -174,7 +181,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(16282614);
+            expect(pixelSum).to.equal(16282485);
         })
 
         it('can transform', async() => {
@@ -197,7 +204,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(12912737);
+            expect(pixelSum).to.equal(12714121);
         })
     })
 
@@ -222,7 +229,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(14740435);
+            expect(pixelSum).to.equal(14569256);
         });
 
         it('can mask', async() => {
@@ -253,7 +260,7 @@ describe('FontAtlasTextGraphic', () => {
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(16290630);
+            expect(pixelSum).to.equal(16290507);
         });
 
         it('can transform', async() => {

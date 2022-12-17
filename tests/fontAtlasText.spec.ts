@@ -2,49 +2,11 @@ import * as PIXI from 'pixi.js';
 import * as THREE from 'three';
 
 import { expect } from 'chai';
-import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
-import {FontLoader} from "../src/fontLoader";
-import {FontAtlas} from "../src/fontAtlas";
-import {createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
-import {LOCALHOST} from "./utils";
+import {TRANSFORM_TYPE} from "../src/fontAtlasText";
+import {createFontAtlasText, createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
 import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
-import {buildCurve, buildCurveData, createCurveTexture} from "../src/curveDeformer";
+import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
 import {CurveData} from "../src/curveData";
-import {retry} from "../src/retry";
-
-const createFontAtlasText = async(
-    displayText = 'abc',
-    width = 128,
-    height = 128,
-    fontAtlasSize = 12,
-    fontAtlasResolution = 128,
-    fontSize = 12,
-    fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
-) => {
-    const fontLoader = new FontLoader();
-    fontLoader.sourceUrl = fontUrl;
-    await fontLoader.load();
-
-    const atlas = new FontAtlas({
-        font: fontLoader.font,
-        resolution: fontAtlasResolution,
-        fontSize: fontAtlasSize,
-    })
-
-    const text = new FontAtlasText();
-    text.atlas = atlas;
-    text.fontSize = fontSize;
-    text.maxHeight = width;
-    text.maxWidth = height;
-    text.text = displayText;
-    text._build();
-
-    return {
-        fontLoader,
-        atlas,
-        text,
-    }
-}
 
 // TODO: fix fontAtlasSize
 // TODO: glyph lookup across multiple textures
@@ -53,20 +15,27 @@ describe('fontAtlasText', () => {
     it('can change font size', async() => {
         // Assemble + act
         const displayText = "hello world!\nWhat's up?";
-        const {text} = await createFontAtlasText(displayText, 256 , 256, 12);
+        const {text, app} = await createFontAtlasTextApp({
+            displayText,
+            width: 256,
+            height: 256,
+            fontSize: 12
+        });
+        document.body.appendChild(app.view);
+        app.ticker.update();
 
-        // Assert
+        // Assert fontSize 12
         let {x, y, width, height} = roundBounds(text.getBounds());
         expect(x).to.equal(0);
         expect(y).to.equal(0);
         expect(width).to.equal(64);
         expect(height).to.equal(24);
 
-        // Act
+        // Act - double the font size from 12 to 24
         text.fontSize = 24;
-        text._build();
+        app.ticker.update();
 
-        // Assert
+        // Assert fontSize 24
         ({x, y, width, height} = roundBounds(text.getBounds()));
         expect(x).to.equal(1);
         expect(y).to.equal(0);
@@ -76,7 +45,9 @@ describe('fontAtlasText', () => {
 
     it('can change line height', async() => {
         // Assemble + act
-        const {text} = await createFontAtlasText('a\nb');
+        const {text} = await createFontAtlasText({
+            displayText: 'a\nb'
+        });
 
         // Assert
         let {x, y, width, height} = roundBounds(text.getBounds());
@@ -124,7 +95,9 @@ describe('fontAtlasText', () => {
         it('bounds', async() => {
             // Assemble
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+            const {text} = await createFontAtlasText({
+                displayText
+            })
 
             // Act
             const {x, y, width, height} = text.getBounds()
@@ -140,7 +113,9 @@ describe('fontAtlasText', () => {
             it('broken lines with new lines', async() => {
                 // Assemble
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                })
 
                 // Act and assert
                 let expectedLines = [12, 36, 46]
@@ -150,7 +125,11 @@ describe('fontAtlasText', () => {
 
             it('two broken lines do not start with a space', async() => {
                 const displayText = 'ab cd ef gh'
-                const {text} = await createFontAtlasText(displayText, 32, 32)
+                const {text} = await createFontAtlasText({
+                    displayText,
+                    width: 32,
+                    height: 32
+                })
 
                 let expectedLines = [5, 10]
                 // console.log(text._logGlyphs(text.lines))
@@ -159,7 +138,11 @@ describe('fontAtlasText', () => {
 
             it('two broken lines do not start with multiple spaces', async() => {
                 const displayText = 'ab cd   ef gh'
-                const {text} = await createFontAtlasText(displayText, 32, 32)
+                const {text} = await createFontAtlasText({
+                    displayText,
+                    width: 32,
+                    height: 32,
+                })
 
                 let expectedLines = [7, 12]
                 // console.log(text._logGlyphs(text.lines))
@@ -168,7 +151,11 @@ describe('fontAtlasText', () => {
 
             it('new line at the end of the line', async() => {
                 const displayText = 'ab cd\nef gh'
-                const {text} = await createFontAtlasText(displayText, 32, 32)
+                const {text} = await createFontAtlasText({
+                    displayText,
+                    width: 32,
+                    height: 32,
+                })
 
                 let expectedLines = [5, 10]
                 // console.log(text._logGlyphs(text.lines))
@@ -177,7 +164,11 @@ describe('fontAtlasText', () => {
 
             it('two new lines', async() => {
                 const displayText = '\n\n'
-                const {text} = await createFontAtlasText(displayText, 32, 32)
+                const {text} = await createFontAtlasText({
+                    displayText,
+                    width: 32,
+                    height: 32,
+                });
 
                 let expectedLines = [0, 1]
                 // console.log(text._logGlyphs(text.lines))
@@ -186,7 +177,9 @@ describe('fontAtlasText', () => {
 
             it('two characters with each a new line', async() => {
                 const displayText = 'a\nb\n'
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 let expectedLines = [1, 3];
                 // console.log(text._logGlyphs(text.lines))
@@ -197,7 +190,9 @@ describe('fontAtlasText', () => {
         it('word index array', async() => {
             // Assemble
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+            const {text} = await createFontAtlasText({
+                displayText
+            });
 
             // Act and assert
             const expectedWords = [
@@ -222,7 +217,9 @@ describe('fontAtlasText', () => {
         it('word index for glyph', async() => {
             // Assemble
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+            const {text} = await createFontAtlasText({
+                displayText
+            });
 
             // Act and assert
             expect(text.glyphWordIndex(0)).to.equal(0)
@@ -235,7 +232,9 @@ describe('fontAtlasText', () => {
         it('line index for glyph', async() => {
             // Assemble
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+            const {text} = await createFontAtlasText({
+                displayText
+            });
 
             // Act and assert
             expect(text.glyphLineIndex(0)).to.equal(0)
@@ -249,7 +248,9 @@ describe('fontAtlasText', () => {
             it('closest to position', async() => {
                 // Assemble
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and assert
                 expect(text.closestGlyph(12, 8)).to.eql([1, 1]);
@@ -261,7 +262,9 @@ describe('fontAtlasText', () => {
 
             it('before', async() => {
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and aser
                 expect(text.getGlyphBefore(0, 0)).to.eql([0, LEFT]);
@@ -276,7 +279,9 @@ describe('fontAtlasText', () => {
                 // It's a new day for text
                 // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and assert
                 expect(text.getGlyphAfter(0, LEFT)).to.eql([1,LEFT]);
@@ -291,7 +296,9 @@ describe('fontAtlasText', () => {
                 // It's a new day for text
                 // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 expect(text.getGlyphAbove(0)).to.eql([0, LEFT]);
                 expect(text.getGlyphAbove(13)).to.eql([0, LEFT]);
@@ -305,7 +312,9 @@ describe('fontAtlasText', () => {
                 // It's a new day for text
                 // rendering.
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and assert
                 expect(text.getGlyphBelow(0)).to.eql([15, LEFT]);
@@ -321,7 +330,9 @@ describe('fontAtlasText', () => {
             it('closest to position', async() => {
                 // Assemble
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and assert
                 expect(text.closestWord(12, 8)).to.eql(0);
@@ -336,7 +347,9 @@ describe('fontAtlasText', () => {
             it('closest to position', async() => {
                 // Assemble
                 const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-                const {text} = await createFontAtlasText(displayText)
+                const {text} = await createFontAtlasText({
+                    displayText
+                });
 
                 // Act and assert
                 expect(text.closestLine(12, 8)).to.eql(0);
@@ -353,25 +366,24 @@ describe('fontAtlasText', () => {
             // Assemble
             let width, height;
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
-            const {text} = await createFontAtlasText(displayText)
+            const {app, text} = await createFontAtlasTextApp({
+                displayText
+            });
+            // uncomment if you want to see the text
+            // document.body.appendChild(app.view);
 
             // Act and assert
-            text._build();
-            ({width, height} = text.getBounds());
-            expect(width).to.equal(115.353515625);
-            expect(height).to.equal(35.49609375);
+            app.ticker.update();
+            ({width, height} = roundBounds(text.getBounds());
+            expect(width).to.equal(115);
+            expect(height).to.equal(35);
 
+            // Act and assert
             text.text = 'Hello World!\n' + 'It\'s a new day';
-            text._build();
-            ({width, height} = text.getBounds());
-            expect(width).to.equal(70.822265625);
+            app.ticker.update();
+            ({width, height} = roundBounds(text.getBounds());
+            expect(width).to.equal(71);
             expect(height).to.equal(24);
-
-            text.text = 'Hello World!';
-            text._build();
-            ({width, height} = text.getBounds());
-            expect(width).to.equal(63.041015625);
-            expect(height).to.equal(12);
        })
     });
 
@@ -419,13 +431,13 @@ describe('fontAtlasText', () => {
             app.ticker.update()
 
             // Assert
-            const program = text._textMesh.shader.program;
+            const program = text.shader.program;
             expect(program.vertexSrc).to.include('spinePortion');
             expect(program.fragmentSrc).to.include('uSampler2');
 
             // TODO: make a convenience method for this
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(37046568);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(37046445);
         })
 
         it('using a bezier curve', async() => {
@@ -469,11 +481,11 @@ describe('fontAtlasText', () => {
             app.ticker.update();
 
             // Assert
-            const program = text._textMesh.shader.program;
+            const program = text.shader.program;
             expect(program.vertexSrc).to.include('spinePortion');
             expect(program.fragmentSrc).to.include('uSampler2');
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(36460083);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(36459858);
         })
     })
 
@@ -492,7 +504,7 @@ describe('fontAtlasText', () => {
 
             // ASSERT
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369721);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
         });
 
         it('word', async() => {
@@ -509,7 +521,7 @@ describe('fontAtlasText', () => {
 
             // ASSERT
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369721);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
         });
 
         it('glyph', async() => {
@@ -538,7 +550,7 @@ describe('fontAtlasText', () => {
             // TODO: the pixel count is actually the same accros the different transform tests so we need to
             //  use something else
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369721);
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
         });
     })
 });
