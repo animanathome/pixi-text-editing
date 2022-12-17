@@ -1,4 +1,3 @@
-import * as fs from "fs";
 import { expect } from 'chai';
 import {CARET_POSITION, FontAtlasTextCaret} from "../src/fontAtlasTextCaret";
 

@@ -4,12 +4,12 @@ import * as THREE from 'three';
 
 import {FontLoader} from "./fontLoader";
 import {FontAtlas} from "./fontAtlas";
-import {FontAtlasText} from "./fontAtlasText";
+import {FontAtlasText, TRANSFORM_TYPE} from "./fontAtlasText";
 import {EditingEvents} from "./events";
 import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
-import {CurveData} from "./curveData";
+import {PingPongTimeline, ProgressTimeline, TickerTimeline} from "./timeline";
 
 const curveDemo = async() => {
     const app = new PIXI.Application({
@@ -145,6 +145,61 @@ const textEditingDemo = async() => {
 
 // textEditingDemo();
 
+
+// note: we could store a table with all of the values!
+function normalizedSigmoid(z) {
+    return sigmoid((z * 10) - 5);
+}
+
+function sigmoid(z) {
+  return 1 / (1 + Math.exp(-z));
+}
+
+// 0 to 0.75
+function normalizedTanh(x) {
+    const clampedValue = Math.min(tanh(x), 0.75)
+    const normalizedValue = clampedValue * 1.3333;
+    return normalizedValue;
+}
+
+function tanh(x) {
+   const e = Math.exp(2*x);
+   return (e - 1) / (e + 1) ;
+};
+
+const animation = async() => {
+    const {app, text} = await createFontAtlasTextApp({
+        displayText: 'A\nB\nC',
+        width: 64,
+        height: 64
+    });
+
+    text.transformType = TRANSFORM_TYPE.WORD;
+    let translation = [0, 0, 0, 0, 0, 0]
+    text.transforms = translation;
+
+    const timeline = new TickerTimeline(app.ticker);
+    timeline.duration = 5000;
+    timeline.play();
+
+    const translateProgress = new PingPongTimeline()
+    translateProgress.start = 0;
+    translateProgress.duration = 5000;
+    translateProgress.effect = 1000;
+
+    app.ticker.add(() => {
+        const progress = translateProgress.value(timeline.time);
+        translation[0] = progress * 50;
+        translation[2] = normalizedTanh(progress) * 50;
+        translation[4] = normalizedSigmoid(progress) * 50;
+        text.transforms = translation;
+    });
+    app.ticker.start();
+}
+
+animation();
+
+
 const test = async() => {
     const {app, text} = await createFontAtlasTextApp({
         displayText: 'What now?',
@@ -166,5 +221,3 @@ const test = async() => {
 
     (window as any).__PIXI_INSPECTOR_GLOBAL_HOOK__ &&  (window as any).__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
 }
-
-// test();

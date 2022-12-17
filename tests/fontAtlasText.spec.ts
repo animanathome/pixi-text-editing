@@ -364,7 +364,6 @@ describe('fontAtlasText', () => {
     describe('can edit', () => {
         it('text', async() => {
             // Assemble
-            let width, height;
             const displayText = 'Hello World!\n' + 'It\'s a new day for text rendering.';
             const {app, text} = await createFontAtlasTextApp({
                 displayText
@@ -374,16 +373,16 @@ describe('fontAtlasText', () => {
 
             // Act and assert
             app.ticker.update();
-            ({width, height} = roundBounds(text.getBounds());
-            expect(width).to.equal(115);
-            expect(height).to.equal(35);
+            let roundedBounds = roundBounds(text.getBounds());
+            expect(roundedBounds.width).to.equal(115);
+            expect(roundedBounds.height).to.equal(35);
 
             // Act and assert
             text.text = 'Hello World!\n' + 'It\'s a new day';
             app.ticker.update();
-            ({width, height} = roundBounds(text.getBounds());
-            expect(width).to.equal(71);
-            expect(height).to.equal(24);
+            roundedBounds = roundBounds(text.getBounds());
+            expect(roundedBounds.width).to.equal(71);
+            expect(roundedBounds.height).to.equal(24);
        })
     });
 

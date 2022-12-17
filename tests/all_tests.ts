@@ -8,3 +8,4 @@ import('./fontAtlasTextSelection.spec');
 import('./fontAtlasTextManipulator.spec');
 import('./fontAtlasTextGraphic.spec');
 import('./curveData.spec');
+import('./timeline.spec');
