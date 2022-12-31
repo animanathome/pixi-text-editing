@@ -7,6 +7,7 @@ import {deformVertexSrc, transformVertexSrc} from "./vertexShader";
 import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
+import {average} from "./utils";
 
 export enum TRANSFORM_TYPE {
     BOUNDS,
@@ -31,6 +32,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     // TODO: make into a mixin and re-use in text
     _transformType = TRANSFORM_TYPE.LINE;
     _transforms = [0.0, 0.0];
+    _scales = [1.0, 0.0];
 
     // TODO: make into a mixin and re-use in graphic
     // curve deformer
@@ -115,6 +117,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
+    // TODO: rename to translation
     get transforms() {
         return this._transforms;
     }
@@ -124,8 +127,19 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._setUniform('transforms', value);
     }
 
+    // individual scale values
+    get scales() {
+        return this._scales;
+    }
+
+    set scales(value: number[]) {
+        this._validateTransforms(value);
+        this._setUniform('scales', value);
+    }
+
+    // TODO: rename to _validateTransformValues
     _validateTransforms(value: number[]) {
-        let coordinateCount = 2; // x and y
+        let coordinateCount = 2; // x and y - can be for translate or scale
         let expectedLength = -1;
         switch (this.transformType) {
             case TRANSFORM_TYPE.BOUNDS:
@@ -544,13 +558,58 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
+    _generateScaleAnchors() {
+        let anchors = []
+        switch (this.transformType) {
+            case TRANSFORM_TYPE.BOUNDS:
+                anchors = this._generateBoundScaleAnchors(); break;
+            case TRANSFORM_TYPE.LINE:
+                anchors = this._generateLineScaleAnchors(); break;
+            case TRANSFORM_TYPE.WORD:
+                anchors = this._generateWordScaleAnchors(); break;
+            case TRANSFORM_TYPE.GLYPH:
+                anchors = this._generateGlyphScaleAnchors(); break;
+        }
+        return anchors.flatMap(item => [item.x, item.y]);
+    }
+
+    _generateBoundScaleAnchors() {
+        return [];
+    }
+
+    _generateLineScaleAnchors() {
+        let scaleAnchors = [];
+        const lineRanges = this.lineGlyphRanges();
+        for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
+            const lineStart = lineRanges[lineIndex][0];
+            const lineEnd = lineRanges[lineIndex][1];
+            const scaleAnchor = average(
+                this._fontAtlasTextGeometry._getGlyphCenter(lineStart),
+                this._fontAtlasTextGeometry._getGlyphCenter(lineEnd));
+            scaleAnchors.push(scaleAnchor);
+        }
+        return scaleAnchors;
+    }
+
+    _generateWordScaleAnchors() {
+        return [];
+    }
+
+    _generateGlyphScaleAnchors() {
+        return [];
+    }
+
     _generateWeights() {
         let weights = [];
         switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS: weights = this._generateBoundWeights(); break;
-            case TRANSFORM_TYPE.LINE: weights = this._generateLineWeights(); break;
-            case TRANSFORM_TYPE.WORD: weights = this._generateWordWeights(); break;
-            case TRANSFORM_TYPE.GLYPH: weights = this._generateGlyphWeights(); break;
+            case TRANSFORM_TYPE.BOUNDS:
+                weights = this._generateBoundWeights(); break;
+            case TRANSFORM_TYPE.LINE:
+                weights = this._generateLineWeights(); break;
+            case TRANSFORM_TYPE.WORD:
+                weights = this._generateWordWeights(); break;
+            case TRANSFORM_TYPE.GLYPH:
+                weights = this._generateGlyphWeights(); break;
         }
         return weights;
     }
@@ -612,7 +671,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _buildShader() {
         // build shader
         // TODO: make into a property
-        // is this the same as tint?
+        //  is this the same as tint?
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let shader;
@@ -623,6 +682,8 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
                 uSampler2: this.atlas.texture[0],
                 uColor: color,
                 transforms: this.transforms,
+                scaleAnchors: this._generateScaleAnchors(),
+                scales: this.scales,
             };
             // TODO: when the transform count changes, we need to rebuild this shader
             let vertexShader = transformVertexSrc(true, this.glyph.length);

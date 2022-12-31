@@ -6,7 +6,7 @@ async function waitFor(time = 100) {
     await new Promise(resolve => setTimeout(resolve, time));
 }
 
-describe.only('timeline', () => {
+describe('timeline', () => {
     describe('TickerTimeline', () => {
         it('advances time when playing', async() => {
             // Assemble
@@ -93,7 +93,7 @@ describe.only('timeline', () => {
         })
     });
 
-    describe.only('PingPongTimeline', () => {
+    describe('PingPongTimeline', () => {
         it('can get intro value', () => {
             // Assemble
             const timeline = new PingPongTimeline()

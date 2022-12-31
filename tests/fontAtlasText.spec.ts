@@ -488,7 +488,8 @@ describe('fontAtlasText', () => {
         })
     })
 
-    describe('can transform', () => {
+    describe('can translate', () => {
+        // todo: add object mode
         it('line', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
@@ -539,6 +540,7 @@ describe('fontAtlasText', () => {
                 for (const c in text) result.push(c)
                 return result;
             }
+            // offset each glyph by one more than the previous glyph
             const transforms = glyphs(displayText)
                 .map((glyph, index) => [0, index])
                 .flat()
@@ -546,10 +548,30 @@ describe('fontAtlasText', () => {
             app.ticker.update();
 
             // ASSERT
-            // TODO: the pixel count is actually the same accros the different transform tests so we need to
+            // TODO: the pixel count is actually the same accross the different transform tests so we need to
             //  use something else
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
             expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
+        });
+    })
+
+    describe('can scale', () => {
+        it.only('bounds', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.LINE, // TODO: make dynamic (not just on init)
+                width: 72,
+                height: 72,
+            });
+            text.transforms = [0, 0, 0, 0];
+            text.scales = [0.5, 0.5, 1.5, 1.5];
+            app.ticker.update();
+
+            // ASSERT
+            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            // expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
         });
     })
 });

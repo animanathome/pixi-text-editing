@@ -27,12 +27,22 @@ export const transformVertexSrc = (
     const varsTrans = `
         attribute float aWeight;
         uniform vec2 transforms[${transformCount}];
+        uniform vec2 scales[${transformCount}];
+        uniform vec2 scaleAnchors[${transformCount}];
     `
     const funTrans = `
         int transformIndex = int(aWeight);
-        vec2 vertexOffset = transforms[transformIndex];
+        vec2 vertexOffset = transforms[transformIndex]; // here we actually translate or move the vertex -- rename?
+        
+        vec2 vertexScale = scales[transformIndex];
+        mat3 scaleMatrix = mat3(vertexScale.x, 0, 0, 0, vertexScale.y, 0, 0, 0, 1);
+        vec2 vertexScaleAnchor = scaleAnchors[transformIndex];
+        mat3 scaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, vertexScaleAnchor.x, vertexScaleAnchor.y, 1);
+        mat3 invScaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, -vertexScaleAnchor.x, -vertexScaleAnchor.y, 1);
         vec2 vertexPosition = aVertexPosition + vertexOffset;
-        gl_Position = vec4((projectionMatrix * translationMatrix * vec3(vertexPosition, 1.0)).xy, 0.0, 1.0);
+        
+        vec3 inbetweenPosition = scaleAnchorMatrix * scaleMatrix * invScaleAnchorMatrix * vec3(vertexPosition, 1.0);
+        gl_Position = vec4((projectionMatrix * translationMatrix * inbetweenPosition).xy, 0.0, 1.0);
     `
     // assemble
     let shader;

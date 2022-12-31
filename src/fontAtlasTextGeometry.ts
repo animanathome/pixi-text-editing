@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import {dist} from "./utils";
+import {average, dist} from "./utils";
 import {TRANSFORM_TYPE} from "./fontAtlasText";
 
 export const LEFT = 0;
@@ -135,16 +135,15 @@ export class FontAtlasTextGeometry {
     //  - to select spaces
     _getGlyphCenter(index) {
         const vertexArray = this._getGlyphVertexArray(index);
-
-        const x1 = vertexArray[0];
-        const y1 = vertexArray[1];
-        const x0 = vertexArray[4];
-        const y0 = vertexArray[5];
-
-        const x = (x1 + x0) / 2;
-        const y = (y1 + y0) / 2;
-
-        return {x, y};
+        const p1 = {
+            x: vertexArray[4],
+            y: vertexArray[5],
+        }
+        const p2 = {
+            x: vertexArray[0],
+            y: vertexArray[1],
+        }
+        return average(p1, p2);
     }
 
     printGlyphBounds() {

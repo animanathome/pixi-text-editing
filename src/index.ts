@@ -165,7 +165,7 @@ function normalizedTanh(x) {
 function tanh(x) {
    const e = Math.exp(2*x);
    return (e - 1) / (e + 1) ;
-};
+}
 
 const animation = async() => {
     const {app, text} = await createFontAtlasTextApp({
@@ -189,9 +189,9 @@ const animation = async() => {
 
     app.ticker.add(() => {
         const progress = translateProgress.value(timeline.time);
-        translation[0] = progress * 50;
-        translation[2] = normalizedTanh(progress) * 50;
-        translation[4] = normalizedSigmoid(progress) * 50;
+        translation[0] = progress * 50; // linear
+        translation[2] = normalizedTanh(progress) * 50; // tan
+        translation[4] = normalizedSigmoid(progress) * 50; // sigmoid
         text.transforms = translation;
     });
     app.ticker.start();
