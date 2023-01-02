@@ -34,7 +34,7 @@ export const writeDataUrlToDisk = (url, outputFile = 'test') => {
 
 export const createFontAtlasTextApp = async({
         displayText = 'abc',
-        transformType = TRANSFORM_TYPE.LINE,
+        transformType = TRANSFORM_TYPE.NONE,
         width = 128,
         height = 128,
         resolution = 2,

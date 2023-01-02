@@ -1,4 +1,6 @@
 // variable snippets
+import {includes} from "lodash";
+
 const varsPos = `
     attribute vec2 aVertexPosition;
     uniform mat3 projectionMatrix;
@@ -34,11 +36,14 @@ export const transformVertexSrc = (
         int transformIndex = int(aWeight);
         vec2 vertexOffset = transforms[transformIndex]; // here we actually translate or move the vertex -- rename?
         
+        // scale vertex from scale anchor position using scale value
         vec2 vertexScale = scales[transformIndex];
         mat3 scaleMatrix = mat3(vertexScale.x, 0, 0, 0, vertexScale.y, 0, 0, 0, 1);
         vec2 vertexScaleAnchor = scaleAnchors[transformIndex];
         mat3 scaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, vertexScaleAnchor.x, vertexScaleAnchor.y, 1);
         mat3 invScaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, -vertexScaleAnchor.x, -vertexScaleAnchor.y, 1);
+        
+        // translate vertex using transform value
         vec2 vertexPosition = aVertexPosition + vertexOffset;
         
         vec3 inbetweenPosition = scaleAnchorMatrix * scaleMatrix * invScaleAnchorMatrix * vec3(vertexPosition, 1.0);

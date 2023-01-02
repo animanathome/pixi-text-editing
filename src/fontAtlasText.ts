@@ -3,13 +3,14 @@ import {DRAW_MODES} from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-import {deformVertexSrc, transformVertexSrc} from "./vertexShader";
+import {deformVertexSrc, simpleVertexSrc, transformVertexSrc} from "./vertexShader";
 import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
 import {average} from "./utils";
 
 export enum TRANSFORM_TYPE {
+    NONE,
     BOUNDS,
     LINE,
     WORD,
@@ -29,13 +30,12 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _fontFactor = 1;
     _tokenIndex = 0;
 
-    // TODO: make into a mixin and re-use in text
-    _transformType = TRANSFORM_TYPE.LINE;
-    _transforms = [0.0, 0.0];
-    _scales = [1.0, 0.0];
+    // make this into a deformer!
+    _transformType = TRANSFORM_TYPE.NONE;
+    _transforms = [];
+    _scales = [];
 
-    // TODO: make into a mixin and re-use in graphic
-    // curve deformer
+    // make this into a deformer!
     _curveTexture:PIXI.Texture= undefined;
     _curveData = undefined;
     _pathSegment = 1;
@@ -562,7 +562,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         let anchors = []
         switch (this.transformType) {
             case TRANSFORM_TYPE.BOUNDS:
-                anchors = this._generateBoundScaleAnchors(); break;
+                anchors = [this._generateBoundScaleAnchors()]; break;
             case TRANSFORM_TYPE.LINE:
                 anchors = this._generateLineScaleAnchors(); break;
             case TRANSFORM_TYPE.WORD:
@@ -574,9 +574,14 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _generateBoundScaleAnchors() {
-        return [];
+        const {x, y, width, height} = this.getBounds();
+        return {
+            x: x + (width / 2),
+            y: y + (height / 2),
+        };
     }
 
+    // TODO: specify type of position for anchor {x, y}
     _generateLineScaleAnchors() {
         let scaleAnchors = [];
         const lineRanges = this.lineGlyphRanges();
@@ -592,11 +597,22 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _generateWordScaleAnchors() {
-        return [];
+        let scaleAnchors = [];
+        const wordRanges = this.words;
+        for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
+            const wordRange = wordRanges[wordIndex];
+            const wordStart = wordRange[0];
+            const wordEnd = wordRange[wordRange.length - 1];
+            const scaleAnchor = average(
+                this._fontAtlasTextGeometry._getGlyphCenter(wordStart),
+                this._fontAtlasTextGeometry._getGlyphCenter(wordEnd));
+            scaleAnchors.push(scaleAnchor);
+        }
+        return scaleAnchors;
     }
 
     _generateGlyphScaleAnchors() {
-        return [];
+        return this.glyph.map((glyph, index) => this._fontAtlasTextGeometry.getGlyphCenter(index));
     }
 
     _generateWeights() {
@@ -615,7 +631,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _generateBoundWeights() {
-        return [1.0, 1.0, 1.0, 1.0];
+        return this.glyph.map((glyph, index) => [0, 0, 0, 0]).flat();
     }
 
     _generateLineWeights() {
@@ -676,17 +692,27 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
 
         let shader;
         // simple
-        // TODO: add transforms support
+        // TODO: add transforms support - we should make this into a deformation stack so we only adds it in
+        //  when its necessary
         if (!this._curveData || !this._curveTexture) {
-            const uniforms = {
+            let uniforms = {
                 uSampler2: this.atlas.texture[0],
                 uColor: color,
-                transforms: this.transforms,
-                scaleAnchors: this._generateScaleAnchors(),
-                scales: this.scales,
             };
+
+            let vertexShader;
+            if (this.transformType === TRANSFORM_TYPE.NONE) {
+               vertexShader = simpleVertexSrc(true);
+            }
+            else {
+                uniforms = Object.assign({}, uniforms, {
+                    transforms: this.transforms,
+                    scaleAnchors: this._generateScaleAnchors(),
+                    scales: this.scales,
+                });
+                vertexShader = transformVertexSrc(true, this.glyph.length);
+            }
             // TODO: when the transform count changes, we need to rebuild this shader
-            let vertexShader = transformVertexSrc(true, this.glyph.length);
             shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
         }
         // deformed

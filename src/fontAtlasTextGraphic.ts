@@ -321,6 +321,7 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         return geometry;
     }
 
+    // TODO: we need to fill in scales and scaleAnchors here as well
     _createMesh(geometry) {
         let shader;
         if (!this._curveData || !this._curveTexture) {

@@ -7,6 +7,7 @@ import {createFontAtlasText, createFontAtlasTextApp, getRenderedPixels, roundBou
 import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
 import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
 import {CurveData} from "../src/curveData";
+import {string2Array} from "../src/utils";
 
 // TODO: fix fontAtlasSize
 // TODO: glyph lookup across multiple textures
@@ -83,11 +84,10 @@ describe('fontAtlasText', () => {
             fontAtlasResolution,
             fontSize
         })
-
-        // Act
-        const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+        app.ticker.update();
 
         // Assert
+        const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
         expect(pixels.reduce((a, b) => a + b)).to.be.lessThan(pixels.length * 255)
     })
 
@@ -500,6 +500,7 @@ describe('fontAtlasText', () => {
                 height: 72,
             });
             text.transforms = [0, 0, 10, 0];
+            text.scales = [1.0, 1.0, 1.0, 1.0];
             app.ticker.update();
 
             // ASSERT
@@ -516,7 +517,8 @@ describe('fontAtlasText', () => {
                 width: 72,
                 height: 72,
             });
-            text.transforms = [0, 2, 0, 4, 0, 6, 0, 8];
+            text.transforms = [0, 2, 0, 4, 0, 6, 0, 8]; // 8 / 2 = 4 words
+            text.scales = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
             app.ticker.update();
 
             // ASSERT
@@ -535,16 +537,15 @@ describe('fontAtlasText', () => {
             });
 
             // TODO: see how we can add support to the spread operator
-            const glyphs = (text) => {
-                const result = []
-                for (const c in text) result.push(c)
-                return result;
-            }
             // offset each glyph by one more than the previous glyph
-            const transforms = glyphs(displayText)
+            const transforms = string2Array(displayText)
                 .map((glyph, index) => [0, index])
                 .flat()
+            const scales = string2Array(displayText)
+                .map((glyph, index) => [1, 1])
+                .flat()
             text.transforms = transforms;
+            text.scales = scales;
             app.ticker.update();
 
             // ASSERT
@@ -556,12 +557,30 @@ describe('fontAtlasText', () => {
     })
 
     describe('can scale', () => {
-        it.only('bounds', async() => {
+        it('bounds', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {app, text} = await createFontAtlasTextApp({
                 displayText,
-                transformType: TRANSFORM_TYPE.LINE, // TODO: make dynamic (not just on init)
+                transformType: TRANSFORM_TYPE.BOUNDS,
+                width: 72,
+                height: 72,
+            });
+            text.transforms = [0, 0];
+            text.scales = [0.5, 0.5];
+            app.ticker.update();
+
+            // ASSERT
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20955549);
+        });
+
+        it('lines', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.LINE,
                 width: 72,
                 height: 72,
             });
@@ -570,8 +589,50 @@ describe('fontAtlasText', () => {
             app.ticker.update();
 
             // ASSERT
-            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            // expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20375997);
+        });
+
+        it('words', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.WORD, // TODO: make dynamic (not just on init)
+                width: 72,
+                height: 72,
+            });
+            text.transforms = [0, 0, 0, 0, 0, 0, 0, 0]; // 8 / 2 = 4 words
+            text.scales = [0.5, 0.5, 0.75, 0.75, 1.0, 1.0, 1.25, 1.25];
+            app.ticker.update();
+
+            // ASSERT
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20530401);
+        });
+
+        it('glyphs', async() => {
+            // Assemble
+            const displayText = "hello world!\nWhat's up?";
+            const {app, text} = await createFontAtlasTextApp({
+                displayText,
+                transformType: TRANSFORM_TYPE.GLYPH, // TODO: make dynamic (not just on init)
+                width: 72,
+                height: 72,
+            });
+            const transforms = string2Array(displayText)
+                .map((glyph, index) => [0, 0])
+                .flat()
+            const scales = string2Array(displayText)
+                .map((glyph, index) => [(index * 0.05) + 0.5, (index * 0.05) + 0.5])
+                .flat()
+            text.transforms = transforms;
+            text.scales = scales;
+            app.ticker.update();
+
+            // ASSERT
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
+            expect(pixels.reduce((a, b) => a + b)).to.equal(20226297);
         });
     })
 });
