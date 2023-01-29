@@ -4,6 +4,7 @@ import * as fs from "fs";
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
+import {Rectangle} from "../src/rectangle";
 
 export const LOCALHOST = 'http://localhost:8080/resources/'
 
@@ -30,6 +31,38 @@ export const writeDataUrlToDisk = (url, outputFile = 'test') => {
     fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {
         console.log(err);
     });
+}
+
+export const createRectangleApp = () => {
+    const width = 128;
+    const height = 128;
+    const app = new PIXI.Application({
+        backgroundColor: 0xffffff,
+        antialias: true,
+        autoStart: false,
+        width,
+        height,
+    });
+    document.body.appendChild(app.view);
+    app.view.style.height = `${height}px`;
+    app.view.style.width = `${width}px`;
+
+    const gridTexture = PIXI.Texture.from(LOCALHOST + 'grid.png');
+    const grid = new PIXI.Sprite(gridTexture);
+    app.stage.addChild(grid);
+
+    const rectangle = new Rectangle({
+        x: 32, y:32,
+        width:64, height:64
+    });
+    app.stage.addChild(rectangle);
+
+    app.ticker.start();
+
+    return {
+        app,
+        rectangle
+    }
 }
 
 export const createFontAtlasTextApp = async({

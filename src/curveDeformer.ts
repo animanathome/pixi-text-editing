@@ -5,6 +5,23 @@ import {FloatBufferResource} from "./FloatBufferResource";
 
 const BITS = 3;
 
+export const getStraightLinePositions = (start, end, nSegments) => {
+    const rangeX = end.x - start.x;
+    const rangeY = end.y - start.y;
+    const incrementX = rangeX / (nSegments - 1);
+    const incrementY = rangeY / (nSegments - 1);
+
+    const positions = [];
+    for (let i = 0; i < nSegments; i++) {
+        positions.push(new THREE.Vector3(
+            start.x + incrementX * i,
+            start.y + incrementY * i,
+            0
+        ))
+    }
+    return positions;
+}
+
 export const buildCurveData = ({points, nSegments = 20, closed = true, normalOverride = null}) => {
     const curve = new THREE.CatmullRomCurve3(points, closed, 'catmullrom', 0.825)
     const positions = curve.getSpacedPoints( nSegments );

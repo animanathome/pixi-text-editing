@@ -47,7 +47,7 @@ export type PublicConstructor<T> = new (props: GetConstructorParameters<T>) => T
  */
 export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
     const Derived = class extends (Base as any) implements MeshMixinInterface {
-        _shader : PIXI.MeshMaterial = null;
+        _shader : PIXI.MeshMaterial | PIXI.Shader = null;
         _geometry : PIXI.Geometry = null;
         _state: PIXI.State = PIXI.State.for2d();
         _size: number = 0;
