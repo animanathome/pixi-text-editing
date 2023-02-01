@@ -35,8 +35,8 @@ export class CurveDeformer extends BaseDeformer {
 
     _vertBody() {
         return `
-        vec3 getVertexPosition${this.index}() {
-            vec4 worldPos = vec4(aVertexPosition.xy, 0.0, 1.0);
+        vec3 getVertexPosition${this.index}(vec3 inputPosition) {
+            vec4 worldPos = vec4(inputPosition.xyz, 1.0);
             bool bend = flow > 0;
             float xWeight = bend ? 0.0 : 1.0;
             float spinePortion = bend ? (worldPos.x + spineOffset) / spineLength : 0.;

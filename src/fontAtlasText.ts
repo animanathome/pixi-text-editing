@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import {DRAW_MODES} from 'pixi.js';
+import {DRAW_MODES, Geometry} from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
@@ -8,6 +8,7 @@ import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
 import {average} from "./utils";
+import {DeformerStack} from "./deformerStack";
 
 export enum TRANSFORM_TYPE {
     NONE,
@@ -49,10 +50,12 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _words = [];
     // TODO: rename to GeometryBuilder instead?
     _fontAtlasTextGeometry = new FontAtlasTextGeometry();
+    _deformerStack: DeformerStack;
 
     set atlas(atlas: FontAtlas) {
         this._atlas = atlas;
         this._fontAtlasTextGeometry.atlasResolution = atlas.resolution;
+        this._deformerStack = new DeformerStack();
     }
 
     get atlas() {
