@@ -74,7 +74,7 @@ export const createFontAtlasTextApp = async({
         fontSize = 12,
         fontAtlasSize = 12,
         fontAtlasResolution = 128,
-        fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
+        fontUrl = '../../../resources/Roboto-Regular.ttf'
     }) => {
 
     const app = new PIXI.Application({
