@@ -52,10 +52,26 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _fontAtlasTextGeometry = new FontAtlasTextGeometry();
     _deformerStack: DeformerStack;
 
+    get deform() {
+        return this._deformerStack;
+    }
+
     set atlas(atlas: FontAtlas) {
         this._atlas = atlas;
         this._fontAtlasTextGeometry.atlasResolution = atlas.resolution;
-        this._deformerStack = new DeformerStack();
+        this._deformerStack = new DeformerStack(this);
+
+        // NOTE: we should probably set this up during construction
+        this._deformerStack.on('deformerAdded', () => {
+            console.log('deformer added');
+            this._buildGeometry();
+            this._buildShader();
+        });
+        this._deformerStack.on('deformerChanged', () => {
+            console.log('deformer changed');
+            this._buildGeometry();
+            this._buildShader();
+        });
     }
 
     get atlas() {
@@ -104,6 +120,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
+    // @deprecated
     _setUniform(property, value) {
         if (!this._shader) {
             return
@@ -111,6 +128,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._shader.uniforms[property] = value;
     }
 
+    // @deprecated
     get transformType() {
         return this._transformType;
     }
@@ -121,6 +139,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     // TODO: rename to translation
+    // @deprecated
     get transforms() {
         return this._transforms;
     }
@@ -680,10 +699,8 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _buildGeometry() {
-        // build geometry
-        // TODO: this is a bit strange ... we generate weights from the geometry which we're building next?
-        const weights = this._generateWeights();
-        const geometry = this._fontAtlasTextGeometry.build(weights);
+        // NOTE: we need to rebuild our geometry when we add a new deformer
+        const geometry = this._fontAtlasTextGeometry.build();
         this._geometry = geometry;
     }
 
@@ -693,49 +710,64 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         //  is this the same as tint?
         const color = [1.0, 0.0, 0.0, 1.0];
 
-        let shader;
-        // simple
-        // TODO: add transforms support - we should make this into a deformation stack so we only adds it in
-        //  when its necessary
-        if (!this._curveData || !this._curveTexture) {
-            let uniforms = {
-                uSampler2: this.atlas.texture[0],
-                uColor: color,
-            };
+        let uniforms = Object.assign({
+            uColor: color,
+        }, this.deform._combineUniforms())
 
-            let vertexShader;
-            if (this.transformType === TRANSFORM_TYPE.NONE) {
-               vertexShader = simpleVertexSrc(true);
-            }
-            else {
-                uniforms = Object.assign({}, uniforms, {
-                    transforms: this.transforms,
-                    scaleAnchors: this._generateScaleAnchors(),
-                    scales: this.scales,
-                });
-                vertexShader = transformVertexSrc(true, this.glyph.length);
-            }
-            // TODO: when the transform count changes, we need to rebuild this shader
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
+        const weights = this.deform._getWeights();
+        if (weights) {
+            console.log('adding weights', weights)
+            this._geometry.addAttribute('aWeight', weights, 1)
         }
-        // deformed
-        else {
-            const uniforms = {
-                // color
-                uSampler2: this.atlas.texture[0], // glyph texture
-                uColor: color, // glyph color
 
-                // curve deform
-                texture: this._curveTexture,
-                pathOffset: this._pathOffset,
-                pathSegment: this._pathSegment,
-                spineOffset: this._spineOffset,
-                spineLength: this._spineLength,
-                flow: this._flow,
-            };
-            let vertexShader = deformVertexSrc(true);
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
-        }
+        const vertexShader = this.deform._buildVertexShader();
+        const shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
+
+        // let shader;
+        // // simple
+        // // TODO: add transforms support - we should make this into a deformation stack so we only adds it in
+        // //  when its necessary
+        // if (!this._curveData || !this._curveTexture) {
+        //     let uniforms = {
+        //         uSampler2: this.atlas.texture[0],
+        //         uColor: color,
+        //     };
+        //
+        //     let vertexShader;
+        //     if (this.transformType === TRANSFORM_TYPE.NONE) {
+        //        vertexShader = simpleVertexSrc(true);
+        //     }
+        //     else {
+        //         uniforms = Object.assign({}, uniforms, {
+        //             transforms: this.transforms,
+        //             scaleAnchors: this._generateScaleAnchors(),
+        //             scales: this.scales,
+        //         });
+        //         vertexShader = transformVertexSrc(true, this.glyph.length);
+        //     }
+        //     // TODO: when the transform count changes, we need to rebuild this shader
+        //     shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
+        // }
+        // // deformed
+        // else {
+        //     const uniforms = {
+        //         // color
+        //         uSampler2: this.atlas.texture[0], // glyph texture
+        //         uColor: color, // glyph color
+        //
+        //         // curve deform
+        //         texture: this._curveTexture,
+        //         pathOffset: this._pathOffset,
+        //         pathSegment: this._pathSegment,
+        //         spineOffset: this._spineOffset,
+        //         spineLength: this._spineLength,
+        //         flow: this._flow,
+        //     };
+        //     let vertexShader = deformVertexSrc(true);
+        //     shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
+        // }
+
+
         this._shader = shader;
     }
 

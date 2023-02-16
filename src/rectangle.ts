@@ -15,7 +15,7 @@ export class Rectangle extends MeshMixin(PIXI.Container) {
         this.y = y;
         this._width = width;
         this._height = height;
-        this._deformerStack = new DeformerStack();
+        this._deformerStack = new DeformerStack(this);
         this._dirty = true;
     }
 
@@ -79,7 +79,7 @@ export class Rectangle extends MeshMixin(PIXI.Container) {
 
         let vertexShader = this.deform._buildVertexShader();
 
-        let shader = PIXI.Shader.from(vertexShader, colorFragmentSrc, uniforms);
+        // let shader = PIXI.Shader.from(vertexShader, colorFragmentSrc, uniforms);
         this._shader = shader;
     }
 

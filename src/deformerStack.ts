@@ -1,21 +1,25 @@
 import * as PIXI from 'pixi.js';
 import {BaseDeformer, DeformerType} from "./deformers/BaseDeformer";
 import {CurveDeformer} from "./deformers/CurveDeformer";
-import {TextComponentTransformDeformer} from "./deformers/TextComponentTransformDeformer";
+import {TextDeformer} from "./deformers/TextDeformer";
 import {TransformDeformer} from "./deformers/TransformDeformer";
 import {VertexTransformDeformer} from "./deformers/VertexTransformDeformer";
+import {Container} from "pixi.js";
 
 type MatrixDeformer = TransformDeformer | CurveDeformer;
-type VertexDeformer = VertexTransformDeformer | CurveDeformer | TextComponentTransformDeformer;
+type VertexDeformer = VertexTransformDeformer | CurveDeformer | TextDeformer;
 type Deformer = MatrixDeformer | VertexDeformer;
 
-export class DeformerStack {
+export class DeformerStack extends PIXI.utils.EventEmitter {
     _vertexDeformers: VertexDeformer[];
     _matrixDeformers: MatrixDeformer[];
+    _parent = undefined;
 
-    constructor() {
+    constructor(parent) {
+        super();
         this._matrixDeformers = [];
         this._vertexDeformers = [];
+        this._parent = parent;
     }
 
     get matrixDeformers() {
@@ -40,6 +44,7 @@ export class DeformerStack {
         else if (deformer.deformerType === DeformerType.MATRIX) {
             this._matrixDeformers.push(deformer as MatrixDeformer);
         }
+        this.emit('deformerAdded');
     }
 
     public addDeformerAtIndex(deformer: Deformer, index: number): void {
@@ -67,6 +72,7 @@ export class DeformerStack {
                 this._matrixDeformers.splice(index, 1);
             }
         }
+        this.emit('deformerRemoved');
     }
 
     public moveDeformerToIndex(deformer: Deformer, index: number): void {
@@ -115,6 +121,20 @@ export class DeformerStack {
         uniform mat3 translationMatrix;
         ${combinedHeaders}
         `
+    }
+
+    hasWeights() {
+        return this.deformers.some(deformer => deformer.hasWeights);
+    }
+
+    _getWeights() {
+        const deformer = this.deformers.find(deformer => deformer.hasWeights);
+        console.log('deformer with weights', deformer);
+        if (!deformer) {
+            console.log('no deformer with weights');
+            return [];
+        }
+        return deformer._generateWeights();
     }
 
     get hasVertexDeformers() {

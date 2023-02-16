@@ -277,11 +277,11 @@ export class FontAtlasTextGeometry {
         return glyphUVs;
     }
 
-    build(weights: number[]) : PIXI.Geometry {
+    build() : PIXI.Geometry {
+        console.log('building geometry');
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', this._vertexArray, 2);
         geometry.addAttribute('aUvs', this._uvArray, 2);
-        geometry.addAttribute('aWeight', weights, 1)
         geometry.addIndex(this._indexArray);
         return geometry;
     }
