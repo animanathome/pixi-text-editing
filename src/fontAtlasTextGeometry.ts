@@ -278,7 +278,6 @@ export class FontAtlasTextGeometry {
     }
 
     build() : PIXI.Geometry {
-        console.log('building geometry');
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', this._vertexArray, 2);
         geometry.addAttribute('aUvs', this._uvArray, 2);

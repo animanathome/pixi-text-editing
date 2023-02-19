@@ -64,12 +64,10 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         // NOTE: we should probably set this up during construction
         this._deformerStack.on('deformerAdded', () => {
             console.log('deformer added');
-            this._buildGeometry();
             this._buildShader();
         });
         this._deformerStack.on('deformerChanged', () => {
             console.log('deformer changed');
-            this._buildGeometry();
             this._buildShader();
         });
     }
@@ -409,6 +407,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _build() {
+        console.log('_build');
         if (!this._dirty) {
             return;
         }
@@ -699,28 +698,34 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _buildGeometry() {
+        console.log('_buildGeometry')
         // NOTE: we need to rebuild our geometry when we add a new deformer
         const geometry = this._fontAtlasTextGeometry.build();
         this._geometry = geometry;
     }
 
     _buildShader() {
+        console.log('_buildShader')
         // build shader
         // TODO: make into a property
         //  is this the same as tint?
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let uniforms = Object.assign({
+            uSampler2: this.atlas.texture[0],
             uColor: color,
         }, this.deform._combineUniforms())
 
-        const weights = this.deform._getWeights();
-        if (weights) {
-            console.log('adding weights', weights)
-            this._geometry.addAttribute('aWeight', weights, 1)
-        }
+        console.log('combined uniforms', uniforms);
+
+        // const weights = this.deform._getWeights();
+        // if (weights) {
+        //     console.log('adding weights', weights)
+        //     this._geometry.addAttribute('aWeight', weights, 1)
+        // }
 
         const vertexShader = this.deform._buildVertexShader();
+        console.log('build shader')
         const shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
 
         // let shader;
@@ -800,6 +805,10 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
 
     _render(renderer: PIXI.Renderer) {
         this._build();
+        if (this.deform.isDirty) {
+            this.deform.update();
+            this._buildShader();
+        }
         this._renderDefault(renderer);
     }
 }

@@ -22,6 +22,14 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         this._parent = parent;
     }
 
+    get isDirty() {
+        return this.deformers.some(deformer => deformer.isDirty);
+    }
+
+    update() {
+        this.deformers.forEach(deformer => deformer.update());
+    }
+
     get matrixDeformers() {
         return this._matrixDeformers;
     }
@@ -37,13 +45,13 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     /* Add a deformer. */
     public addDeformer(deformer: Deformer): void {
         deformer._deformerStack = this;
-
         if (deformer.deformerType === DeformerType.VERTEX) {
             this._vertexDeformers.push(deformer as VertexDeformer);
         }
         else if (deformer.deformerType === DeformerType.MATRIX) {
             this._matrixDeformers.push(deformer as MatrixDeformer);
         }
+        deformer.update();
         this.emit('deformerAdded');
     }
 
@@ -109,6 +117,19 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         return this._combineVertHeads() + this._combineVertBodies()
     }
 
+    _vertexHeads() {
+        return `
+        attribute vec2 aVertexPosition;
+        uniform mat3 projectionMatrix;
+        uniform mat3 translationMatrix;`
+    }
+
+    _uvHeads() {
+        return `
+        attribute vec2 aUvs;
+        varying vec2 vUvs;`
+    }
+
     _combineVertHeads() {
         let combinedHeaders = '';
         this.deformers.forEach(deformer => {
@@ -116,26 +137,25 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         })
 
         return `
-        attribute vec2 aVertexPosition;
-        uniform mat3 projectionMatrix;
-        uniform mat3 translationMatrix;
+        ${this._vertexHeads()}
+        ${this._uvHeads()}
         ${combinedHeaders}
         `
     }
 
-    hasWeights() {
-        return this.deformers.some(deformer => deformer.hasWeights);
-    }
-
-    _getWeights() {
-        const deformer = this.deformers.find(deformer => deformer.hasWeights);
-        console.log('deformer with weights', deformer);
-        if (!deformer) {
-            console.log('no deformer with weights');
-            return [];
-        }
-        return deformer._generateWeights();
-    }
+    // hasWeights() {
+    //     return this.deformers.some(deformer => deformer.hasWeights);
+    // }
+    //
+    // _getWeights() {
+    //     const deformer = this.deformers.find(deformer => deformer.hasWeights);
+    //     console.log('deformer with weights', deformer);
+    //     if (!deformer) {
+    //         console.log('no deformer with weights');
+    //         return [];
+    //     }
+    //     return deformer._generateWeights();
+    // }
 
     get hasVertexDeformers() {
         return this._vertexDeformers.length > 0;
@@ -146,9 +166,13 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     printAssembly() {
-        console.log(this._combineUniforms());
-        console.log(this._combineVertHeads());
-        console.log(this._combineVertBodies());
+        console.log('uniforms', this._combineUniforms());
+        console.log('header', this._combineVertHeads());
+        console.log('body', this._combineVertBodies());
+    }
+
+    _uvBodies() {
+        return `vUvs = aUvs;`
     }
 
     _combineVertBodies() {
@@ -193,6 +217,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             ${combineMatrixFuncs}
             ${combinedFunctions}
             gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
+            ${this._uvBodies()}
         }
         `
     }

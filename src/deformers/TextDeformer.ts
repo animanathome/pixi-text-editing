@@ -2,7 +2,6 @@ import {BaseDeformer} from "./BaseDeformer";
 import {average} from "../utils";
 
 export enum TRANSFORM_TYPE {
-    NONE,
     BOUNDS,
     LINE,
     WORD,
@@ -12,11 +11,11 @@ export enum TRANSFORM_TYPE {
 // rename to component deformer
 export class TextDeformer extends BaseDeformer {
     _hasWeights = true;
-    _transformType = TRANSFORM_TYPE.NONE;
-    _transforms = [];
-    _scales = [];
+    _transformType = TRANSFORM_TYPE.BOUNDS;
+    _transforms = [0.0, 0.0];
+    _scales = [1.0, 1.0];
     _scaleAnchors = [];
-    _dirty = true;
+    _weights = [];
 
     _uniforms(): {} {
         return {
@@ -41,8 +40,8 @@ export class TextDeformer extends BaseDeformer {
         return `
         mat3 getTranslationMatrix${this.index}() {
             int transformIndex = int(aWeight);
-            vec2 vertexOffset = transforms[transformIndex]; // here we actually translate or move the vertex -- rename?
-            vec2 vertexPosition = aVertexPosition + vertexOffset;
+            vec2 vertexOffset = transforms[transformIndex];            
+            mat3 moveMatrix = mat3(1, 0, 0, 0, 1, 0, vertexOffset.x, vertexOffset.y, 1);
             
             // scale vertex from scale anchor position using scale value
             vec2 vertexScale = scales[transformIndex];
@@ -51,7 +50,7 @@ export class TextDeformer extends BaseDeformer {
             mat3 scaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, vertexScaleAnchor.x, vertexScaleAnchor.y, 1);
             mat3 invScaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, -vertexScaleAnchor.x, -vertexScaleAnchor.y, 1);
             
-            mat3 combinedMatrix = scaleAnchorMatrix * scaleMatrix * invScaleAnchorMatrix;
+            mat3 combinedMatrix = moveMatrix * scaleAnchorMatrix * scaleMatrix * invScaleAnchorMatrix;
             return combinedMatrix;
         }
         `
@@ -63,7 +62,21 @@ export class TextDeformer extends BaseDeformer {
 
     set transformType(value) {
         this._transformType = value;
+        this._resetState()
         this._dirty = true;
+    }
+
+    /**
+     * When the transform type changes, we need to reset the state of the deformer as we need all of our
+     * internal data to match with the new transform type.
+     */
+    _resetState() {
+        console.warn(`ressetting state, new state ${this.transformType}`);
+        const expectedLength = this._expectTransformsLength();
+        this._transforms = new Array(expectedLength).fill(0.0);
+        console.log('transforms', this._transforms);
+        this._scales = new Array(expectedLength).fill(1.0);
+        console.log('scale', this._scales);
     }
 
     get transforms() {
@@ -71,9 +84,14 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set transforms(value: number[]) {
+        console.log('transforms', value);
         this._validateTransforms(value);
-        this.update()
         this._transforms = value;
+        this._dirty = true;
+    }
+
+    _hasData() {
+        return this.parent.lines.length !== 0;
     }
 
     // TODO: rename to _validateTransformValues
@@ -83,6 +101,13 @@ export class TextDeformer extends BaseDeformer {
      * @param value
      */
     _validateTransforms(value: number[]) {
+        const expectedLength = this._expectTransformsLength();
+        if (value.length !== expectedLength) {
+            throw Error(`Invalid number of values, expected ${expectedLength}`);
+        }
+    }
+
+    _expectTransformsLength() {
         const coordinateCount = 2; // x and y - can be for translate or scale
         let expectedLength = -1;
         switch (this.transformType) {
@@ -99,9 +124,7 @@ export class TextDeformer extends BaseDeformer {
                 expectedLength = this.parent.glyph.length * coordinateCount;
                 break;
         }
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
+        return expectedLength;
     }
 
     get scales() {
@@ -109,15 +132,20 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set scales(value: number[]) {
+        console.log('scales', value);
         this._validateTransforms(value);
         this._scales = value;
+        this._dirty = true;
     }
 
     update() {
         if (!this._dirty) {
             return
         }
+        console.warn('update text deformer')
         this._generateScaleAnchors();
+        this._generateWeights();
+        this._assignWeights();
         this._dirty = false;
         this.emitDeformerChanged();
     }
@@ -135,6 +163,10 @@ export class TextDeformer extends BaseDeformer {
                 anchors = this._generateGlyphScaleAnchors(); break;
         }
         this._scaleAnchors = anchors.flatMap(item => [item.x, item.y]);
+    }
+
+    get scaleAnchors() {
+        return this._scaleAnchors;
     }
 
     _generateBoundScaleAnchors() {
@@ -180,7 +212,6 @@ export class TextDeformer extends BaseDeformer {
     }
 
     _generateWeights() {
-        console.log('_generateWeights', this.transformType);
         let weights = [];
         switch (this.transformType) {
             case TRANSFORM_TYPE.BOUNDS:
@@ -192,7 +223,17 @@ export class TextDeformer extends BaseDeformer {
             case TRANSFORM_TYPE.GLYPH:
                 weights = this._generateGlyphWeights(); break;
         }
-        return weights;
+        this._weights = weights;
+    }
+
+    _assignWeights() {
+        const weightsAttribute = this.parent.geometry.getAttribute('aWeight');
+        if (!weightsAttribute) {
+            this.parent.geometry.addAttribute('aWeight', this._weights, 1)
+            return;
+        }
+        const weightsBuffer = this.parent.geometry.getBuffer('aWeight');
+        weightsBuffer.data = new Float32Array(this._weights);
     }
 
     _generateBoundWeights() {

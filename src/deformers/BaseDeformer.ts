@@ -9,6 +9,12 @@ export class BaseDeformer {
     _deformerStack: DeformerStack;
     _deformerType: DeformerType = DeformerType.MATRIX;
     _hasWeights = false;
+    _weights = [];
+    _dirty = true;
+
+    get isDirty() {
+        return this._dirty;
+    }
 
     get index() {
         return this._deformerStack.deformerIndex(this);
@@ -18,8 +24,11 @@ export class BaseDeformer {
         return this._hasWeights;
     }
 
+    get weights() {
+        return this._weights;
+    }
+
     _generateWeights() {
-        return [];
     }
 
     /**
@@ -47,5 +56,8 @@ export class BaseDeformer {
 
     _vertBody() {
         return '';
+    }
+
+    update() {
     }
 }
