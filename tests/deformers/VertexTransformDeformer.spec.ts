@@ -2,7 +2,7 @@ import {createRectangleApp} from "../utils";
 import {VertexTransformDeformer} from "../../src/deformers/VertexTransformDeformer";
 import {expect} from "chai";
 
-describe.only('VertexTransformDeformer', () => {
+describe('VertexTransformDeformer', () => {
    it('can add deformer', async() => {
         // Assemble
         const {app, rectangle} = createRectangleApp();

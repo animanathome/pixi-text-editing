@@ -34,69 +34,11 @@ export class FontAtlasTextGraphic extends PIXI.Container{
     _yProgress: number = 1.0;
     _color: number[] = [1.0, 0.0, 0.0, 1.0];
 
-    // TODO: make into a mixin and re-use in text
-    _transforms = [0.0, 0.0];
-
-    // TODO: make into a mixin and re-use in text
-    _curveTexture:PIXI.Texture= undefined;
-    _curveData = undefined;
-    _pathSegment = 1;
-    _spineOffset = 0;
-    _spineLength = 1;
-    _pathOffset = 0;
-    _flow = 1;
-
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this._fontAtlasText = fontAtlasText;
         this._createMesh(new PIXI.Geometry());
     }
-
-    get pathOffset() {
-        return this._pathOffset;
-    }
-
-    set pathOffset(value) {
-        this._pathOffset = value;
-        this._setUniform('pathOffset', value);
-    }
-
-    get pathSegment() {
-        return this._pathSegment;
-    }
-
-    set pathSegment(value) {
-        this._pathSegment = value;
-        this._setUniform('pathSegment', value);
-    }
-
-    set flow(value) {
-        this._flow = value;
-        this._setUniform('flow', value);
-    }
-
-    get flow() {
-        return this._flow;
-    }
-
-    get spineOffset() {
-        return this._spineOffset;
-    }
-
-    set spineOffset(value) {
-        this._spineOffset = value;
-        this._setUniform('spineOffset', value);
-    }
-
-    get spineLength() {
-        return this._spineLength;
-    }
-
-    set spineLength(value) {
-        this._spineLength = value;
-        this._setUniform('spineLength', value);
-    }
-
 
     get xInvert() {
         return this._xInvert;
@@ -148,33 +90,6 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             return
         }
         this._mesh.shader.uniforms[property] = value;
-    }
-
-    get transforms() {
-        return this._transforms;
-    }
-
-    set transforms(value: number[]) {
-        this._validateTransforms(value);
-        this._setUniform('transforms', value);
-    }
-
-    _validateTransforms(value: number[]) {
-        let expectedLength = -1;
-        switch (this.graphicType) {
-            case GRAPHIC_TYPE.BOUNDS:
-                expectedLength = 2;
-                break;
-            case GRAPHIC_TYPE.LINE:
-                expectedLength = this._fontAtlasText.lines.length * 2;
-                break;
-            case GRAPHIC_TYPE.WORD:
-                expectedLength = this._fontAtlasText.words.length * 2;
-                break;
-        }
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
     }
 
     set graphicType(value: GRAPHIC_TYPE) {
@@ -324,33 +239,6 @@ export class FontAtlasTextGraphic extends PIXI.Container{
     // TODO: we need to fill in scales and scaleAnchors here as well
     _createMesh(geometry) {
         let shader;
-        if (!this._curveData || !this._curveTexture) {
-            const uniforms = {
-                transforms: this.transforms,
-                uColor: this.color,
-                xInvert: this.xInvert,
-                yInvert: this.yInvert,
-                xProgress: this.xProgress,
-                yProgress: this.yProgress,
-            };
-            // TODO: when the transform count changes, we need to rebuild the shader!
-            const vertexShader = transformVertexSrc(true, 4);
-            shader = PIXI.Shader.from(vertexShader, rectangleFragmentSrc, uniforms);
-        }
-        else {
-            const uniforms = {
-                // curve deform
-                texture: this._curveTexture,
-                pathOffset: this._pathOffset,
-                pathSegment: this._pathSegment,
-                spineOffset: this._spineOffset,
-                spineLength: this._spineLength,
-                flow: this._flow,
-            };
-            let vertexShader = deformVertexSrc(true);
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
-        }
-
         const mesh = new PIXI.Mesh(geometry, shader);
         this._mesh = mesh;
         this.addChild(mesh);

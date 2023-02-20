@@ -3,7 +3,7 @@ import {TransformDeformer} from "../src/deformers/TransformDeformer";
 import {createRectangleApp} from "./utils";
 import {VertexTransformDeformer} from "../src/deformers/VertexTransformDeformer";
 
-describe.only('DeformerStack', () => {
+describe('DeformerStack', () => {
     it('can add deformer', async() => {
         // Assemble
         const {app, rectangle} = createRectangleApp();

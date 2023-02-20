@@ -28,6 +28,9 @@ describe('FontAtlasTextManipulator', () => {
             // Assert
             expect(manipulator.caret.getBounds().x).to.equal(0);
             expect(manipulator.caret.getBounds().y).to.equal(0);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         describe('by moving left', () => {
@@ -88,6 +91,9 @@ describe('FontAtlasTextManipulator', () => {
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
 
                 it('with single characters', async() => {
@@ -121,6 +127,9 @@ describe('FontAtlasTextManipulator', () => {
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
 
                 it('with single characters and new lines', async() => {
@@ -201,6 +210,9 @@ describe('FontAtlasTextManipulator', () => {
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
             });
         });
@@ -268,6 +280,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 })
 
                 it('with single characters', async() => {
@@ -314,6 +329,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(6);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 })
 
                 it('with single characters and new lines', async() => {
@@ -401,6 +419,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 })
             })
         })
@@ -455,6 +476,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
 
                 it('with single characters', async() => {
@@ -506,6 +530,8 @@ describe('FontAtlasTextManipulator', () => {
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(0);
 
+                    // Cleanup
+                    app.destroy(true, true);
                 })
             });
         })
@@ -573,6 +599,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
 
                 it('with single characters', async() => {
@@ -636,6 +665,9 @@ describe('FontAtlasTextManipulator', () => {
 
                     expect(manipulator.caret.getBounds().x).to.equal(0);
                     expect(manipulator.caret.getBounds().y).to.equal(24);
+
+                    // Cleanup
+                    app.destroy(true, true);
                 });
             })
         })
@@ -669,6 +701,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(27);
                 expect(bounds.height).to.equal(12);
+
+                // Cleanup
+                app.destroy(true, true);
             });
 
             it('multiple words on a single line', async() => {
@@ -713,6 +748,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
+
+                // Cleanup
+                app.destroy(true, true);
             })
 
             it('multiple words on two lines', async() => {
@@ -744,6 +782,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(24);
+
+                // Cleanup
+                app.destroy(true, true);
             });
         });
 
@@ -774,6 +815,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(27);
                 expect(bounds.height).to.equal(12);
+
+                // Cleanup
+                app.destroy(true, true);
             });
 
             it('multiple words on a single line', async() => {
@@ -820,6 +864,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
+
+                // Cleanup
+                app.destroy(true, true);
             });
 
             it('multiple words on two lines', async() => {
@@ -870,6 +917,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(24);
+
+                // Cleanup
+                app.destroy(true, true);
             });
 
             it('multiple words on several lines', async() => {
@@ -896,6 +946,9 @@ describe('FontAtlasTextManipulator', () => {
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(66);
                 expect(bounds.height).to.equal(36);
+
+                // Cleanup
+                app.destroy(true, true);
             });
         })
     })
@@ -942,6 +995,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(26);
             expect(bounds.height).to.equal(9);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('when adding word at the start', async() => {
@@ -978,6 +1034,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(57);
             expect(bounds.height).to.equal(12);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('when adding word at end', async() => {
@@ -1011,6 +1070,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(57);
             expect(bounds.height).to.equal(12);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('when adding word inbetween', async() => {
@@ -1042,6 +1104,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(51);
             expect(bounds.height).to.equal(12);
+
+            // Cleanup
+            app.destroy(true, true);
         });
     });
 
@@ -1081,6 +1146,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(53);
             expect(bounds.height).to.equal(12);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('can delete glyph at the end', async() => {
@@ -1109,6 +1177,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(42);
             expect(bounds.height).to.equal(21);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('can delete word inbetween', async() => {
@@ -1140,6 +1211,9 @@ describe('FontAtlasTextManipulator', () => {
             expect(bounds.y).to.equal(0);
             expect(bounds.width).to.equal(53);
             expect(bounds.height).to.equal(12);
+
+            // Cleanup
+            app.destroy(true, true);
         });
     })
 
@@ -1249,5 +1323,8 @@ describe('FontAtlasTextManipulator', () => {
         expect(bounds.y).to.equal(0);
         expect(bounds.width).to.equal(40);
         expect(bounds.height).to.equal(21);
+
+        // Cleanup
+        app.destroy(true, true);
     });
 })

@@ -17,7 +17,7 @@ export class BaseDeformer {
     }
 
     get index() {
-        return this._deformerStack.deformerIndex(this);
+        return this._deformerStack.deformerIndex(this) + 1;
     }
 
     get hasWeights() {

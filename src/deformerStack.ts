@@ -11,14 +11,12 @@ type VertexDeformer = VertexTransformDeformer | CurveDeformer | TextDeformer;
 type Deformer = MatrixDeformer | VertexDeformer;
 
 export class DeformerStack extends PIXI.utils.EventEmitter {
-    _vertexDeformers: VertexDeformer[];
-    _matrixDeformers: MatrixDeformer[];
+    _deformers: Deformer[];
     _parent = undefined;
 
     constructor(parent) {
         super();
-        this._matrixDeformers = [];
-        this._vertexDeformers = [];
+        this._deformers = [];
         this._parent = parent;
     }
 
@@ -31,54 +29,35 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     get matrixDeformers() {
-        return this._matrixDeformers;
+        return this._deformers.filter(deformer => deformer.deformerType === DeformerType.MATRIX);
     }
 
     get vertexDeformers() {
-        return this._vertexDeformers;
+        return this._deformers.filter(deformer => deformer.deformerType === DeformerType.VERTEX);
     }
 
     get deformers() {
-        return this._vertexDeformers.concat(this._matrixDeformers);
+        return this._deformers;
     }
 
     /* Add a deformer. */
     public addDeformer(deformer: Deformer): void {
         deformer._deformerStack = this;
-        if (deformer.deformerType === DeformerType.VERTEX) {
-            this._vertexDeformers.push(deformer as VertexDeformer);
-        }
-        else if (deformer.deformerType === DeformerType.MATRIX) {
-            this._matrixDeformers.push(deformer as MatrixDeformer);
-        }
+        this._deformers.push(deformer);
         deformer.update();
         this.emit('deformerAdded');
     }
 
     public addDeformerAtIndex(deformer: Deformer, index: number): void {
         deformer._deformerStack = this;
-
-        if (deformer.deformerType === DeformerType.VERTEX) {
-            this._vertexDeformers.splice(index, 0, deformer as VertexDeformer);
-        }
-        else if (deformer.deformerType === DeformerType.MATRIX) {
-            this._matrixDeformers.splice(index, 0, deformer as MatrixDeformer);
-        }
+        this._deformers.splice(index, 0, deformer);
     }
 
     /* Remove a deformer. */
     public removeDeformer(deformer: Deformer): void {
-        if (deformer.deformerType === DeformerType.VERTEX) {
-            const index = this._vertexDeformers.indexOf(deformer as VertexDeformer);
-            if (index >= 0) {
-                this._vertexDeformers.splice(index, 1);
-            }
-        }
-        else if (deformer.deformerType === DeformerType.MATRIX) {
-            const index = this._matrixDeformers.indexOf(deformer as MatrixDeformer);
-            if (index >= 0) {
-                this._matrixDeformers.splice(index, 1);
-            }
+        const index = this._deformers.indexOf(deformer as VertexDeformer);
+        if (index >= 0) {
+            this._deformers.splice(index, 1);
         }
         this.emit('deformerRemoved');
     }
@@ -89,12 +68,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     public deformerIndex(deformer: Deformer): number {
-        if (deformer.deformerType === DeformerType.VERTEX) {
-            return this._vertexDeformers.indexOf(deformer as VertexDeformer);
-        }
-        else if(deformer.deformerType === DeformerType.MATRIX) {
-            return this._matrixDeformers.indexOf(deformer as MatrixDeformer);
-        }
+        return this._deformers.indexOf(deformer as VertexDeformer);
     }
 
     /* Remove all deformers. */
@@ -143,28 +117,6 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         `
     }
 
-    // hasWeights() {
-    //     return this.deformers.some(deformer => deformer.hasWeights);
-    // }
-    //
-    // _getWeights() {
-    //     const deformer = this.deformers.find(deformer => deformer.hasWeights);
-    //     console.log('deformer with weights', deformer);
-    //     if (!deformer) {
-    //         console.log('no deformer with weights');
-    //         return [];
-    //     }
-    //     return deformer._generateWeights();
-    // }
-
-    get hasVertexDeformers() {
-        return this._vertexDeformers.length > 0;
-    }
-
-    get hasMatrixDeformers() {
-        return this._matrixDeformers.length > 0;
-    }
-
     printAssembly() {
         console.log('uniforms', this._combineUniforms());
         console.log('header', this._combineVertHeads());
@@ -176,71 +128,29 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     _combineVertBodies() {
-        let combinedFuncs = '';
+        let aggregateFunctions = '';
         this.deformers.forEach((deformer) => {
-            combinedFuncs += `${deformer._vertBody()}\n`;
+            aggregateFunctions += `${deformer._vertBody()}\n`;
         });
 
-        // combine matrices into a single matrix
-        let combineMatrixFuncs = '';
-        if (this.hasMatrixDeformers) {
-            combineMatrixFuncs = 'mat3 combinedMatrix =';
-            this.matrixDeformers.forEach((deformer, index) => {
-                    combineMatrixFuncs += index === 0 ? ` getTranslationMatrix${index}()` : ` * getTranslationMatrix${index}()`;
-                })
-            combineMatrixFuncs += ';';
-        }
-
-        // add vertex deformers together to a final vertex position
-        let combinedVertexFuncs = `vec3 vertexPosition = vec3(aVertexPosition.xy, 1.0);\n`;
-        if (this.hasVertexDeformers) {
-            this.vertexDeformers.forEach((deformer, index) => {
-                    if (index === 0) {
-                        combinedVertexFuncs += `vec3 vertexPosition${index} = getVertexPosition${index}(vertexPosition);\n`;
-                    }
-                    else {
-                        combinedVertexFuncs += `vec3 vertexPosition${index} = getVertexPosition${index}(vertexPosition${index - 1});\n`;
-                    }
-                })
-        }
-
-        // combine all the matrices and vertex deformers into a final position
-        let combinedFunctions = 'vec3 finalPosition = vec3(projectionMatrix * translationMatrix ';
-        combinedFunctions += this.hasMatrixDeformers ? '* combinedMatrix ' : ' ';
-        combinedFunctions += this.hasVertexDeformers ? `* vertexPosition${this.vertexDeformers.length - 1}` : '* vertexPosition';
-        combinedFunctions += ');';
-
-        // return `
-        // ${combinedFuncs}
-        // void main(void) {
-        //     ${combinedVertexFuncs}
-        //     ${combineMatrixFuncs}
-        //     ${combinedFunctions}
-        //     gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
-        //     ${this._uvBodies()}
-        // }
-        // `
-
-        // ORDER MATTERS!!!
+        let mainFunction = `vec3 vertexPosition0 = vec3(aVertexPosition.xy, 1.0);\n`;
+        this.deformers.forEach((deformer, index) => {
+            if (deformer.deformerType === DeformerType.MATRIX) {
+                mainFunction += `vec3 vertexPosition${index + 1} = getTranslationMatrix${index + 1}() * vertexPosition${index};\n`;
+            }
+            if (deformer.deformerType === DeformerType.VERTEX) {
+                mainFunction += `vec3 vertexPosition${index + 1} = getVertexPosition${index + 1}(vertexPosition${index});\n`;
+            }
+        });
+        mainFunction += `vec3 finalPosition = vec3(projectionMatrix * translationMatrix * vertexPosition${this.deformers.length});\n`;
 
         return `
-        ${combinedFuncs}
+        ${aggregateFunctions}
         void main(void) {
-            vec3 vertexPosition = vec3(aVertexPosition.xy, 1.0);
-
-            // deformer 1
-            mat3 combinedMatrix = getTranslationMatrix0();
-            vec3 vertexPosition0 = combinedMatrix * vertexPosition;
-            
-            // deformer 2
-            vec3 vertexPosition1 = getVertexPosition0(vertexPosition0);
-            
-            // default 
-            vec3 finalPosition = vec3(projectionMatrix * translationMatrix * vertexPosition1);
+            ${mainFunction}
             gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
             ${this._uvBodies()}
         }
         `
-
     }
 }

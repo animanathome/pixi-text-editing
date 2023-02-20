@@ -29,6 +29,9 @@ describe('FontAtlasTextCaret', () => {
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(1)
             expect(roundedBounds.height).to.equal(12)
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('at the end', async() => {
@@ -56,6 +59,9 @@ describe('FontAtlasTextCaret', () => {
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(2)
             expect(roundedBounds.height).to.equal(12)
+
+            // Cleanup
+            app.destroy(true, true);
         })
     });
 });

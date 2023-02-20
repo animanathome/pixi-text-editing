@@ -3,7 +3,7 @@ import * as fs from "fs";
 
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
-import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
+import {FontAtlasText} from "../src/fontAtlasText";
 import {Rectangle} from "../src/rectangle";
 
 export const LOCALHOST = 'http://localhost:8080/resources/'
@@ -65,7 +65,6 @@ export const createRectangleApp = () => {
 
 export const createFontAtlasTextApp = async({
         displayText = 'abc',
-        transformType = TRANSFORM_TYPE.NONE,
         width = 128,
         height = 128,
         resolution = 2,
@@ -89,7 +88,6 @@ export const createFontAtlasTextApp = async({
 
     const {fontLoader, atlas, text} = await createFontAtlasText({
         displayText,
-        transformType,
         width,
         height,
         fontAtlasSize,
@@ -111,7 +109,6 @@ export const createFontAtlasTextApp = async({
 
 export const createFontAtlasText = async({
      displayText = 'abc',
-     transformType= TRANSFORM_TYPE.LINE,
      width = 128,
      height = 128,
      fontAtlasSize = 12,
@@ -137,7 +134,6 @@ export const createFontAtlasText = async({
     text.atlas = atlas;
     text.maxHeight = width;
     text.maxWidth = height;
-    text.transformType = transformType;
     text.fontSize = fontSize;
     text.text = displayText;
     text._build();

@@ -3,7 +3,7 @@ import {TextDeformer, TRANSFORM_TYPE} from "../../src/deformers/TextDeformer";
 
 import { expect } from 'chai';
 
-describe.only('TextDeformer', () => {
+describe('TextDeformer', () => {
     it('passes properties as uniforms to shader', async() => {
         // Assemble
         const displayText = 'AB';
@@ -23,6 +23,9 @@ describe.only('TextDeformer', () => {
         expect(text.shader.uniforms.transforms).to.deep.equal([10.0, 0.0]);
         expect(text.shader.uniforms.scaleAnchors).to.deep.equal([7.39453125, 4.734375]);
         expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 0, 0, 0, 0]);
+
+        // Cleanup
+        app.destroy(true, true);
     });
 
     it('can change transform type', async() => {
@@ -44,6 +47,9 @@ describe.only('TextDeformer', () => {
         expect(text.shader.uniforms.transforms.length).to.equal(4);
         expect(text.shader.uniforms.scaleAnchors.length).to.equal(4);
         expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1]);
+
+        // Cleanup
+        app.destroy(true, true);
     });
 
     describe('can generate anchors for', () => {
@@ -60,6 +66,9 @@ describe.only('TextDeformer', () => {
 
             const expectedResult = [9.8994140625, 12]
             expect(deformer.scaleAnchors).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('line', async() => {
@@ -78,6 +87,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [10.50732421875, 5.9150390625, 7.86181640625, 17.1943359375];
             expect(deformer.scaleAnchors).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('word', async() => {
@@ -96,6 +108,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [3.2548828125, 5.830078125, 13.03125, 4.55859375, 3.2109375, 17.830078125, 12.5126953125, 16.55859375];
             expect(deformer.scaleAnchors).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         });
 
         it('glyph', async() => {
@@ -115,6 +130,9 @@ describe.only('TextDeformer', () => {
             // NOTE: we probably shouldn't have any anchors for our geometry
             const expectedResult = [3.2548828125, 5.830078125, 10.03125, 4.55859375, 14.759765625, 6, 19.470703125, 5.830078125, 25.7724609375, 4.55859375];
             expect(deformer.scaleAnchors).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         });
     });
 
@@ -135,6 +153,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [0];
             expect(Array.from(new Set(deformer.weights))).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('line', async() => {
@@ -153,6 +174,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [0, 1];
             expect(Array.from(new Set(deformer.weights))).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('word', async() => {
@@ -171,6 +195,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [0, 1, 2, 3];
             expect(Array.from(new Set(deformer.weights))).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('glyph', async() => {
@@ -189,6 +216,9 @@ describe.only('TextDeformer', () => {
             // Assert
             const expectedResult = [0, 1, 2, 3, 4, 5, 6];
             expect(Array.from(new Set(deformer.weights))).to.deep.equal(expectedResult);
+
+            // Cleanup
+            app.destroy(true, true);
         })
     });
 })

@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import {createRectangleApp} from "../utils";
 import {CenterScaleTransformDeformer} from "../../src/deformers/CenterScaleTransformDeformer";
 
-describe.only('CenterScaleTransformDeformer', () => {
+describe('CenterScaleTransformDeformer', () => {
     it('can add deformer', async() => {
         // Assemble
         const {app, rectangle} = createRectangleApp();

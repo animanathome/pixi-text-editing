@@ -1,13 +1,8 @@
 import * as PIXI from 'pixi.js';
-import * as THREE from 'three';
 
 import { expect } from 'chai';
-import {TRANSFORM_TYPE} from "../src/fontAtlasText";
 import {createFontAtlasText, createFontAtlasTextApp, getRenderedPixels, roundBounds} from "./utils";
 import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
-import {buildCurveData, createCurveTexture} from "../src/curveDeformer";
-import {CurveData} from "../src/curveData";
-import {string2Array} from "../src/utils";
 
 // TODO: fix fontAtlasSize
 // TODO: glyph lookup across multiple textures
@@ -42,6 +37,9 @@ describe('fontAtlasText', () => {
         expect(y).to.equal(0);
         expect(width).to.equal(128);
         expect(height).to.equal(48);
+
+        // Cleanup
+        app.destroy(true, true);
     });
 
     it('can change line height', async() => {
@@ -89,6 +87,9 @@ describe('fontAtlasText', () => {
         // Assert
         const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
         expect(pixels.reduce((a, b) => a + b)).to.be.lessThan(pixels.length * 255)
+
+        // Cleanup
+        app.destroy(true, true);
     })
 
     describe('can calculate', () => {
@@ -383,256 +384,9 @@ describe('fontAtlasText', () => {
             roundedBounds = roundBounds(text.getBounds());
             expect(roundedBounds.width).to.equal(71);
             expect(roundedBounds.height).to.equal(24);
+
+            // Cleanup
+            app.destroy(true, true);
        })
     });
-
-    describe('can deform', () => {
-        it('using a linear curve', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                fontAtlasSize: 36,
-                fontSize: 12,
-                fontAtlasResolution: 256,
-                width: 96,
-                height: 96,
-                resolution: 2,
-            });
-
-            const offsetX = 20;
-            const offsetY = 20;
-            const points = [
-                new THREE.Vector3( 0 + offsetX, 0 + offsetY, 0),
-                new THREE.Vector3( 20 + offsetX, 20 + offsetY, 0),
-                new THREE.Vector3( 40 + offsetX, 40 + offsetY, 0),
-                new THREE.Vector3( 60 + offsetX, 60 + offsetY, 0),
-            ]
-            const nSegments = 32;
-            const normal = {x: 0, y: 1, z: 0};
-            const {positions, tangents, normals, length} = buildCurveData({
-                points,
-                nSegments,
-                closed: false,
-                normalOverride: normal
-            });
-            const dataTexture = createCurveTexture(positions, normals, tangents);
-
-            // Act
-            // TODO: need a cleaner way to deal with deformers
-            text.curveTexture = dataTexture;
-            text.curveData = new CurveData(positions, tangents, normals);
-            text.flow = 1;
-            text.spineLength = length;
-            text.pathSegment = 1.0;
-            text.spineOffset = 0;
-            text.pathOffset = 0.0;
-            app.ticker.update()
-
-            // Assert
-            const program = text.shader.program;
-            expect(program.vertexSrc).to.include('spinePortion');
-            expect(program.fragmentSrc).to.include('uSampler2');
-
-            // TODO: make a convenience method for this
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(37046445);
-        })
-
-        it('using a bezier curve', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                fontAtlasSize: 36,
-                fontSize: 12,
-                fontAtlasResolution: 256,
-                width: 96,
-                height: 96,
-                resolution: 2,
-            });
-
-            const offsetX = 20;
-            const offsetY = -16;
-            const radius = 48;
-            const points = [
-                new THREE.Vector3( 0 + offsetX, 0 + offsetY, 0),
-                new THREE.Vector3( 0 + offsetX, radius + offsetY, 0),
-                new THREE.Vector3( radius + offsetX, radius + offsetY, 0),
-                new THREE.Vector3( radius + offsetX, 0 + offsetY, 0),
-            ]
-            const nSegments = 32;
-            const {positions, tangents, normals, length} = buildCurveData({
-                points,
-                nSegments
-            });
-            const dataTexture = createCurveTexture(positions, normals, tangents);
-
-            // Act
-            // TODO: need a cleaner way to deal with deformers
-            text.curveTexture = dataTexture;
-            text.curveData = new CurveData(positions, tangents, normals);
-            text.flow = 1;
-            text.spineLength = length;
-            text.pathSegment = 1.0;
-            text.spineOffset = 0;
-            text.pathOffset = 0.24;
-            app.ticker.update();
-
-            // Assert
-            const program = text.shader.program;
-            expect(program.vertexSrc).to.include('spinePortion');
-            expect(program.fragmentSrc).to.include('uSampler2');
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(36459858);
-        })
-    })
-
-    describe('can translate', () => {
-        // todo: add object mode
-        it('line', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.LINE, // TODO: make dynamic (not just on init)
-                width: 72,
-                height: 72,
-            });
-            text.transforms = [0, 0, 10, 0];
-            text.scales = [1.0, 1.0, 1.0, 1.0];
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
-        });
-
-        it('word', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.WORD, // TODO: make dynamic (not just on init)
-                width: 72,
-                height: 72,
-            });
-            text.transforms = [0, 2, 0, 4, 0, 6, 0, 8]; // 8 / 2 = 4 words
-            text.scales = [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
-        });
-
-        it('glyph', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.GLYPH, // TODO: make dynamic (not just on init)
-                width: 72,
-                height: 72,
-            });
-
-            // TODO: see how we can add support to the spread operator
-            // offset each glyph by one more than the previous glyph
-            const transforms = string2Array(displayText)
-                .map((glyph, index) => [0, index])
-                .flat()
-            const scales = string2Array(displayText)
-                .map((glyph, index) => [1, 1])
-                .flat()
-            text.transforms = transforms;
-            text.scales = scales;
-            app.ticker.update();
-
-            // ASSERT
-            // TODO: the pixel count is actually the same accross the different transform tests so we need to
-            //  use something else
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20369448);
-        });
-    })
-
-    describe('can scale', () => {
-        it('bounds', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.BOUNDS,
-                width: 72,
-                height: 72,
-            });
-            text.transforms = [0, 0];
-            text.scales = [0.5, 0.5];
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20955549);
-        });
-
-        it('lines', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.LINE,
-                width: 72,
-                height: 72,
-            });
-            text.transforms = [0, 0, 0, 0];
-            text.scales = [0.5, 0.5, 1.5, 1.5];
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20375997);
-        });
-
-        it('words', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.WORD, // TODO: make dynamic (not just on init)
-                width: 72,
-                height: 72,
-            });
-            text.transforms = [0, 0, 0, 0, 0, 0, 0, 0]; // 8 / 2 = 4 words
-            text.scales = [0.5, 0.5, 0.75, 0.75, 1.0, 1.0, 1.25, 1.25];
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20530401);
-        });
-
-        it('glyphs', async() => {
-            // Assemble
-            const displayText = "hello world!\nWhat's up?";
-            const {app, text} = await createFontAtlasTextApp({
-                displayText,
-                transformType: TRANSFORM_TYPE.GLYPH, // TODO: make dynamic (not just on init)
-                width: 72,
-                height: 72,
-            });
-            const transforms = string2Array(displayText)
-                .map((glyph, index) => [0, 0])
-                .flat()
-            const scales = string2Array(displayText)
-                .map((glyph, index) => [(index * 0.05) + 0.5, (index * 0.05) + 0.5])
-                .flat()
-            text.transforms = transforms;
-            text.scales = scales;
-            app.ticker.update();
-
-            // ASSERT
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer)
-            expect(pixels.reduce((a, b) => a + b)).to.equal(20226297);
-        });
-    })
 });
