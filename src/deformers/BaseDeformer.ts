@@ -31,11 +31,18 @@ export class BaseDeformer {
     _generateWeights() {
     }
 
+    get stack() {
+        if (!this._deformerStack) {
+            throw new Error('Deformer not added to stack');
+        }
+        return this._deformerStack;
+    }
+
     /**
      * The parent object we're deforming
      */
     get parent() {
-        return this._deformerStack._parent
+        return this.stack._parent
     }
 
     get deformerType() {

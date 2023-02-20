@@ -210,15 +210,37 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         combinedFunctions += this.hasVertexDeformers ? `* vertexPosition${this.vertexDeformers.length - 1}` : '* vertexPosition';
         combinedFunctions += ');';
 
+        // return `
+        // ${combinedFuncs}
+        // void main(void) {
+        //     ${combinedVertexFuncs}
+        //     ${combineMatrixFuncs}
+        //     ${combinedFunctions}
+        //     gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
+        //     ${this._uvBodies()}
+        // }
+        // `
+
+        // ORDER MATTERS!!!
+
         return `
         ${combinedFuncs}
         void main(void) {
-            ${combinedVertexFuncs}
-            ${combineMatrixFuncs}
-            ${combinedFunctions}
+            vec3 vertexPosition = vec3(aVertexPosition.xy, 1.0);
+
+            // deformer 1
+            mat3 combinedMatrix = getTranslationMatrix0();
+            vec3 vertexPosition0 = combinedMatrix * vertexPosition;
+            
+            // deformer 2
+            vec3 vertexPosition1 = getVertexPosition0(vertexPosition0);
+            
+            // default 
+            vec3 finalPosition = vec3(projectionMatrix * translationMatrix * vertexPosition1);
             gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
             ${this._uvBodies()}
         }
         `
+
     }
 }

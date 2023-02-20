@@ -57,8 +57,6 @@ export const createRectangleApp = () => {
     });
     app.stage.addChild(rectangle);
 
-    app.ticker.start();
-
     return {
         app,
         rectangle
