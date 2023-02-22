@@ -6,7 +6,7 @@ import {FontAtlas} from "../src/fontAtlas";
 import {FontAtlasText} from "../src/fontAtlasText";
 import {Rectangle} from "../src/rectangle";
 
-export const LOCALHOST = 'http://localhost:8080/resources/'
+export const LOCALHOST = 'http://127.0.0.1:8080/resources/'
 
 export const roundBounds = (bounds) => {
     return {
