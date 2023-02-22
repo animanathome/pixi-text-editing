@@ -71,12 +71,9 @@ export class TextDeformer extends BaseDeformer {
      * internal data to match with the new transform type.
      */
     _resetState() {
-        console.warn(`ressetting state, new state ${this.transformType}`);
         const expectedLength = this._expectTransformsLength();
         this._transforms = new Array(expectedLength).fill(0.0);
-        console.log('transforms', this._transforms);
         this._scales = new Array(expectedLength).fill(1.0);
-        console.log('scale', this._scales);
     }
 
     get transforms() {
@@ -84,7 +81,6 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set transforms(value: number[]) {
-        console.log('transforms', value);
         this._validateTransforms(value);
         this._transforms = value;
         this._dirty = true;
@@ -132,7 +128,6 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set scales(value: number[]) {
-        console.log('scales', value);
         this._validateTransforms(value);
         this._scales = value;
         this._dirty = true;
@@ -142,7 +137,6 @@ export class TextDeformer extends BaseDeformer {
         if (!this._dirty) {
             return
         }
-        console.warn('update text deformer')
         this._generateScaleAnchors();
         this._generateWeights();
         this._assignWeights();

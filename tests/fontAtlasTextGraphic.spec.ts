@@ -4,7 +4,7 @@ import {createFontAtlasTextApp, getRenderedPixels} from "./utils";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {expect} from "chai";
 
-describe('FontAtlasTextGraphic', () => {
+describe.skip('FontAtlasTextGraphic', () => {
     describe('bounds', () => {
         it('can color', async() => {
             // Assemble

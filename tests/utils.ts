@@ -28,9 +28,7 @@ export const getRenderedPixels = (renderer:PIXI.Renderer) => {
 
 export const writeDataUrlToDisk = (url, outputFile = 'test') => {
     const base64Data = url.replace(/^data:image\/png;base64,/, "");
-    fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {
-        console.log(err);
-    });
+    fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {});
 }
 
 export const createRectangleApp = () => {

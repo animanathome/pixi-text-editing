@@ -57,7 +57,6 @@ const textEditingDemo = async() => {
         height: 512,
         width: 512,
     });
-    console.log(app.renderer)
     // app.renderer.multisample = 8;
 
     document.body.appendChild(app.view);

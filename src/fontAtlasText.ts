@@ -40,11 +40,9 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         // NOTE: we should probably set this up during construction
         // TODO: Do we still need this?
         this._deformerStack.on('deformerAdded', () => {
-            console.log('deformer added');
             this._buildShader();
         });
         this._deformerStack.on('deformerChanged', () => {
-            console.log('deformer changed');
             this._buildShader();
         });
     }
@@ -288,7 +286,6 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _build() {
-        console.log('_build');
         if (!this._dirty) {
             return;
         }
