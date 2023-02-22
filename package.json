@@ -28,6 +28,7 @@
     "buffer": "^6.0.3",
     "chai": "^4.3.4",
     "dat.gui": "^0.7.9",
+    "electron": "^13.6.9",
     "floss": "^5.0.1",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.1",
