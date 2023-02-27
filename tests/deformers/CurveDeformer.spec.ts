@@ -32,7 +32,7 @@ describe('CurveDeformer', () => {
         curveDeformer.pathOffset = 0.5;
         rectangle.deform.addDeformer(curveDeformer);
 
-        rectangle.deform.printAssembly();
+        rectangle.deform.logAssembly();
 
         // Assert
         expect(rectangle.deform.deformers.length).to.be.equal(1);

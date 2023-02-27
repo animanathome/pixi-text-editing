@@ -65,6 +65,14 @@ export class BaseDeformer {
         return '';
     }
 
+    _vertMain() {
+        return '';
+    }
+
+    _fragHead() {
+        return '';
+    }
+
     update() {
     }
 }

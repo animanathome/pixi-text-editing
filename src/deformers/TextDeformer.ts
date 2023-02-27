@@ -12,6 +12,7 @@ export enum TRANSFORM_TYPE {
 export class TextDeformer extends BaseDeformer {
     _hasWeights = true;
     _transformType = TRANSFORM_TYPE.BOUNDS;
+    _opacities = [1.0];
     _transforms = [0.0, 0.0];
     _scales = [1.0, 1.0];
     _scaleAnchors = [];
@@ -19,9 +20,10 @@ export class TextDeformer extends BaseDeformer {
 
     _uniforms(): {} {
         return {
-            transforms: this.transforms,
-            scales: this.scales,
-            scaleAnchors: this._scaleAnchors,
+            uOpacities: this.opacities,
+            uTransforms: this.transforms,
+            uScales: this.scales,
+            uScaleAnchors: this._scaleAnchors,
         }
     }
 
@@ -29,10 +31,12 @@ export class TextDeformer extends BaseDeformer {
         const transformCount = this.transforms.length / 2;
 
         return `
+        varying float vOpacity;
         attribute float aWeight;
-        uniform vec2 transforms[${transformCount}];
-        uniform vec2 scales[${transformCount}];
-        uniform vec2 scaleAnchors[${transformCount}];
+        uniform vec2 uTransforms[${transformCount}];
+        uniform vec2 uScales[${transformCount}];
+        uniform vec2 uScaleAnchors[${transformCount}];
+        uniform float uOpacities[${transformCount}];
         `
     }
 
@@ -40,13 +44,13 @@ export class TextDeformer extends BaseDeformer {
         return `
         mat3 getTranslationMatrix${this.index}() {
             int transformIndex = int(aWeight);
-            vec2 vertexOffset = transforms[transformIndex];            
+            vec2 vertexOffset = uTransforms[transformIndex];            
             mat3 moveMatrix = mat3(1, 0, 0, 0, 1, 0, vertexOffset.x, vertexOffset.y, 1);
             
             // scale vertex from scale anchor position using scale value
-            vec2 vertexScale = scales[transformIndex];
+            vec2 vertexScale = uScales[transformIndex];
             mat3 scaleMatrix = mat3(vertexScale.x, 0, 0, 0, vertexScale.y, 0, 0, 0, 1);
-            vec2 vertexScaleAnchor = scaleAnchors[transformIndex];
+            vec2 vertexScaleAnchor = uScaleAnchors[transformIndex];
             mat3 scaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, vertexScaleAnchor.x, vertexScaleAnchor.y, 1);
             mat3 invScaleAnchorMatrix = mat3(1, 0, 0, 0, 1, 0, -vertexScaleAnchor.x, -vertexScaleAnchor.y, 1);
             
@@ -56,11 +60,25 @@ export class TextDeformer extends BaseDeformer {
         `
     }
 
+    _vertMain(): string {
+        return `
+        int transformIndex = int(aWeight);
+        vOpacity = uOpacities[transformIndex];
+        `
+    }
+
+    _fragHead(): string {
+        return `
+        varying float vOpacity;
+        `
+    }
+
     get transformType() {
         return this._transformType;
     }
 
     set transformType(value) {
+        console.log('set transform type', value);
         this._transformType = value;
         this._resetState()
         this._dirty = true;
@@ -71,9 +89,27 @@ export class TextDeformer extends BaseDeformer {
      * internal data to match with the new transform type.
      */
     _resetState() {
-        const expectedLength = this._expectTransformsLength();
-        this._transforms = new Array(expectedLength).fill(0.0);
-        this._scales = new Array(expectedLength).fill(1.0);
+        const expectedLength = this._expectTransformsLength(1);
+        this._opacities = new Array(expectedLength).fill(1.0);
+        this._transforms = new Array(expectedLength * 2).fill(0.0);
+        this._scales = new Array(expectedLength * 2).fill(1.0);
+    }
+
+    get opacities() {
+        return this._opacities;
+    }
+
+    set opacities(value: number[]) {
+        this._validateData(value, 1);
+        this._opacities = value;
+        this.parent.shader.uniforms.uOpacities = value;
+    }
+
+    _validateData(value: number[], coordinateCount = 2) {
+        const expectedLength = this._expectTransformsLength(coordinateCount);
+        if (value.length !== expectedLength) {
+            throw Error(`Invalid number of values, expected ${expectedLength}`);
+        }
     }
 
     get transforms() {
@@ -81,30 +117,15 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set transforms(value: number[]) {
-        this._validateTransforms(value);
+        this._validateData(value, 2);
         this._transforms = value;
-        this._dirty = true;
+        // console.log(this.parent.shader.uniforms);
+        // this.parent.shader.uniforms.uTransforms = value;
     }
 
-    _hasData() {
-        return this.parent.lines.length !== 0;
-    }
-
-    // TODO: rename to _validateTransformValues
-    /**
-     * Validates the number of values in the transforms array by comparing it to the geometry selection type.
-     * This can be bounds, line, word, or glyph. Geometry needs to be build for validation to work.
-     * @param value
-     */
-    _validateTransforms(value: number[]) {
-        const expectedLength = this._expectTransformsLength();
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
-    }
-
-    _expectTransformsLength() {
-        const coordinateCount = 2; // x and y - can be for translate or scale
+    // 1 for opacity
+    // 2 for x and y, u and v
+    _expectTransformsLength(coordinateCount = 2) {
         let expectedLength = -1;
         switch (this.transformType) {
             case TRANSFORM_TYPE.BOUNDS:
@@ -128,9 +149,8 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set scales(value: number[]) {
-        this._validateTransforms(value);
+        this._validateData(value, 2);
         this._scales = value;
-        this._dirty = true;
     }
 
     update() {

@@ -45,7 +45,8 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         deformer._deformerStack = this;
         this._deformers.push(deformer);
         deformer.update();
-        this.emit('deformerAdded');
+        // TODO: fix me
+        (this as any).emit('deformerAdded');
     }
 
     public addDeformerAtIndex(deformer: Deformer, index: number): void {
@@ -87,8 +88,44 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         return uniforms;
     }
 
+    // append src since this returns the source code for the shader
     _buildVertexShader() {
         return this._combineVertHeads() + this._combineVertBodies()
+    }
+
+    // append src since this returns the source code for the shader
+    _buildFragmentShader() {
+        return this._combineFragHeads() + this._combineFragBodies()
+    }
+
+    _combineFragHeads() {
+        let combinedHeaders = '';
+        this.deformers.forEach(deformer => {
+            combinedHeaders += `${deformer._fragHead()}\n`
+        })
+        return `
+        ${combinedHeaders}
+        varying vec2 vUvs;
+        uniform sampler2D uSampler2;
+        uniform vec4 uColor;`;
+    }
+
+    _combineFragBodies() {
+        // TODO: fix me
+        if (this.deformers.length === 0) {
+            return `
+            void main() {
+                gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
+            }
+            `;
+        }
+
+        return `
+        void main() {
+            vec4 color1 = uColor * vec4(1.0, 1.0, 1.0, vOpacity);
+            gl_FragColor = texture2D(uSampler2, vUvs) * color1;
+        }
+        `;
     }
 
     _vertexHeads() {
@@ -117,14 +154,22 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         `
     }
 
-    printAssembly() {
+    logAssembly() {
         console.log('uniforms', this._combineUniforms());
-        console.log('header', this._combineVertHeads());
-        console.log('body', this._combineVertBodies());
+        console.log('vertex', this._buildVertexShader());
+        console.log('fragment', this._buildFragmentShader());
     }
 
     _uvBodies() {
         return `vUvs = aUvs;`
+    }
+
+    _combineVertMains() {
+        let aggregateFunctions = '';
+        this.deformers.forEach((deformer) => {
+            aggregateFunctions += `${deformer._vertMain()}\n`;
+        });
+        return aggregateFunctions;
     }
 
     _combineVertBodies() {
@@ -149,6 +194,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         void main(void) {
             ${mainFunction}
             gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
+            ${this._combineVertMains()}
             ${this._uvBodies()}
         }
         `

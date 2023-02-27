@@ -4,12 +4,13 @@ import * as THREE from 'three';
 
 import {FontLoader} from "./fontLoader";
 import {FontAtlas} from "./fontAtlas";
-import {FontAtlasText, TRANSFORM_TYPE} from "./fontAtlasText";
+import {FontAtlasText} from "./fontAtlasText";
 import {EditingEvents} from "./events";
 import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
-import {PingPongTimeline, ProgressTimeline, TickerTimeline} from "./timeline";
+import {PingPongTimeline, TickerTimeline} from "./timeline";
+import {TextDeformer, TRANSFORM_TYPE} from "./deformers/TextDeformer";
 
 const curveDemo = async() => {
     const app = new PIXI.Application({
@@ -172,10 +173,12 @@ const animation = async() => {
         width: 64,
         height: 64
     });
+    global.text = text;
+    app.ticker.start();
 
-    text.transformType = TRANSFORM_TYPE.WORD;
-    let translation = [0, 0, 0, 0, 0, 0]
-    text.transforms = translation;
+    const deformer = new TextDeformer();
+    text.deform.addDeformer(deformer);
+    deformer.transformType = TRANSFORM_TYPE.WORD;
 
     const timeline = new TickerTimeline(app.ticker);
     timeline.duration = 5000;
@@ -186,14 +189,18 @@ const animation = async() => {
     translateProgress.duration = 5000;
     translateProgress.effect = 1000;
 
+    global.text = text;
+
+    let translation = [0, 0, 0, 0, 0, 0]
     app.ticker.add(() => {
         const progress = translateProgress.value(timeline.time);
         translation[0] = progress * 50; // linear
         translation[2] = normalizedTanh(progress) * 50; // tan
         translation[4] = normalizedSigmoid(progress) * 50; // sigmoid
-        text.transforms = translation;
+        deformer.transforms = translation;
+        const flicker = Math.random() * 1.0;
+        deformer.opacities = [1, flicker, .5];
     });
-    app.ticker.start();
 }
 
 animation();

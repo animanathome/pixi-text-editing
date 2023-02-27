@@ -4,7 +4,7 @@ export const textureFragmentSrc = `
     uniform vec4 uColor;
 
     void main() {
-        gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
+        gl_FragColor = texture2D(uSampler2, vUvs) * uColor);
     }
 `;
 

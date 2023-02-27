@@ -452,17 +452,13 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
-    set curveTexture(value: PIXI.Texture) {
-        this._curveTexture = value;
-        this._dirty = true;
-    }
-
     _buildGeometry() {
         const geometry = this._fontAtlasTextGeometry.build();
         this._geometry = geometry;
     }
 
     _buildShader() {
+        console.log('_buildShader');
         // build shader
         // TODO: make into a property
         //  is this the same as tint?
@@ -473,7 +469,8 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
             uColor: color,
         }, this.deform._combineUniforms())
         const vertexShader = this.deform._buildVertexShader();
-        const shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
+        const fragmentShader = this.deform._buildFragmentShader();
+        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
         this._shader = shader;
     }
 

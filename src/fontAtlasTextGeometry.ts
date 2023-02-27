@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import {average, dist} from "./utils";
-import {TRANSFORM_TYPE} from "./fontAtlasText";
 
 export const LEFT = 0;
 export const RIGHT = 1;

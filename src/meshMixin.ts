@@ -105,7 +105,7 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
             renderer.batch.flush();
 
             this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
-            renderer.shader.bind(this.shader);
+            renderer.shader.bind(this.shader, false);
             renderer.state.set(this.state);
             renderer.geometry.bind(this.geometry, this.shader);
             renderer.geometry.draw(this.drawMode, this.size, this.start, this.geometry.instanceCount);
