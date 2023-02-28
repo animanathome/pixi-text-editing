@@ -124,9 +124,9 @@ export const createFontAtlasText = async({
         fontSize: fontAtlasSize,
     })
     // pre-load glyphs
-    atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
+    // atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
-    atlas.addGlyphsForString('.!?');
+    // atlas.addGlyphsForString('.!?');
 
     const text = new FontAtlasText();
     text.atlas = atlas;

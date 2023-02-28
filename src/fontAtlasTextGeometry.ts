@@ -12,12 +12,23 @@ export class FontAtlasTextGeometry {
     _glyphCenters = [];
     atlasResolution = 256; // atlas atlasResolution
 
+    // min/max x, y, u and v value for all glyphs
+    _xMinMaxArray = [];
+    _yMinMaxArray = [];
+    _uMinMaxArray = [];
+    _vMinMaxArray = [];
+
     clear() {
         this._vertexArray = [];
         this._uvArray = [];
         this._indexArray = [];
         this._glyph = [];
         this._glyphCenters = [];
+
+        this._xMinMaxArray = [];
+        this._yMinMaxArray = [];
+        this._uMinMaxArray = [];
+        this._vMinMaxArray = [];
     }
 
     moveGlyph(index, xOffset, yOffset) {
@@ -212,8 +223,16 @@ export class FontAtlasTextGeometry {
             2 + indexOffset, 3 + indexOffset, 0 + indexOffset,
         ];
 
+        // these should be indices
+        const xMinMax = [vertices[4], vertices[0]];
+        this._xMinMaxArray = this._xMinMaxArray.concat(xMinMax);
+        const yMinMax = [vertices[3], vertices[1]];
+        this._yMinMaxArray = this._yMinMaxArray.concat(yMinMax);
+
         const uvs = this._generateGlyphUVs(metrics);
 
+        // TODO: it's probably better to create a big list once
+        //  instead of growing it every time
         this._vertexArray = this._vertexArray.concat(vertices);
         this._indexArray = this._indexArray.concat(indices);
         this._uvArray = this._uvArray.concat(uvs);
@@ -227,6 +246,12 @@ export class FontAtlasTextGeometry {
             vertexRange: [vertexStart, vertexEnd],
             id
         });
+
+        // these should be indices
+        const uMinMax = [uvs[4], uvs[0]];
+        this._uMinMaxArray = this._uMinMaxArray.concat(uMinMax);
+        const vMinMax = [uvs[3], uvs[1]];
+        this._vMinMaxArray = this._vMinMaxArray.concat(vMinMax);
 
         return glyphIndex;
     }

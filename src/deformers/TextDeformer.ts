@@ -8,6 +8,13 @@ export enum TRANSFORM_TYPE {
     GLYPH
 }
 
+export enum TRANSFORM_DIRECTION {
+    LEFT_TO_RIGHT,
+    RIGHT_TO_LEFT,
+    TOP_TO_BOTTOM,
+    BOTTOM_TO_TOP
+}
+
 // rename to component deformer
 export class TextDeformer extends BaseDeformer {
     _hasWeights = true;
@@ -18,12 +25,18 @@ export class TextDeformer extends BaseDeformer {
     _scaleAnchors = [];
     _weights = [];
 
+    _progresses = [1.0];
+    _progressDirection = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
+    _transformMinMax = [0.0, 1.0];
+
     _uniforms(): {} {
         return {
             uOpacities: this.opacities,
             uTransforms: this.transforms,
             uScales: this.scales,
             uScaleAnchors: this._scaleAnchors,
+            uProgresses: this.progresses,
+            uWeightMinMaxV: this._transformMinMax
         }
     }
 
@@ -37,6 +50,12 @@ export class TextDeformer extends BaseDeformer {
         uniform vec2 uScales[${transformCount}];
         uniform vec2 uScaleAnchors[${transformCount}];
         uniform float uOpacities[${transformCount}];
+        
+        uniform vec2 uWeightMinMaxV[${transformCount}];
+        uniform float uProgresses[${transformCount}];
+        varying float vWeightMinV;
+        varying float vWeightMaxV;
+        varying float vProgress;
         `
     }
 
@@ -60,16 +79,24 @@ export class TextDeformer extends BaseDeformer {
         `
     }
 
+    // rename to vertex
     _vertMain(): string {
         return `
         int transformIndex = int(aWeight);
         vOpacity = uOpacities[transformIndex];
+        vec2 weightMinMaxV = uWeightMinMaxV[transformIndex];
+        vWeightMinV = weightMinMaxV.x;
+        vWeightMaxV = weightMinMaxV.y;
+        vProgress = uProgresses[transformIndex];
         `
     }
 
     _fragHead(): string {
         return `
         varying float vOpacity;
+        varying float vWeightMinV;
+        varying float vWeightMaxV;
+        varying float vProgress;
         `
     }
 
@@ -78,7 +105,6 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set transformType(value) {
-        console.log('set transform type', value);
         this._transformType = value;
         this._resetState()
         this._dirty = true;
@@ -119,8 +145,6 @@ export class TextDeformer extends BaseDeformer {
     set transforms(value: number[]) {
         this._validateData(value, 2);
         this._transforms = value;
-        // console.log(this.parent.shader.uniforms);
-        // this.parent.shader.uniforms.uTransforms = value;
     }
 
     // 1 for opacity
@@ -153,6 +177,74 @@ export class TextDeformer extends BaseDeformer {
         this._scales = value;
     }
 
+    get progresses() {
+        return this._progresses
+    }
+
+    set progresses(value: number[]) {
+        this._validateData(value, 1);
+        this._progresses = value;
+    }
+
+    get progressDirection() {
+        return this._progressDirection;
+    }
+
+    set progressDirection(value: TRANSFORM_DIRECTION) {
+        this._progressDirection = value;
+    }
+
+    _generateProgressUVs() {
+        console.log('_generateProgressUVs')
+        // we should collect these while we're building the geometry. That would
+        // avoid us having to iterate over all the data again
+        // min max for each element
+        if (this.progressDirection === TRANSFORM_DIRECTION.TOP_TO_BOTTOM
+            || this.progressDirection === TRANSFORM_DIRECTION.BOTTOM_TO_TOP)
+        {
+            const uvAttr = this.parent.geometry.getBuffer('aUvs');
+            const uvs = uvAttr.data;
+            console.log('uvs', uvs);
+
+            // glyph min/max
+            const nGlyphs = this.weights.length / 4;
+            let min, max;
+            let weightGlyphIndex = 0;
+            let uvGlyphIndex = 0;
+            let prevWeightIndex = 0;
+            let transformMinMax = [];
+            let glyphMinMax = [];
+            let transformMin = Infinity;
+            let transformMax = -Infinity;
+            for (let i = 0; i < nGlyphs; i++) {
+                if (prevWeightIndex !== this.weights[weightGlyphIndex]) {
+                    transformMinMax.push(transformMin, transformMax);
+                    transformMin = Infinity;
+                    transformMax = -Infinity;
+                    prevWeightIndex = this.weights[weightGlyphIndex];
+                }
+
+                max = uvs[uvGlyphIndex + 1];
+                min = uvs[uvGlyphIndex + 5];
+                glyphMinMax.push(min, max);
+
+                if (transformMin > min) {
+                    transformMin = min;
+                }
+                if (transformMax < max) {
+                    transformMax = max;
+                }
+
+                weightGlyphIndex += 4;
+                uvGlyphIndex += 8;
+            }
+            transformMinMax.push(min, max);
+            console.log('transform min max', transformMinMax);
+            console.log('glyph min max', glyphMinMax);
+            this._transformMinMax = transformMinMax;
+        }
+    }
+
     update() {
         if (!this._dirty) {
             return
@@ -160,6 +252,7 @@ export class TextDeformer extends BaseDeformer {
         this._generateScaleAnchors();
         this._generateWeights();
         this._assignWeights();
+        this._generateProgressUVs();
         this._dirty = false;
         this.emitDeformerChanged();
     }
@@ -240,6 +333,7 @@ export class TextDeformer extends BaseDeformer {
         this._weights = weights;
     }
 
+    // TODO: optimize!!! don't create a new array every time
     _assignWeights() {
         const weightsAttribute = this.parent.geometry.getAttribute('aWeight');
         if (!weightsAttribute) {
@@ -251,7 +345,7 @@ export class TextDeformer extends BaseDeformer {
     }
 
     _generateBoundWeights() {
-        return this.parent.glyph.map((glyph, index) => [0, 0, 0, 0]).flat();
+        return this.parent.glyph.map(() => [0, 0, 0, 0]).flat();
     }
 
     _generateLineWeights() {

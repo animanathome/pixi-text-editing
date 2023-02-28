@@ -122,8 +122,13 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
 
         return `
         void main() {
+            float vRange = vWeightMaxV - vWeightMinV;
+            float vCoord = (vUvs.y - vWeightMinV) / vRange;
+            float newV = vWeightMinV + ((vRange * vCoord) * vProgress);
+            vec2 newUV = vec2(vUvs.x, newV);
+            
             vec4 color1 = uColor * vec4(1.0, 1.0, 1.0, vOpacity);
-            gl_FragColor = texture2D(uSampler2, vUvs) * color1;
+            gl_FragColor = texture2D(uSampler2, newUV) * color1;
         }
         `;
     }

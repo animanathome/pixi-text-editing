@@ -104,6 +104,8 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
             }
             renderer.batch.flush();
 
+            console.log('drawMode', PIXI.DRAW_MODES[this.drawMode]);
+
             this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
             renderer.shader.bind(this.shader, false);
             renderer.state.set(this.state);

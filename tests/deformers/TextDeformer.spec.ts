@@ -1,9 +1,20 @@
-import {createFontAtlasTextApp} from "../utils";
-import {TextDeformer, TRANSFORM_TYPE} from "../../src/deformers/TextDeformer";
-
-import { expect } from 'chai';
+import {createFontAtlasTextApp, createRectangleApp} from "../utils";
+import {TextDeformer, TRANSFORM_DIRECTION, TRANSFORM_TYPE} from "../../src/deformers/TextDeformer";
+import * as PIXI from "pixi.js";
+import {expect} from 'chai';
+import doc = Mocha.reporters.doc;
 
 describe('TextDeformer', () => {
+    it('test', async() => {
+        // Assemble
+        const {app, rectangle} = createRectangleApp();
+        rectangle.width = 50;
+        rectangle.height = 50;
+        app.ticker.update()
+
+        console.log(rectangle.getBounds())
+    });
+
     it('passes properties as uniforms to shader', async() => {
         // Assemble
         const displayText = 'AB';
@@ -35,20 +46,29 @@ describe('TextDeformer', () => {
         it('word', async () => {
             // Assemble
             const displayText = 'A B C';
-            const {text, app} = await createFontAtlasTextApp({displayText});
+            const {text, app, atlas} = await createFontAtlasTextApp({
+                fontSize: 24,
+                fontAtlasSize: 24,
+                // fontAtlasResolution: 256,
+                displayText
+            });
             document.body.appendChild(app.view);
+            document.body.appendChild(atlas.canvas);
             app.ticker.update();
             // app.ticker.start();
 
             const deformer = new TextDeformer();
             text.deform.addDeformer(deformer);
             deformer.transformType = TRANSFORM_TYPE.BOUNDS;
-            app.ticker.update();
+            // app.ticker.update();
+
+            console.log(PIXI.DRAW_MODES);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.WORD;
-            deformer.opacities = [1.0, 0.25, 0.5];
-            deformer.transforms = [0.0, 1.0, 0.0, -1.0, 0.0, 0.0];
+            deformer.transformType = TRANSFORM_TYPE.GLYPH;
+            deformer.opacities = [1.0, 1.0, 1.0, 1.0, 1.0];
+            deformer.progressDirection = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
+            deformer.progresses = [0.75, 0.75, 0.75, 0.75, 0.75];
             app.ticker.update();
             text.deform.logAssembly();
             console.log('weights', deformer._weights);
