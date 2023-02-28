@@ -1,8 +1,10 @@
 import {DeformerStack} from "../deformerStack";
 
 export enum DeformerType {
-    VERTEX  , // returns a vec3 or vertex position
-    MATRIX, // returns a mat3 or matrix
+    VERTEX  , // manipulates vertices
+    MATRIX, // manipulates the transformation matrix
+    UV  , // manipulates uvs
+    VERTEX_AND_UV// manipulates vertices and uvs
 }
 
 export class BaseDeformer {

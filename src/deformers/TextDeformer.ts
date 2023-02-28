@@ -1,4 +1,4 @@
-import {BaseDeformer} from "./BaseDeformer";
+import {BaseDeformer, DeformerType} from "./BaseDeformer";
 import {average} from "../utils";
 
 export enum TRANSFORM_TYPE {
@@ -8,8 +8,9 @@ export enum TRANSFORM_TYPE {
     GLYPH
 }
 
-// rename to component deformer
+// TODO: rename to TextTransformDeformer
 export class TextDeformer extends BaseDeformer {
+    _deformerType: DeformerType = DeformerType.MATRIX;
     _hasWeights = true;
     _transformType = TRANSFORM_TYPE.BOUNDS;
     _opacities = [1.0];

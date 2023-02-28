@@ -4,11 +4,9 @@ import {CurveDeformer} from "./deformers/CurveDeformer";
 import {TextDeformer} from "./deformers/TextDeformer";
 import {TransformDeformer} from "./deformers/TransformDeformer";
 import {VertexTransformDeformer} from "./deformers/VertexTransformDeformer";
-import {Container} from "pixi.js";
+import {ProgressDeformer} from "./deformers/ProgressDeformer";
 
-type MatrixDeformer = TransformDeformer | CurveDeformer;
-type VertexDeformer = VertexTransformDeformer | CurveDeformer | TextDeformer;
-type Deformer = MatrixDeformer | VertexDeformer;
+type Deformer = TransformDeformer | CurveDeformer | ProgressDeformer | VertexTransformDeformer | TextDeformer;
 
 export class DeformerStack extends PIXI.utils.EventEmitter {
     _deformers: Deformer[];
@@ -111,19 +109,9 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     _combineFragBodies() {
-        // TODO: fix me
-        if (this.deformers.length === 0) {
-            return `
-            void main() {
-                gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
-            }
-            `;
-        }
-
         return `
         void main() {
-            vec4 color1 = uColor * vec4(1.0, 1.0, 1.0, vOpacity);
-            gl_FragColor = texture2D(uSampler2, vUvs) * color1;
+            gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
         }
         `;
     }

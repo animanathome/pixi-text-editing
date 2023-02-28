@@ -10,6 +10,8 @@ export class FontAtlasTextGeometry {
     _indexArray = [];
     _glyph = [];
     _glyphCenters = [];
+
+    // why do we need this here?
     atlasResolution = 256; // atlas atlasResolution
 
     clear() {
