@@ -28,15 +28,15 @@ export class ProgressDeformer extends BaseDeformer {
         // when we change a value, does it sync up one uniform or all of them?
         // we could just copy over the min/max values as that's what we're using
         return {
-            // uProgresses: this.progresses,
-            // uMinXArray: this._uMinXArray,
-            // uMaxXArray: this._uMaxXArray,
-            // uMinYArray: this._uMinYArray,
-            // uMaxYArray: this._uMaxYArray,
-            // uMinUArray: this._uMinUArray,
-            // uMaxUArray: this._uMaxUArray,
-            // uMinVArray: this._uMinVArray,
-            // uMaxVArray: this._uMaxVArray
+            uProgresses: this.progresses,
+            uMinXArray: this._uMinXArray,
+            uMaxXArray: this._uMaxXArray,
+            uMinYArray: this._uMinYArray,
+            uMaxYArray: this._uMaxYArray,
+            uMinUArray: this._uMinUArray,
+            uMaxUArray: this._uMaxUArray,
+            uMinVArray: this._uMinVArray,
+            uMaxVArray: this._uMaxVArray
         }
     }
 
@@ -79,14 +79,27 @@ export class ProgressDeformer extends BaseDeformer {
 
         return `
             // attribute float aWeight;
-            attribute float aVertexIndex;
+            // attribute float aVertexIndex;
+            uniform float uProgresses[${transformLength}];
+            uniform float uMinXArray[${arrayLength}];
+            uniform float uMaxXArray[${arrayLength}];
+            uniform float uMinYArray[${arrayLength}];
+            uniform float uMaxYArray[${arrayLength}];
+            uniform float uMinUArray[${arrayLength}];
+            uniform float uMaxUArray[${arrayLength}];
+            uniform float uMinVArray[${arrayLength}];
+            uniform float uMaxVArray[${arrayLength}];
         `
     }
 
     _vertBody(): string {
         return `
             vec3 getVertexPosition${this.index}(vec3 inputPosition) {
-                return inputPosition;
+                float yRange = uMaxXArray[0] - uMinYArray[0];
+                float yCoord = (inputPosition.y - uMinYArray[0]) / yRange;
+                float yPos = uMinYArray[0] + ((yRange * yCoord) * uProgresses[0]);
+                vec3 outPosition = vec3(inputPosition.x, yPos, inputPosition.z);
+                return outPosition;
             }
         `;
     }
@@ -95,11 +108,11 @@ export class ProgressDeformer extends BaseDeformer {
         if (!this._dirty) {
             return
         }
-        this._generateIndexArray();
-        this._assignIndexArray();
+        // this._generateIndexArray();
+        // this._assignIndexArray();
         // this._generateWeights();
         // this._assignWeights();
-        // this._generateMinMaxXYUVArrays();
+        this._generateMinMaxXYUVArrays();
         this._dirty = false;
     }
 
@@ -247,23 +260,14 @@ export class ProgressDeformer extends BaseDeformer {
         this._uMinVArray = [];
         this._uMaxVArray = [];
         for(let i = 0; i < vertexArray.length; i += 8) {
-            const minX = vertexArray[i + 4];
-            const maxX = vertexArray[i + 0];
-            const minY = vertexArray[i + 5];
-            const maxY = vertexArray[i + 1];
-            this._uMinXArray.push(minX);
-            this._uMaxXArray.push(maxX);
-            this._uMinYArray.push(minY);
-            this._uMaxYArray.push(maxY);
-
-            const minU = uvArray[i + 4];
-            const maxU = uvArray[i + 0];
-            const minV = uvArray[i + 5];
-            const maxV = uvArray[i + 1];
-            this._uMinUArray.push(minU);
-            this._uMaxUArray.push(maxU);
-            this._uMinVArray.push(minV);
-            this._uMaxVArray.push(maxV);
+            this._uMinXArray.push(vertexArray[i + 4]);
+            this._uMaxXArray.push(vertexArray[i + 0]);
+            this._uMinYArray.push(vertexArray[i + 5]);
+            this._uMaxYArray.push(vertexArray[i + 1]);
+            this._uMinUArray.push(uvArray[i + 4]);
+            this._uMaxUArray.push(uvArray[i + 0]);
+            this._uMinVArray.push(uvArray[i + 5]);
+            this._uMaxVArray.push(uvArray[i + 1]);
         }
     }
 }

@@ -18,7 +18,7 @@ describe('ProgressDeformer', () => {
         const deformer = new ProgressDeformer();
         text.deform.addDeformer(deformer);
         deformer.transformType = TRANSFORM_TYPE.BOUNDS;
-        deformer.progresses = [1.0]
+        deformer.progresses = [0.5]
 
         text.deform.logAssembly();
         app.ticker.update();
