@@ -75,6 +75,10 @@ export class BaseDeformer {
         return '';
     }
 
+    _fragBody() {
+        return '';
+    }
+
     update() {
     }
 }

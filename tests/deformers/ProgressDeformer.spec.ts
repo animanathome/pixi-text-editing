@@ -6,7 +6,7 @@ import {ProgressDeformer} from "../../src/deformers/ProgressDeformer";
 describe('ProgressDeformer', () => {
    it.only('can add deformer', async() => {
        // Assemble
-        const displayText = 'AB';
+        const displayText = 'ABC';
         const {text, app} = await createFontAtlasTextApp({
             displayText,
             fontSize: 24,
@@ -17,8 +17,8 @@ describe('ProgressDeformer', () => {
 
         const deformer = new ProgressDeformer();
         text.deform.addDeformer(deformer);
-        deformer.transformType = TRANSFORM_TYPE.BOUNDS;
-        deformer.progresses = [0.5]
+        deformer.transformType = TRANSFORM_TYPE.GLYPH;
+        deformer.progresses = [0.5, 0.75, 1.0];
 
         text.deform.logAssembly();
         app.ticker.update();

@@ -9,12 +9,13 @@ export enum TRANSFORM_DIRECTION {
 }
 
 export class ProgressDeformer extends BaseDeformer {
-    _deformerType: DeformerType = DeformerType.VERTEX;
+    _deformerType: DeformerType = DeformerType.VERTEX_AND_UV;
     _progresses: number[] = [];
     _direction: TRANSFORM_DIRECTION = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
     _transformType = TRANSFORM_TYPE.BOUNDS;
 
     _indexArray: number[] = [];
+    // convert to vec2 to reduce the number of uniforms
     _uMinXArray: number[] = [];
     _uMaxXArray: number[] = [];
     _uMinYArray: number[] = [];
@@ -71,6 +72,7 @@ export class ProgressDeformer extends BaseDeformer {
     }
 
     // TODO: rename aWeight to aVertexWeight
+    // header
     _vertHead(): string {
         // max 1024? or 128 glyphs
         // if only min/max we can render 512 characters
@@ -78,29 +80,77 @@ export class ProgressDeformer extends BaseDeformer {
         const arrayLength = this._uMinXArray.length;
 
         return `
-            // attribute float aWeight;
-            // attribute float aVertexIndex;
+            attribute float aWeight; //[${this._weights.length}]
+            attribute float aVertexIndex; //[${this._indexArray.length}]
+            
             uniform float uProgresses[${transformLength}];
             uniform float uMinXArray[${arrayLength}];
             uniform float uMaxXArray[${arrayLength}];
             uniform float uMinYArray[${arrayLength}];
             uniform float uMaxYArray[${arrayLength}];
+            
             uniform float uMinUArray[${arrayLength}];
             uniform float uMaxUArray[${arrayLength}];
             uniform float uMinVArray[${arrayLength}];
             uniform float uMaxVArray[${arrayLength}];
+            
+            varying float vMinU;
+            varying float vMaxU;
+            varying float vMinV;
+            varying float vMaxV;
+            varying float vProgress;
         `
     }
 
+    // functions
     _vertBody(): string {
         return `
             vec3 getVertexPosition${this.index}(vec3 inputPosition) {
-                float yRange = uMaxXArray[0] - uMinYArray[0];
-                float yCoord = (inputPosition.y - uMinYArray[0]) / yRange;
-                float yPos = uMinYArray[0] + ((yRange * yCoord) * uProgresses[0]);
+                int transformIndex = int(aWeight);
+                int vertexIndex = int(aVertexIndex);
+                float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
+                float yCoord = (inputPosition.y - uMinYArray[vertexIndex]) / yRange;
+                float yPos = uMinYArray[vertexIndex] + ((yRange * yCoord) * uProgresses[transformIndex]);
                 vec3 outPosition = vec3(inputPosition.x, yPos, inputPosition.z);
                 return outPosition;
             }
+        `;
+    }
+
+    // main
+    _vertMain(): string {
+        return `
+            int transformIndex = int(aWeight);
+            int vertexIndex = int(aVertexIndex);
+            vMinU = uMinUArray[vertexIndex];
+            vMaxU = uMaxUArray[vertexIndex];
+            vMinV = uMinVArray[vertexIndex];
+            vMaxV = uMaxVArray[vertexIndex];
+            vProgress = uProgresses[transformIndex];
+        `
+    }
+
+    // header
+    _fragHead(): string {
+        return `
+            varying float vMinU;
+            varying float vMaxU;
+            varying float vMinV;
+            varying float vMaxV;
+            varying float vProgress;
+        `;
+    }
+
+    // functions
+    _fragBody(): string {
+        return `
+            vec2 getUV${this.index}(vec2 inputUV) {
+                float vRange = vMaxV - vMinV;
+                float vCoord = (inputUV.y - vMinV) / vRange;
+                float newV = vMinV + ((vRange * vCoord) * vProgress);
+                vec2 outputUV = vec2(inputUV.x, newV);
+                return outputUV;
+            }       
         `;
     }
 
@@ -108,10 +158,10 @@ export class ProgressDeformer extends BaseDeformer {
         if (!this._dirty) {
             return
         }
-        // this._generateIndexArray();
-        // this._assignIndexArray();
-        // this._generateWeights();
-        // this._assignWeights();
+        this._generateIndexArray();
+        this._assignIndexArray();
+        this._generateWeights();
+        this._assignWeights();
         this._generateMinMaxXYUVArrays();
         this._dirty = false;
     }

@@ -109,9 +109,24 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     _combineFragBodies() {
+        let aggregateFunctions = '';
+        this.deformers.forEach((deformer) => {
+            aggregateFunctions += `${deformer._fragBody()}\n`;
+        });
+        let mainFunction = `vec2 uv0 = vUvs;\n`;
+        let lastIndex = 0;
+        this.deformers.forEach((deformer, index) => {
+            if (deformer.deformerType === DeformerType.VERTEX_AND_UV) {
+                mainFunction += `vec2 uv${index + 1} = getUV${index + 1}(uv${index});\n`;
+                lastIndex = index + 1;
+            }
+        });
+
         return `
+        ${aggregateFunctions}
         void main() {
-            gl_FragColor = texture2D(uSampler2, vUvs) * uColor;
+            ${mainFunction}
+            gl_FragColor = texture2D(uSampler2, uv${lastIndex}) * uColor;
         }
         `;
     }
@@ -171,7 +186,8 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             if (deformer.deformerType === DeformerType.MATRIX) {
                 mainFunction += `vec3 vertexPosition${index + 1} = getTranslationMatrix${index + 1}() * vertexPosition${index};\n`;
             }
-            if (deformer.deformerType === DeformerType.VERTEX) {
+            if (deformer.deformerType === DeformerType.VERTEX ||
+                deformer.deformerType === DeformerType.VERTEX_AND_UV) {
                 mainFunction += `vec3 vertexPosition${index + 1} = getVertexPosition${index + 1}(vertexPosition${index});\n`;
             }
         });
