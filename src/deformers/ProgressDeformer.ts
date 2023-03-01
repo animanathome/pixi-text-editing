@@ -1,5 +1,5 @@
 import {BaseDeformer, DeformerType} from "./BaseDeformer";
-import {TRANSFORM_TYPE} from "./TextDeformer";
+import {TextDeformer, TRANSFORM_TYPE} from "./TextDeformer";
 
 export enum TRANSFORM_DIRECTION {
     LEFT_TO_RIGHT,
@@ -8,11 +8,10 @@ export enum TRANSFORM_DIRECTION {
     BOTTOM_TO_TOP
 }
 
-export class ProgressDeformer extends BaseDeformer {
+export class ProgressDeformer extends TextDeformer {
     _deformerType: DeformerType = DeformerType.VERTEX_AND_UV;
     _progresses: number[] = [];
-    _direction: TRANSFORM_DIRECTION = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
-    _transformType = TRANSFORM_TYPE.BOUNDS;
+    _direction: TRANSFORM_DIRECTION = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
 
     _indexArray: number[] = [];
     // convert to vec2 to reduce the number of uniforms
@@ -29,6 +28,7 @@ export class ProgressDeformer extends BaseDeformer {
         // when we change a value, does it sync up one uniform or all of them?
         // we could just copy over the min/max values as that's what we're using
         return {
+            uDirection: this.direction,
             uProgresses: this.progresses,
             uMinXArray: this._uMinXArray,
             uMaxXArray: this._uMaxXArray,
@@ -56,19 +56,6 @@ export class ProgressDeformer extends BaseDeformer {
 
     set direction(value: TRANSFORM_DIRECTION) {
         this._direction = value;
-        // what does dirty do again? rebuild the shader? why do we need to do that?
-        this._dirty = true;
-    }
-
-    get transformType() {
-        return this._transformType;
-    }
-
-    set transformType(value) {
-        console.log('set transform type', value);
-        this._transformType = value;
-        this._resetState()
-        this._dirty = true;
     }
 
     // TODO: rename aWeight to aVertexWeight
@@ -83,6 +70,7 @@ export class ProgressDeformer extends BaseDeformer {
             attribute float aWeight; //[${this._weights.length}]
             attribute float aVertexIndex; //[${this._indexArray.length}]
             
+            uniform float uDirection;
             uniform float uProgresses[${transformLength}];
             uniform float uMinXArray[${arrayLength}];
             uniform float uMaxXArray[${arrayLength}];
@@ -99,6 +87,7 @@ export class ProgressDeformer extends BaseDeformer {
             varying float vMinV;
             varying float vMaxV;
             varying float vProgress;
+            varying float vDirection;
         `
     }
 
@@ -106,11 +95,21 @@ export class ProgressDeformer extends BaseDeformer {
     _vertBody(): string {
         return `
             vec3 getVertexPosition${this.index}(vec3 inputPosition) {
+                int direction = int(uDirection);
                 int transformIndex = int(aWeight);
                 int vertexIndex = int(aVertexIndex);
-                float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
-                float yCoord = (inputPosition.y - uMinYArray[vertexIndex]) / yRange;
-                float yPos = uMinYArray[vertexIndex] + ((yRange * yCoord) * uProgresses[transformIndex]);
+                
+                float yPos = inputPosition.y;
+                if (direction == 2) {
+                    float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
+                    float yCoord = (inputPosition.y - uMinYArray[vertexIndex]) / yRange;
+                    yPos = uMinYArray[vertexIndex] + ((yRange * yCoord) * uProgresses[transformIndex]);
+                }
+                else if (direction == 3) {
+                    float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
+                    float yCoord = (uMaxYArray[vertexIndex] - inputPosition.y) / yRange;
+                    yPos = uMaxYArray[vertexIndex] - ((yRange * yCoord) * uProgresses[transformIndex]);
+                }
                 vec3 outPosition = vec3(inputPosition.x, yPos, inputPosition.z);
                 return outPosition;
             }
@@ -127,6 +126,7 @@ export class ProgressDeformer extends BaseDeformer {
             vMinV = uMinVArray[vertexIndex];
             vMaxV = uMaxVArray[vertexIndex];
             vProgress = uProgresses[transformIndex];
+            vDirection = uDirection;
         `
     }
 
@@ -138,6 +138,7 @@ export class ProgressDeformer extends BaseDeformer {
             varying float vMinV;
             varying float vMaxV;
             varying float vProgress;
+            varying float vDirection;
         `;
     }
 
@@ -145,56 +146,34 @@ export class ProgressDeformer extends BaseDeformer {
     _fragBody(): string {
         return `
             vec2 getUV${this.index}(vec2 inputUV) {
-                float vRange = vMaxV - vMinV;
-                float vCoord = (inputUV.y - vMinV) / vRange;
-                float newV = vMinV + ((vRange * vCoord) * vProgress);
+                int direction = int(vDirection);
+                
+                float newV = inputUV.y;
+                if (direction == 2) {
+                    float vRange = vMaxV - vMinV;
+                    float vCoord = (inputUV.y - vMinV) / vRange;
+                    newV = vMinV + ((vRange * vCoord) * vProgress);
+                }
+                else if (direction == 3) {
+                    float vRange = vMaxV - vMinV;
+                    float vCoord = (vMaxV - inputUV.y) / vRange;
+                    newV = vMaxV - ((vRange * vCoord) * vProgress);
+                }
                 vec2 outputUV = vec2(inputUV.x, newV);
                 return outputUV;
             }       
         `;
     }
 
-    update() {
-        if (!this._dirty) {
-            return
-        }
+    _updateProperties() {
+        super._updateProperties();
         this._generateIndexArray();
         this._assignIndexArray();
-        this._generateWeights();
-        this._assignWeights();
         this._generateMinMaxXYUVArrays();
-        this._dirty = false;
     }
 
-    _resetState() {
-        const expectedLength = this._expectTransformsLength(1);
-        this._progresses = new Array(expectedLength).fill(1.0);
-    }
-
-    _validateData(value: number[], coordinateCount = 2) {
-        const expectedLength = this._expectTransformsLength(coordinateCount);
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
-    }
-
-    _expectTransformsLength(coordinateCount = 2) {
-        let expectedLength = -1;
-        switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
-                expectedLength = coordinateCount;
-                break;
-            case TRANSFORM_TYPE.LINE:
-                expectedLength = this.parent.lines.length * coordinateCount;
-                break;
-            case TRANSFORM_TYPE.WORD:
-                expectedLength = this.parent.words.length * coordinateCount;
-                break;
-            case TRANSFORM_TYPE.GLYPH:
-                expectedLength = this.parent.glyph.length * coordinateCount;
-                break;
-        }
-        return expectedLength;
+    _resetStateOnProperties(length: number) {
+        this._progresses = new Array(length).fill(1.0);
     }
 
     // we could move this to the geometry build step
@@ -220,80 +199,6 @@ export class ProgressDeformer extends BaseDeformer {
         console.log('updating aVertexIndex', this._indexArray);
         const buffer = this.parent.geometry.getBuffer('aVertexIndex');
         buffer.data = new Float32Array(this._indexArray);
-    }
-
-    _generateWeights() {
-        let weights = [];
-        switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
-                weights = this._generateBoundWeights(); break;
-            case TRANSFORM_TYPE.LINE:
-                weights = this._generateLineWeights(); break;
-            case TRANSFORM_TYPE.WORD:
-                weights = this._generateWordWeights(); break;
-            case TRANSFORM_TYPE.GLYPH:
-                weights = this._generateGlyphWeights(); break;
-        }
-        console.log('weights', weights);
-        this._weights = weights;
-    }
-
-    _assignWeights() {
-        const weightsAttribute = this.parent.geometry.getAttribute('aWeight');
-        if (!weightsAttribute) {
-            console.log('adding weights attribute')
-            this.parent.geometry.addAttribute('aWeight', this._weights, 1)
-            return;
-        }
-        console.log('updating weights attribute');
-        const weightsBuffer = this.parent.geometry.getBuffer('aWeight');
-        weightsBuffer.data = new Float32Array(this._weights);
-    }
-
-    _generateBoundWeights() {
-        return this.parent.glyph.map((glyph, index) => [0, 0, 0, 0]).flat();
-    }
-
-    _generateLineWeights() {
-        const weights:number[][] = [];
-        const lineRanges = this.parent.lineGlyphRanges();
-        for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
-            const lineStart = lineRanges[lineIndex][0];
-            const lineEnd = lineRanges[lineIndex][1];
-            for (let i = lineStart; i <= lineEnd; i++) {
-                // each glyph has 4 vertices so we need to provide a weight for each one
-                weights.push([lineIndex, lineIndex, lineIndex, lineIndex])
-            }
-        }
-        return (weights as any).flat();
-    }
-
-    _generateWordWeights() {
-        const weights:number[][] = [];
-        const wordRanges = this.parent.words;
-        let prevEnd = 0;
-        for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
-            const wordRange = wordRanges[wordIndex];
-            const wordStart = wordRange[0];
-            const wordEnd = wordRange[wordRange.length - 1];
-
-            // generate weights for any spaces or new lines
-            for (let i = prevEnd + 1; i < wordStart; i++) {
-                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
-            }
-
-            // fill in the same weight for each glyph within a word
-            for (let i = wordStart; i <= wordEnd; i++) {
-                // each glyph has 4 vertices so we need to provide a weight for each one
-                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
-            }
-            prevEnd = wordEnd;
-        }
-        return (weights as any).flat();
-    }
-
-    _generateGlyphWeights() {
-        return this.parent.glyph.map((glyph, index) => [index, index, index, index]).flat();
     }
 
     _generateMinMaxXYUVArrays() {

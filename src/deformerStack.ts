@@ -1,12 +1,12 @@
 import * as PIXI from 'pixi.js';
 import {BaseDeformer, DeformerType} from "./deformers/BaseDeformer";
 import {CurveDeformer} from "./deformers/CurveDeformer";
-import {TextDeformer} from "./deformers/TextDeformer";
+import {TextTransformDeformer} from "./deformers/TextDeformer";
 import {TransformDeformer} from "./deformers/TransformDeformer";
 import {VertexTransformDeformer} from "./deformers/VertexTransformDeformer";
 import {ProgressDeformer} from "./deformers/ProgressDeformer";
 
-type Deformer = TransformDeformer | CurveDeformer | ProgressDeformer | VertexTransformDeformer | TextDeformer;
+type Deformer = TransformDeformer | CurveDeformer | ProgressDeformer | VertexTransformDeformer | TextTransformDeformer;
 
 export class DeformerStack extends PIXI.utils.EventEmitter {
     _deformers: Deformer[];

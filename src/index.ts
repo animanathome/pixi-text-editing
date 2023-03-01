@@ -10,7 +10,7 @@ import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
 import {PingPongTimeline, TickerTimeline} from "./timeline";
-import {TextDeformer, TRANSFORM_TYPE} from "./deformers/TextDeformer";
+import {TextTransformDeformer, TRANSFORM_TYPE} from "./deformers/TextDeformer";
 
 const curveDemo = async() => {
     const app = new PIXI.Application({
@@ -176,7 +176,7 @@ const animation = async() => {
     global.text = text;
     app.ticker.start();
 
-    const deformer = new TextDeformer();
+    const deformer = new TextTransformDeformer();
     text.deform.addDeformer(deformer);
     deformer.transformType = TRANSFORM_TYPE.WORD;
 

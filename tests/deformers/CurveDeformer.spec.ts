@@ -5,7 +5,7 @@ import {createFontAtlasTextApp, createRectangleApp} from "../utils";
 import {CurveDeformer} from "../../src/deformers/CurveDeformer";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../src/curveDeformer";
 import {VertexTransformDeformer} from "../../src/deformers/VertexTransformDeformer";
-import {TextDeformer, TRANSFORM_TYPE} from "../../src/deformers/TextDeformer";
+import {TextTransformDeformer, TRANSFORM_TYPE} from "../../src/deformers/TextDeformer";
 
 describe('CurveDeformer', () => {
     it('can create deformer', async() => {
@@ -64,7 +64,7 @@ describe('CurveDeformer', () => {
             });
             const dataTexture = createCurveTexture(positions, normals, tangents);
 
-            const textDeformer = new TextDeformer();
+            const textDeformer = new TextTransformDeformer();
             text.deform.addDeformer(textDeformer);
             textDeformer.transformType = TRANSFORM_TYPE.WORD;
             textDeformer.scales = [1.2, 1.2, 0.8, 0.8];

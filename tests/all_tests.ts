@@ -14,5 +14,5 @@
 // import('./deformers/TransformDeformer.spec')
 // import('./deformers/CenterScaleTransformDeformer.spec')
 // import('./deformers/VertexTransformDeformer.spec')
+import('./deformers/TextTransformDeformer.spec')
 import('./deformers/ProgressDeformer.spec')
-// import('./deformers/TextDeformer.spec')
