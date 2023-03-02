@@ -1,4 +1,4 @@
-import {BaseDeformer} from "./BaseDeformer";
+import {BaseDeformer} from "../BaseDeformer";
 
 export enum TRANSFORM_TYPE {
     BOUNDS,
@@ -20,15 +20,6 @@ export class TextDeformer extends BaseDeformer {
         this._transformType = value;
         this._resetState()
         this._dirty = true;
-    }
-
-    update() {
-        if (!this._dirty) {
-            return
-        }
-        this._updateProperties();
-        this._dirty = false;
-        this.emitDeformerChanged();
     }
 
     _updateProperties() {

@@ -1,18 +1,9 @@
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
-import {average} from "../utils";
-import {TextDeformer} from "./TextDeformer";
+import {DeformerType} from "../BaseDeformer";
+import {average} from "../../utils";
+import {TRANSFORM_TYPE, TextDeformer} from "./TextDeformer";
 
-export enum TRANSFORM_TYPE {
-    BOUNDS,
-    LINE,
-    WORD,
-    GLYPH
-}
-
-// TODO: rename to TextTransformDeformer
 export class TextTransformDeformer extends TextDeformer {
-    _deformerType: DeformerType = DeformerType.MATRIX;
-    _opacities = [1.0];
+    _deformerType: DeformerType[] = [DeformerType.MATRIX];
     _transforms = [0.0, 0.0];
     _scales = [1.0, 1.0];
     _scaleAnchors = [];
@@ -20,7 +11,6 @@ export class TextTransformDeformer extends TextDeformer {
 
     _uniforms(): {} {
         return {
-            uOpacities: this.opacities,
             uTransforms: this.transforms,
             uScales: this.scales,
             uScaleAnchors: this._scaleAnchors,
@@ -31,12 +21,10 @@ export class TextTransformDeformer extends TextDeformer {
         const transformCount = this.transforms.length / 2;
 
         return `
-        varying float vOpacity;
         attribute float aWeight;
         uniform vec2 uTransforms[${transformCount}];
         uniform vec2 uScales[${transformCount}];
         uniform vec2 uScaleAnchors[${transformCount}];
-        uniform float uOpacities[${transformCount}];
         `
     }
 
@@ -60,37 +48,14 @@ export class TextTransformDeformer extends TextDeformer {
         `
     }
 
-    _vertMain(): string {
-        return `
-        int transformIndex = int(aWeight);
-        vOpacity = uOpacities[transformIndex];
-        `
-    }
-
-    _fragHead(): string {
-        return `
-        varying float vOpacity;
-        `
-    }
-
     /**
      * When the transform type changes, we need to reset the state of the deformer as we need all of our
      * internal data to match with the new transform type.
      */
     _resetStateOnProperties(expectedLength) {
-        this._opacities = new Array(expectedLength).fill(1.0);
+        // this._opacities = new Array(expectedLength).fill(1.0);
         this._transforms = new Array(expectedLength * 2).fill(0.0);
         this._scales = new Array(expectedLength * 2).fill(1.0);
-    }
-
-    get opacities() {
-        return this._opacities;
-    }
-
-    set opacities(value: number[]) {
-        this._validateData(value, 1);
-        this._opacities = value;
-        this.parent.shader.uniforms.uOpacities = value;
     }
 
     get transforms() {

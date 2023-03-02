@@ -105,13 +105,14 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
             }
             renderer.batch.flush();
 
-            console.log('renderer', renderer.CONTEXT_UID);
-            const bufferSystem = renderer.buffer;
-            for (let i = 0; i < this.geometry.buffers.length; i++) {
-                const buffer = this.geometry.buffers[i];
-                const GLbuffer = buffer._glBuffers[renderer.CONTEXT_UID] || bufferSystem.createGLBuffer(buffer);
-                // bufferSystem.update(buffer);
-            }
+            // console.log('renderer', renderer.CONTEXT_UID);
+            // const bufferSystem = renderer.buffer;
+            // for (let i = 0; i < this.geometry.buffers.length; i++) {
+            //     const buffer = this.geometry.buffers[i];
+            //     const GLbuffer = buffer._glBuffers[renderer.CONTEXT_UID] || bufferSystem.createGLBuffer(buffer);
+            //     // bufferSystem.update(buffer);
+            // }
+
             this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
             renderer.shader.bind(this.shader, false);
             renderer.state.set(this.state);

@@ -2,12 +2,8 @@ import * as PIXI from 'pixi.js';
 import {BaseDeformer, DeformerType} from "./BaseDeformer";
 
 export class VertexTransformDeformer extends BaseDeformer {
+    _deformerType: DeformerType[] = [DeformerType.VERTEX];
     offset: PIXI.Point = new PIXI.Point();
-
-    constructor() {
-        super();
-        this._deformerType = DeformerType.VERTEX;
-    }
 
     _uniforms(): {} {
         return {

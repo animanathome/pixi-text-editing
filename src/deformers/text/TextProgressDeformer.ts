@@ -1,4 +1,4 @@
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
+import {BaseDeformer, DeformerType} from "../BaseDeformer";
 import {TextDeformer, TRANSFORM_TYPE} from "./TextDeformer";
 
 export enum TRANSFORM_DIRECTION {
@@ -8,21 +8,16 @@ export enum TRANSFORM_DIRECTION {
     BOTTOM_TO_TOP
 }
 
-export class ProgressDeformer extends TextDeformer {
-    _deformerType: DeformerType = DeformerType.VERTEX_AND_UV;
+export class TextProgressDeformer extends TextDeformer {
+    _deformerType: DeformerType[] = [DeformerType.VERTEX, DeformerType.UV];
     _progresses: number[] = [];
     _direction: TRANSFORM_DIRECTION = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
 
     _indexArray: number[] = [];
-    // convert to vec2 to reduce the number of uniforms
-    _uMinXArray: number[] = [];
-    _uMaxXArray: number[] = [];
-    _uMinYArray: number[] = [];
-    _uMaxYArray: number[] = [];
-    _uMinUArray: number[] = [];
-    _uMaxUArray: number[] = [];
-    _uMinVArray: number[] = [];
-    _uMaxVArray: number[] = [];
+    _uMinMaxXArray: number[] = [];
+    _uMinMaxYArray: number[] = [];
+    _uMinMaxUArray: number[] = [];
+    _uMinMaxVArray: number[] = [];
 
     _uniforms(): {} {
         // when we change a value, does it sync up one uniform or all of them?
@@ -30,14 +25,10 @@ export class ProgressDeformer extends TextDeformer {
         return {
             uDirection: this.direction,
             uProgresses: this.progresses,
-            uMinXArray: this._uMinXArray,
-            uMaxXArray: this._uMaxXArray,
-            uMinYArray: this._uMinYArray,
-            uMaxYArray: this._uMaxYArray,
-            uMinUArray: this._uMinUArray,
-            uMaxUArray: this._uMaxUArray,
-            uMinVArray: this._uMinVArray,
-            uMaxVArray: this._uMaxVArray
+            uMinMaxXArray: this._uMinMaxXArray,
+            uMinMaxYArray: this._uMinMaxYArray,
+            uMinMaxUArray: this._uMinMaxUArray,
+            uMinMaxVArray: this._uMinMaxVArray,
         }
     }
 
@@ -64,7 +55,7 @@ export class ProgressDeformer extends TextDeformer {
         // max 1024? or 128 glyphs
         // if only min/max we can render 512 characters
         const transformLength = this._progresses.length;
-        const arrayLength = this._uMinXArray.length;
+        const arrayLength = this._uMinMaxXArray.length;
 
         return `
             attribute float aWeight; //[${this._weights.length}]
@@ -72,20 +63,13 @@ export class ProgressDeformer extends TextDeformer {
             
             uniform float uDirection;
             uniform float uProgresses[${transformLength}];
-            uniform float uMinXArray[${arrayLength}];
-            uniform float uMaxXArray[${arrayLength}];
-            uniform float uMinYArray[${arrayLength}];
-            uniform float uMaxYArray[${arrayLength}];
+            uniform vec2 uMinMaxXArray[${arrayLength}];
+            uniform vec2 uMinMaxYArray[${arrayLength}];
+            uniform vec2 uMinMaxUArray[${arrayLength}];
+            uniform vec2 uMinMaxVArray[${arrayLength}];
             
-            uniform float uMinUArray[${arrayLength}];
-            uniform float uMaxUArray[${arrayLength}];
-            uniform float uMinVArray[${arrayLength}];
-            uniform float uMaxVArray[${arrayLength}];
-            
-            varying float vMinU;
-            varying float vMaxU;
-            varying float vMinV;
-            varying float vMaxV;
+            varying vec2 vMinMaxU;
+            varying vec2 vMinMaxV;
             varying float vProgress;
             varying float vDirection;
         `
@@ -98,17 +82,18 @@ export class ProgressDeformer extends TextDeformer {
                 int direction = int(uDirection);
                 int transformIndex = int(aWeight);
                 int vertexIndex = int(aVertexIndex);
+                float progress = clamp(uProgresses[transformIndex], 0.0, 1.0);
                 
                 float yPos = inputPosition.y;
                 if (direction == 2) {
-                    float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
-                    float yCoord = (inputPosition.y - uMinYArray[vertexIndex]) / yRange;
-                    yPos = uMinYArray[vertexIndex] + ((yRange * yCoord) * uProgresses[transformIndex]);
+                    float yRange = uMinMaxYArray[vertexIndex].y - uMinMaxYArray[vertexIndex].x;
+                    float yCoord = (inputPosition.y - uMinMaxYArray[vertexIndex].x) / yRange;
+                    yPos = uMinMaxYArray[vertexIndex].x + ((yRange * yCoord) * progress);
                 }
                 else if (direction == 3) {
-                    float yRange = uMaxXArray[vertexIndex] - uMinYArray[vertexIndex];
-                    float yCoord = (uMaxYArray[vertexIndex] - inputPosition.y) / yRange;
-                    yPos = uMaxYArray[vertexIndex] - ((yRange * yCoord) * uProgresses[transformIndex]);
+                    float yRange = uMinMaxXArray[vertexIndex].y - uMinMaxYArray[vertexIndex].x;
+                    float yCoord = (uMinMaxYArray[vertexIndex].y - inputPosition.y) / yRange;
+                    yPos = uMinMaxYArray[vertexIndex].y - ((yRange * yCoord) * progress);
                 }
                 vec3 outPosition = vec3(inputPosition.x, yPos, inputPosition.z);
                 return outPosition;
@@ -121,11 +106,11 @@ export class ProgressDeformer extends TextDeformer {
         return `
             int transformIndex = int(aWeight);
             int vertexIndex = int(aVertexIndex);
-            vMinU = uMinUArray[vertexIndex];
-            vMaxU = uMaxUArray[vertexIndex];
-            vMinV = uMinVArray[vertexIndex];
-            vMaxV = uMaxVArray[vertexIndex];
-            vProgress = uProgresses[transformIndex];
+            
+            vMinMaxU = uMinMaxUArray[vertexIndex];
+            vMinMaxV = uMinMaxVArray[vertexIndex];
+            
+            vProgress = clamp(uProgresses[transformIndex], 0.0, 1.0);
             vDirection = uDirection;
         `
     }
@@ -137,6 +122,10 @@ export class ProgressDeformer extends TextDeformer {
             varying float vMaxU;
             varying float vMinV;
             varying float vMaxV;
+            
+            varying vec2 vMinMaxU;
+            varying vec2 vMinMaxV;
+            
             varying float vProgress;
             varying float vDirection;
         `;
@@ -150,14 +139,14 @@ export class ProgressDeformer extends TextDeformer {
                 
                 float newV = inputUV.y;
                 if (direction == 2) {
-                    float vRange = vMaxV - vMinV;
-                    float vCoord = (inputUV.y - vMinV) / vRange;
-                    newV = vMinV + ((vRange * vCoord) * vProgress);
+                    float vRange = vMinMaxV.y - vMinMaxV.x;
+                    float vCoord = (inputUV.y - vMinMaxV.x) / vRange;
+                    newV = vMinMaxV.x + ((vRange * vCoord) * vProgress);
                 }
                 else if (direction == 3) {
-                    float vRange = vMaxV - vMinV;
-                    float vCoord = (vMaxV - inputUV.y) / vRange;
-                    newV = vMaxV - ((vRange * vCoord) * vProgress);
+                    float vRange = vMinMaxV.y - vMinMaxV.x;
+                    float vCoord = (vMinMaxV.y - inputUV.y) / vRange;
+                    newV = vMinMaxV.y - ((vRange * vCoord) * vProgress);
                 }
                 vec2 outputUV = vec2(inputUV.x, newV);
                 return outputUV;
@@ -206,23 +195,15 @@ export class ProgressDeformer extends TextDeformer {
         const vertexArray = this.parent._fontAtlasTextGeometry._vertexArray;
         const uvArray = this.parent._fontAtlasTextGeometry._uvArray;
 
-        this._uMinXArray = [];
-        this._uMaxXArray = [];
-        this._uMinYArray = [];
-        this._uMaxYArray = [];
-        this._uMinUArray = [];
-        this._uMaxUArray = [];
-        this._uMinVArray = [];
-        this._uMaxVArray = [];
+        this._uMinMaxXArray = [];
+        this._uMinMaxYArray = [];
+        this._uMinMaxUArray = [];
+        this._uMinMaxVArray = [];
         for(let i = 0; i < vertexArray.length; i += 8) {
-            this._uMinXArray.push(vertexArray[i + 4]);
-            this._uMaxXArray.push(vertexArray[i + 0]);
-            this._uMinYArray.push(vertexArray[i + 5]);
-            this._uMaxYArray.push(vertexArray[i + 1]);
-            this._uMinUArray.push(uvArray[i + 4]);
-            this._uMaxUArray.push(uvArray[i + 0]);
-            this._uMinVArray.push(uvArray[i + 5]);
-            this._uMaxVArray.push(uvArray[i + 1]);
+            this._uMinMaxXArray.push(vertexArray[i + 4], vertexArray[i + 0]);
+            this._uMinMaxYArray.push(vertexArray[i + 5], vertexArray[i + 1]);
+            this._uMinMaxUArray.push(uvArray[i + 4], uvArray[i + 0]);
+            this._uMinMaxVArray.push(uvArray[i + 5], uvArray[i + 1]);
         }
     }
 }

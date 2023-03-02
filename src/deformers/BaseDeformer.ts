@@ -4,26 +4,32 @@ export enum DeformerType {
     VERTEX  , // manipulates vertices
     MATRIX, // manipulates the transformation matrix
     UV  , // manipulates uvs
-    VERTEX_AND_UV// manipulates vertices and uvs
+    COLOR = 4, // manipulates colors
 }
 
 export class BaseDeformer {
     _deformerStack: DeformerStack;
-    _deformerType: DeformerType = DeformerType.MATRIX;
-    _hasWeights = false;
+    _deformerType: DeformerType[] = [DeformerType.MATRIX];
     _weights = [];
     _dirty = true;
+    _enabled = true;
+
+    get enabled() {
+        return this._enabled;
+    }
+
+    set enabled(value) {
+        this._enabled = value;
+        this._dirty = true;
+    }
 
     get isDirty() {
+        // console.log(this.constructor.name, 'isDirty', this._dirty);
         return this._dirty;
     }
 
     get index() {
         return this._deformerStack.deformerIndex(this) + 1;
-    }
-
-    get hasWeights() {
-        return this._hasWeights;
     }
 
     get weights() {
@@ -51,10 +57,6 @@ export class BaseDeformer {
         return this._deformerType;
     }
 
-    emitDeformerChanged() {
-        this._deformerStack.emit('deformerChanged');
-    }
-
     _uniforms() {
         return {};
     }
@@ -80,5 +82,19 @@ export class BaseDeformer {
     }
 
     update() {
+        if (!this._dirty) {
+            return
+        }
+        this._updateProperties();
+        this._dirty = false;
+        this.emitDeformerChanged();
+    }
+
+    _updateProperties() {
+        // pass
+    }
+
+    emitDeformerChanged() {
+        this._deformerStack.emit('deformerChanged');
     }
 }

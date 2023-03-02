@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import {BaseDeformer, DeformerType} from "./BaseDeformer";
 
 export class CurveDeformer extends BaseDeformer {
-    _deformerType: DeformerType = DeformerType.VERTEX;
+    _deformerType: DeformerType[] = [DeformerType.VERTEX];
     texture: PIXI.Texture;
     pathOffset: number = 0.0;
     pathSegment: number = 1.0;

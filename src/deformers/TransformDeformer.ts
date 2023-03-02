@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer} from "./BaseDeformer";
+import {BaseDeformer, DeformerType} from "./BaseDeformer";
 
 
 export class TransformDeformer extends BaseDeformer {
+    _deformerType: DeformerType[] = [DeformerType.MATRIX];
     _transform: PIXI.Transform;
 
     constructor() {

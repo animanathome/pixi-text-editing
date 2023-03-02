@@ -1,10 +1,69 @@
-import {createFontAtlasTextApp} from "../utils";
-import {TextTransformDeformer, TRANSFORM_TYPE} from "../../src/deformers/TextTransformDeformer";
+import {createFontAtlasTextApp} from "../../utils";
+import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
+import {TextTransformDeformer} from "../../../src/deformers/text/TextTransformDeformer";
 
-import { expect } from 'chai';
+import {expect} from 'chai';
+import {CurveDeformer} from "../../../src/deformers/CurveDeformer";
+import * as PIXI from "pixi.js";
+import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../../src/curveDeformer";
+import {TextProgressDeformer, TRANSFORM_DIRECTION} from "../../../src/deformers/text/TextProgressDeformer";
 
 describe('TextTransformDeformer', () => {
-    it.only('passes properties as uniforms to shader', async() => {
+    it.only('can mix deformers', async() => {
+        // Assemble
+        const displayText = 'TITLES';
+        const {text, app} = await createFontAtlasTextApp({
+            displayText,
+            fontSize: 24,
+            fontAtlasSize: 24,
+            fontAtlasResolution: 256,
+            fontUrl: '../../../resources/Roboto-Bold.ttf'
+        });
+        document.body.appendChild(app.view);
+
+        const start = new PIXI.Point(-64, 10);
+        const end = new PIXI.Point(64, -10);
+        const points = getStraightLinePositions(start, end, 5);
+        console.log(points);
+
+        const {positions, tangents, normals, length} = buildCurveData({
+            points,
+            nSegments: 32,
+            closed: false,
+            normalOverride: new PIXI.Point(0, 1),
+        });
+        const dataTexture = createCurveTexture(positions, normals, tangents);
+
+        // Act
+        const progressDeformer = new TextProgressDeformer()
+        text.deform.addDeformer(progressDeformer);
+        progressDeformer.transformType = TRANSFORM_TYPE.BOUNDS;
+        progressDeformer.direction = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
+        progressDeformer.progresses = [0.5];
+
+        const transDeformer = new TextTransformDeformer();
+        text.deform.addDeformer(transDeformer);
+        transDeformer.transformType = TRANSFORM_TYPE.BOUNDS;
+        transDeformer.transforms = [0, 10];
+
+        const curveDeformer = new CurveDeformer();
+        curveDeformer.texture = dataTexture;
+        curveDeformer.spineLength = length;
+        curveDeformer.pathOffset = 0.15;
+        text.deform.addDeformer(curveDeformer);
+
+        text.deform.logAssembly();
+        app.ticker.update();
+        console.log('-----------')
+
+        // app.ticker.add(() => {
+        //     progressDeformer.progresses[0] += 0.01;
+        // });
+        //
+        // app.ticker.start();
+    });
+
+    it('passes properties as uniforms to shader', async() => {
         // Assemble
         const displayText = 'AB';
         const {text, app} = await createFontAtlasTextApp({displayText});
@@ -14,18 +73,16 @@ describe('TextTransformDeformer', () => {
         deformer.transformType = TRANSFORM_TYPE.BOUNDS;
 
         // Act
-        deformer.opacities = [0.75];
         deformer.scales = [1.5, 1.5];
         deformer.transforms = [10.0, 10.0];
         text.deform.logAssembly();
         app.ticker.update();
 
         // Assert
-        // expect(text.shader.uniforms.opacities).to.deep.equal([.75]);
-        // expect(text.shader.uniforms.scales).to.deep.equal([1.5, 1.5]);
-        // expect(text.shader.uniforms.transforms).to.deep.equal([10.0, 0.0]);
-        // expect(text.shader.uniforms.scaleAnchors).to.deep.equal([7.39453125, 4.734375]);
-        // expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 0, 0, 0, 0]);
+        expect(text.shader.uniforms.uScales).to.deep.equal([1.5, 1.5]);
+        expect(text.shader.uniforms.uTransforms).to.deep.equal([10.0, 10.0]);
+        expect(text.shader.uniforms.uScaleAnchors).to.deep.equal([7.39453125, 4.734375]);
+        expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 0, 0, 0, 0]);
         //
         // // Cleanup
         // app.destroy(true, true);
