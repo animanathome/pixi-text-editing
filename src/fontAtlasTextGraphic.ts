@@ -2,6 +2,8 @@ import * as PIXI from "pixi.js";
 import {FontAtlasText} from "./fontAtlasText";
 import {deformVertexSrc, simpleVertexSrc, transformVertexSrc} from "./vertexShader";
 import {colorFragmentSrc, rectangleFragmentSrc, textureFragmentSrc} from "./fragmentShader";
+import {MeshMixin} from "./meshMixin";
+import {DeformerStack} from "./deformerStack";
 
 export enum GRAPHIC_TYPE {
     BOUNDS,
@@ -17,7 +19,7 @@ type Padding = {
     bottom: number,
 }
 
-export class FontAtlasTextGraphic extends PIXI.Container{
+export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     _fontAtlasText = null;
     _mesh: PIXI.Mesh = null;
     _dirty = true;
@@ -33,11 +35,16 @@ export class FontAtlasTextGraphic extends PIXI.Container{
     _xProgress: number = 1.0;
     _yProgress: number = 1.0;
     _color: number[] = [1.0, 0.0, 0.0, 1.0];
+    _deformerStack: DeformerStack;
 
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this._fontAtlasText = fontAtlasText;
-        this._createMesh(new PIXI.Geometry());
+        this._deformerStack = new DeformerStack(this, {uvs: false});
+    }
+
+    get deform() {
+        return this._deformerStack;
     }
 
     get xInvert() {
@@ -105,16 +112,44 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         return this._padding;
     }
 
-    _update() {
-        if(!this._dirty) {
-            return;
-        }
+    _buildGeometry() {
+        let vertices, indices, uvs, weights = [];
         switch (this._graphicType) {
-            case GRAPHIC_TYPE.BOUNDS: this._buildBoundsGraphics(); break;
-            case GRAPHIC_TYPE.LINE: this._buildLineGraphics(); break;
-            case GRAPHIC_TYPE.WORD: this._buildWordGraphics(); break;
+            case GRAPHIC_TYPE.BOUNDS:
+                ({vertices, indices, uvs, weights} = this._buildBoundsGraphics());
+                break;
+            case GRAPHIC_TYPE.LINE:
+                ({vertices, indices, uvs, weights} = this._buildLineGraphics());
+                break;
+            case GRAPHIC_TYPE.WORD:
+                ({vertices, indices, uvs, weights} = this._buildWordGraphics());
+                break;
             default: console.log('unknown');
         }
+
+        const geometry = new PIXI.Geometry();
+        geometry.addAttribute('aVertexPosition', vertices, 2);
+        geometry.addAttribute('aUvs', uvs, 2);
+        geometry.addAttribute('aWeight', weights, 1)
+        geometry.addIndex(indices);
+        this._geometry = geometry;
+    }
+
+    _buildShader() {
+        console.log('_buildShader');
+        // build shader
+        // TODO: make into a property
+        //  is this the same as tint?
+        const color = [1.0, 0.0, 0.0, 1.0];
+
+        let uniforms = Object.assign({
+            uColor: color,
+            translationMatrix: this.transform.worldTransform.toArray(true)
+        }, this.deform._combineUniforms())
+        const vertexShader = this.deform._buildVertexShader();
+        const fragmentShader = this.deform._buildFragmentShader();
+        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
+        this._shader = shader;
     }
 
     _buildBoundsGraphics() {
@@ -123,10 +158,7 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         const x1 = bounds.x + bounds.width + this.padding.right
         const y0 = bounds.y - this.padding.top;
         const y1 = bounds.y + bounds.height + this.padding.bottom;
-        const {vertices, uvs, indices, weights} = this._buildRectangle(x0, x1, y0, y1, 0, 0);
-        const geometry = this._buildGeometry(vertices, uvs, indices, weights);
-        this._mesh.geometry = geometry;
-        this._dirty = false;
+        return this._buildRectangle(x0, x1, y0, y1, 0, 0);
     }
 
     _buildLineGraphics() {
@@ -135,12 +167,12 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             const [start, end] = this._fontAtlasText._getLineGlyphRange(i)
             selection.push([start, end]);
         }
-        this._buildSelection(selection);
+        return this._buildSelection(selection);
     }
 
     _buildWordGraphics() {
         const selection = this._fontAtlasText.words as number[][];
-        this._buildSelection(selection);
+        return this._buildSelection(selection);
     }
 
     /**
@@ -216,39 +248,64 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             allWeights.push(weights);
             wordIndex++;
         }
-        const geometry = this._buildGeometry(
-            allVertices.flat(),
-            allUvs.flat(),
-            allIndices.flat(),
-            allWeights.flat()
-        );
-        this._mesh.geometry = geometry;
+        return {
+            vertices: allVertices.flat(),
+            indices: allIndices.flat(),
+            uvs: allUvs.flat(),
+            weights: allWeights.flat()
+        }
+    }
+
+    // // TODO: we can reuse this in fontAtlasTextGeometry
+    // _buildGeometry(vertices: number[], uvs: number[], indices: number[], weights: number[]) {
+    //     const geometry = new PIXI.Geometry();
+    //     geometry.addAttribute('aVertexPosition', vertices, 2);
+    //     geometry.addAttribute('aUvs', uvs, 2);
+    //     geometry.addAttribute('aWeight', weights, 1)
+    //     geometry.addIndex(indices);
+    //     return geometry;
+    // }
+
+    // TODO: we need to fill in scales and scaleAnchors here as well
+    // _createMesh(geometry) {
+    //     let shader;
+    //     const mesh = new PIXI.Mesh(geometry, shader);
+    //     this._mesh = mesh;
+    //     this.addChild(mesh);
+    // }
+
+    // _render(renderer: PIXI.Renderer) {
+    //     // we need to make sure our text is up to date
+    //     this._fontAtlasText._render(renderer);
+    //
+    //     this._update();
+    //     super._render(renderer);
+    // }
+
+    _deleteGeometry() {
+        if (!this._geometry) {
+            return;
+        }
+        this._geometry.destroy();
+        this._geometry = null;
+    }
+
+    _build() {
+        if (!this._dirty) {
+            return;
+        }
+        this._deleteGeometry();
+        this._buildGeometry();
+        this._buildShader();
         this._dirty = false;
     }
 
-    // TODO: we can reuse this in fontAtlasTextGeometry
-    _buildGeometry(vertices: number[], uvs: number[], indices: number[], weights: number[]) {
-        const geometry = new PIXI.Geometry();
-        geometry.addAttribute('aVertexPosition', vertices, 2);
-        geometry.addAttribute('aUvs', uvs, 2);
-        geometry.addAttribute('aWeight', weights, 1)
-        geometry.addIndex(indices);
-        return geometry;
-    }
-
-    // TODO: we need to fill in scales and scaleAnchors here as well
-    _createMesh(geometry) {
-        let shader;
-        const mesh = new PIXI.Mesh(geometry, shader);
-        this._mesh = mesh;
-        this.addChild(mesh);
-    }
-
     _render(renderer: PIXI.Renderer) {
-        // we need to make sure our text is up to date
-        this._fontAtlasText._render(renderer);
-
-        this._update();
-        super._render(renderer);
+        this._build();
+        if (this.deform.isDirty) {
+            this.deform.update();
+            this._buildShader();
+        }
+        this._renderDefault(renderer);
     }
 }

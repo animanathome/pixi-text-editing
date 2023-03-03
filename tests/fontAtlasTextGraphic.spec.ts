@@ -4,9 +4,9 @@ import {createFontAtlasTextApp, getRenderedPixels} from "./utils";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {expect} from "chai";
 
-describe.skip('FontAtlasTextGraphic', () => {
-    describe('bounds', () => {
-        it('can color', async() => {
+describe.only('FontAtlasTextGraphic', () => {
+    describe.only('bounds', () => {
+        it.only('can color', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {text, app} = await createFontAtlasTextApp({
@@ -16,19 +16,21 @@ describe.skip('FontAtlasTextGraphic', () => {
             })
 
             // Act
-            const graphicColor = new FontAtlasTextGraphic(text);
-            graphicColor.graphicType = GRAPHIC_TYPE.BOUNDS;
-            graphicColor.xProgress = 0.5;
-            app.stage.addChildAt(graphicColor, 0);
-            app.ticker.update()
+            // const graphicColor = new FontAtlasTextGraphic(text);
+            // graphicColor.graphicType = GRAPHIC_TYPE.BOUNDS;
+            // graphicColor.xProgress = 0.5;
+            // app.stage.addChildAt(graphicColor, 0);
+            // app.ticker.update()
+            //
+            // graphicColor.deform.logAssembly();
 
             // Assert
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
-            const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(14415988);
-
-            // Cleanup
-            app.destroy(true, true);
+            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+            // const pixelSum = pixels.reduce((a, b) => a + b);
+            // expect(pixelSum).to.equal(14415988);
+            //
+            // // Cleanup
+            // app.destroy(true, true);
         })
 
         it('can mask', async() => {

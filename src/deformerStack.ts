@@ -11,11 +11,19 @@ type Deformer = BaseDeformer | TransformDeformer | CurveDeformer | TextProgressD
 export class DeformerStack extends PIXI.utils.EventEmitter {
     _deformers: Deformer[];
     _parent = undefined;
+    _uvs = true;
 
-    constructor(parent) {
+    constructor(parent, settings = {uvs: false}) {
         super();
         this._deformers = [];
         this._parent = parent;
+        if ('uvs' in settings) {
+            this._uvs = settings.uvs;
+        }
+    }
+
+    get uvs() {
+        return this._uvs;
     }
 
     get isDirty() {
@@ -105,9 +113,11 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         deformers.forEach(deformer => {
             combinedHeaders += `${deformer._fragHead()}\n`
         })
+        const uvHeaders = this.uvs ? 'varying vec2 vUvs' : '';
+
         return `
         ${combinedHeaders}
-        varying vec2 vUvs;
+        ${uvHeaders}
         uniform sampler2D uSampler2;
         uniform vec4 uColor;`;
     }
@@ -154,6 +164,9 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     _uvHeads() {
+        if (!this.uvs) {
+            return ``;
+        }
         return `
         attribute vec2 aUvs;
         varying vec2 vUvs;`

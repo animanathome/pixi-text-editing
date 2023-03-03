@@ -95,6 +95,7 @@ export const createFontAtlasTextApp = async({
     })
 
     app.stage.addChild(text);
+    text.deform.logAssembly();
     app.ticker.update();
 
     return {

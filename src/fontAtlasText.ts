@@ -2,7 +2,6 @@ import * as PIXI from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
 import {DeformerStack} from "./deformerStack";
@@ -11,7 +10,6 @@ import {DeformerStack} from "./deformerStack";
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _text = 'hello world!';
-    _textMesh = null;
     _dirty = true; // should use PIXI update properties so as _transformID, see Mesh
     maxWidth = 512;
     maxHeight = 512;
@@ -35,7 +33,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     set atlas(atlas: FontAtlas) {
         this._atlas = atlas;
         this._fontAtlasTextGeometry.atlasResolution = atlas.resolution;
-        this._deformerStack = new DeformerStack(this);
+        this._deformerStack = new DeformerStack(this, {uvs: true});
 
         // NOTE: we should probably set this up during construction
         // TODO: Do we still need this?
@@ -467,6 +465,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         let uniforms = Object.assign({
             uSampler2: this.atlas.texture[0],
             uColor: color,
+            translationMatrix: this.transform.worldTransform.toArray(true)
         }, this.deform._combineUniforms())
         const vertexShader = this.deform._buildVertexShader();
         const fragmentShader = this.deform._buildFragmentShader();
