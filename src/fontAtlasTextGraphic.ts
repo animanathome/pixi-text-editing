@@ -30,12 +30,11 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         top: 1,
         bottom: 1,
     };
-    _xInvert: boolean = false;
-    _yInvert: boolean = false;
-    _xProgress: number = 1.0;
-    _yProgress: number = 1.0;
     _color: number[] = [1.0, 0.0, 0.0, 1.0];
     _deformerStack: DeformerStack;
+    _glyph = [];
+    _lines = [];
+    _words = [];
 
     constructor(fontAtlasText: FontAtlasText) {
         super();
@@ -43,44 +42,24 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         this._deformerStack = new DeformerStack(this, {uvs: false});
     }
 
+    get glyph() {
+        return this._glyph;
+    }
+
+    get lines() {
+        return this._lines;
+    }
+
+    get words() {
+        return this._words;
+    }
+
+    get lineGlyphRanges() {
+        return [];
+    }
+
     get deform() {
         return this._deformerStack;
-    }
-
-    get xInvert() {
-        return this._xInvert;
-    }
-
-    set xInvert(value: boolean) {
-        this._xInvert = value;
-        this._setUniform('xInvert', value);
-    }
-
-    get xProgress() {
-        return this._xProgress;
-    }
-
-    set xProgress(value: number) {
-        this._xProgress = value;
-        this._setUniform('xProgress', value);
-    }
-
-    get yInvert() {
-        return this._yInvert;
-    }
-
-    set yInvert(value: boolean) {
-        this._yInvert = value;
-        this._setUniform('yInvert', value);
-    }
-
-    get yProgress() {
-        return this._yProgress;
-    }
-
-    set yProgress(value: number) {
-        this._yProgress = value;
-        this._setUniform('yProgress', value);
     }
 
     get color() {
@@ -255,32 +234,6 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
             weights: allWeights.flat()
         }
     }
-
-    // // TODO: we can reuse this in fontAtlasTextGeometry
-    // _buildGeometry(vertices: number[], uvs: number[], indices: number[], weights: number[]) {
-    //     const geometry = new PIXI.Geometry();
-    //     geometry.addAttribute('aVertexPosition', vertices, 2);
-    //     geometry.addAttribute('aUvs', uvs, 2);
-    //     geometry.addAttribute('aWeight', weights, 1)
-    //     geometry.addIndex(indices);
-    //     return geometry;
-    // }
-
-    // TODO: we need to fill in scales and scaleAnchors here as well
-    // _createMesh(geometry) {
-    //     let shader;
-    //     const mesh = new PIXI.Mesh(geometry, shader);
-    //     this._mesh = mesh;
-    //     this.addChild(mesh);
-    // }
-
-    // _render(renderer: PIXI.Renderer) {
-    //     // we need to make sure our text is up to date
-    //     this._fontAtlasText._render(renderer);
-    //
-    //     this._update();
-    //     super._render(renderer);
-    // }
 
     _deleteGeometry() {
         if (!this._geometry) {

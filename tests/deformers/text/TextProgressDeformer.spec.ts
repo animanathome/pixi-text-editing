@@ -25,7 +25,7 @@ describe('TextProgressDeformer', () => {
         app.ticker.update();
    });
 
-   it.only('from top to bottom', async() => {
+   it('from top to bottom', async() => {
        // Assemble
         const displayText = 'ABC';
         const {text, app} = await createFontAtlasTextApp({

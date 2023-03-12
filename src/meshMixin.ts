@@ -91,7 +91,6 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
         }
 
         _renderDefault(renderer: PIXI.Renderer) {
-            console.log('rendering default')
             if (!this.shader || !this.geometry) {
                 console.log('no shader or geometry available. Nothing to render');
                 return;
@@ -113,7 +112,7 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
             //     // bufferSystem.update(buffer);
             // }
 
-            // this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
+            this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
             renderer.shader.bind(this.shader, false);
             renderer.state.set(this.state);
             renderer.geometry.bind(this.geometry, this.shader);

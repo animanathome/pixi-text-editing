@@ -38,9 +38,11 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         // NOTE: we should probably set this up during construction
         // TODO: Do we still need this?
         this._deformerStack.on('deformerAdded', () => {
+            console.log('deformer added');
             this._buildShader();
         });
         this._deformerStack.on('deformerChanged', () => {
+            console.log('deformer changed');
             this._buildShader();
         });
     }
@@ -456,8 +458,6 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _buildShader() {
-        console.log('_buildShader');
-        // build shader
         // TODO: make into a property
         //  is this the same as tint?
         const color = [1.0, 0.0, 0.0, 1.0];
@@ -465,7 +465,6 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         let uniforms = Object.assign({
             uSampler2: this.atlas.texture[0],
             uColor: color,
-            translationMatrix: this.transform.worldTransform.toArray(true)
         }, this.deform._combineUniforms())
         const vertexShader = this.deform._buildVertexShader();
         const fragmentShader = this.deform._buildFragmentShader();

@@ -3,10 +3,11 @@ import * as PIXI from "pixi.js";
 import {createFontAtlasTextApp, getRenderedPixels} from "./utils";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {expect} from "chai";
+import {CenterScaleTransformDeformer} from "../src/deformers/CenterScaleTransformDeformer";
 
 describe.only('FontAtlasTextGraphic', () => {
     describe.only('bounds', () => {
-        it.only('can color', async() => {
+        it('can color', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {text, app} = await createFontAtlasTextApp({
@@ -16,21 +17,19 @@ describe.only('FontAtlasTextGraphic', () => {
             })
 
             // Act
-            // const graphicColor = new FontAtlasTextGraphic(text);
-            // graphicColor.graphicType = GRAPHIC_TYPE.BOUNDS;
-            // graphicColor.xProgress = 0.5;
-            // app.stage.addChildAt(graphicColor, 0);
-            // app.ticker.update()
-            //
-            // graphicColor.deform.logAssembly();
+            const graphicColor = new FontAtlasTextGraphic(text);
+            graphicColor.graphicType = GRAPHIC_TYPE.BOUNDS;
+            graphicColor.xProgress = 0.5;
+            app.stage.addChildAt(graphicColor, 0);
+            app.ticker.update()
 
             // Assert
-            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
-            // const pixelSum = pixels.reduce((a, b) => a + b);
-            // expect(pixelSum).to.equal(14415988);
-            //
-            // // Cleanup
-            // app.destroy(true, true);
+            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+            const pixelSum = pixels.reduce((a, b) => a + b);
+            expect(pixelSum).to.equal(13187256);
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('can mask', async() => {
@@ -45,22 +44,21 @@ describe.only('FontAtlasTextGraphic', () => {
             // Act
             const graphicMask = new FontAtlasTextGraphic(text);
             graphicMask.graphicType = GRAPHIC_TYPE.BOUNDS;
-            graphicMask.xProgress = 0.5;
+            const scaleDeformer = new CenterScaleTransformDeformer();
+            scaleDeformer.scaleAnchorX = 32;
+            scaleDeformer.scaleAnchorY = 12;
+            scaleDeformer.scaleX = 0.625;
+            scaleDeformer.scaleY = 0.625;
+            graphicMask.deform.addDeformer(scaleDeformer);
             app.stage.addChildAt(graphicMask, 0);
             app.ticker.update()
-
-            // generate mask texture
-            const texture = app.renderer.generateTexture(graphicMask._mesh);
-            const graphicMaskSprite = new PIXI.Sprite(texture);
-            app.stage.addChild(graphicMaskSprite);
-            text.mask = graphicMaskSprite;
-            graphicMask.visible = false;
+            text.mask = graphicMask;
             app.ticker.update()
 
             // Assert
             const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
             const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(16260867);
+            expect(pixelSum).to.equal(16308684);
 
             // Cleanup
             app.destroy(true, true);

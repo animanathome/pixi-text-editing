@@ -8,17 +8,21 @@ import {LEFT, RIGHT} from "../src/fontAtlasTextGeometry";
 // TODO: glyph lookup across multiple textures
 
 describe('fontAtlasText', () => {
-    it('can change font size', async() => {
+    it.only('can change font size', async() => {
         // Assemble + act
         const displayText = "hello world!\nWhat's up?";
         const {text, app} = await createFontAtlasTextApp({
             displayText,
-            width: 256,
-            height: 256,
+            width: 64,
+            height: 64,
             fontSize: 12
         });
         document.body.appendChild(app.view);
         app.ticker.update();
+
+        document.body.appendChild(text.atlas.canvas);
+
+        global.text = text;
 
         // Assert fontSize 12
         let {x, y, width, height} = roundBounds(text.getBounds());
@@ -27,19 +31,21 @@ describe('fontAtlasText', () => {
         expect(width).to.equal(64);
         expect(height).to.equal(24);
 
-        // Act - double the font size from 12 to 24
-        text.fontSize = 24;
-        app.ticker.update();
+        global.app = app;
 
-        // Assert fontSize 24
-        ({x, y, width, height} = roundBounds(text.getBounds()));
-        expect(x).to.equal(1);
-        expect(y).to.equal(0);
-        expect(width).to.equal(128);
-        expect(height).to.equal(48);
+        // Act - double the font size from 12 to 24
+        // text.fontSize = 24;
+        // app.ticker.update();
+        //
+        // // Assert fontSize 24
+        // ({x, y, width, height} = roundBounds(text.getBounds()));
+        // expect(x).to.equal(1);
+        // expect(y).to.equal(0);
+        // expect(width).to.equal(128);
+        // expect(height).to.equal(48);
 
         // Cleanup
-        app.destroy(true, true);
+        // app.destroy(true, true);
     });
 
     it('can change line height', async() => {

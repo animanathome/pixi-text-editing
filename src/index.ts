@@ -10,7 +10,11 @@ import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
 import {PingPongTimeline, TickerTimeline} from "./timeline";
-import {TextTransformDeformer, TRANSFORM_TYPE} from "./deformers/text/TextDeformer";
+import {TRANSFORM_TYPE} from "./deformers/text/TextDeformer";
+import {TextTransformDeformer} from "./deformers/text/TextTransformDeformer";
+import {TextOpacityDeformer} from "./deformers/text/TextOpacityDeformer";
+
+import {lotsOfText} from "../demos/lotsOfText";
 
 const curveDemo = async() => {
     const app = new PIXI.Application({
@@ -167,6 +171,15 @@ function tanh(x) {
    return (e - 1) / (e + 1) ;
 }
 
+const lotsOfTextDemo = async() => {
+    const {app, text} = await createFontAtlasTextApp({
+        displayText: 'A\nB\nC',
+        width: 64,
+        height: 64
+    });
+}
+
+
 const animation = async() => {
     const {app, text} = await createFontAtlasTextApp({
         displayText: 'A\nB\nC',
@@ -176,9 +189,14 @@ const animation = async() => {
     global.text = text;
     app.ticker.start();
 
-    const deformer = new TextTransformDeformer();
-    text.deform.addDeformer(deformer);
-    deformer.transformType = TRANSFORM_TYPE.WORD;
+    const transformDeformer = new TextTransformDeformer();
+    text.deform.addDeformer(transformDeformer);
+    transformDeformer.transformType = TRANSFORM_TYPE.WORD;
+
+    // to fix
+    const opacityDeformer = new TextOpacityDeformer();
+    text.deform.addDeformer(opacityDeformer);
+    opacityDeformer.transformType = TRANSFORM_TYPE.WORD;
 
     const timeline = new TickerTimeline(app.ticker);
     timeline.duration = 5000;
@@ -197,14 +215,14 @@ const animation = async() => {
         translation[0] = progress * 50; // linear
         translation[2] = normalizedTanh(progress) * 50; // tan
         translation[4] = normalizedSigmoid(progress) * 50; // sigmoid
-        deformer.transforms = translation;
+        transformDeformer.transforms = translation;
         const flicker = Math.random() * 1.0;
-        deformer.opacities = [1, flicker, .5];
+        opacityDeformer.opacities = [1, flicker, .5];
     });
 }
 
-animation();
-
+// animation();
+lotsOfText();
 
 const test = async() => {
     const {app, text} = await createFontAtlasTextApp({

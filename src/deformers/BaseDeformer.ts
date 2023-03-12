@@ -69,11 +69,11 @@ export class BaseDeformer {
         return '';
     }
 
-    _vertMain() {
+    _vertexMain() {
         return '';
     }
 
-    _fragHead() {
+    _fragmentHeader() {
         return '';
     }
 

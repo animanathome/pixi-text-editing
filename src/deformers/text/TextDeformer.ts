@@ -39,7 +39,7 @@ export class TextDeformer extends BaseDeformer {
     _validateData(value: number[], coordinateCount = 2) {
         const expectedLength = this._expectTransformsLength(coordinateCount);
         if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
+            throw Error(`Invalid number of values, expected ${expectedLength} but got ${value.length}`);
         }
     }
 

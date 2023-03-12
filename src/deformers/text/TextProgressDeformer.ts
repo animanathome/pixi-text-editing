@@ -52,11 +52,15 @@ export class TextProgressDeformer extends TextDeformer {
     // TODO: rename aWeight to aVertexWeight
     // header
     _vertHead(): string {
-        // max 1024? or 128 glyphs
-        // if only min/max we can render 512 characters
         const transformLength = this._progresses.length;
         const arrayLength = this._uMinMaxXArray.length;
-
+        const totalUniformCount = (arrayLength * 4) + transformLength;
+        // maybe we should use a data texture instead of uniforms?
+        // or just attributes?
+        if (totalUniformCount > 1024) {
+            // see https://alteredqualia.com/tools/webgl-features/
+            throw Error("Too many uniforms! " + totalUniformCount);
+        }
         return `
             attribute float aWeight; //[${this._weights.length}]
             attribute float aVertexIndex; //[${this._indexArray.length}]
@@ -102,7 +106,7 @@ export class TextProgressDeformer extends TextDeformer {
     }
 
     // main
-    _vertMain(): string {
+    _vertexMain(): string {
         return `
             int transformIndex = int(aWeight);
             int vertexIndex = int(aVertexIndex);
@@ -116,7 +120,7 @@ export class TextProgressDeformer extends TextDeformer {
     }
 
     // header
-    _fragHead(): string {
+    _fragmentHeader(): string {
         return `
             varying float vMinU;
             varying float vMaxU;
@@ -169,29 +173,24 @@ export class TextProgressDeformer extends TextDeformer {
     // or maybe we don't actually need this? maybe we can count
     // vertices in the shader?
     _generateIndexArray() {
-        console.log(this.parent.geometry);
         const indices = [];
         for (let i = 0; i < this.parent.glyph.length; i++) {
             indices.push(i, i, i, i);
         }
-        console.log('_generateIndexArray', indices);
         this._indexArray = indices;
     }
 
     _assignIndexArray() {
         const attribute = this.parent.geometry.getAttribute('aVertexIndex');
         if (!attribute) {
-            console.log('adding aVertexIndex', this._indexArray);
             this.parent.geometry.addAttribute('aVertexIndex', this._indexArray, 1)
             return;
         }
-        console.log('updating aVertexIndex', this._indexArray);
         const buffer = this.parent.geometry.getBuffer('aVertexIndex');
         buffer.data = new Float32Array(this._indexArray);
     }
 
     _generateMinMaxXYUVArrays() {
-        console.log('_generateMinMaxXYUVArray')
         const vertexArray = this.parent._fontAtlasTextGeometry._vertexArray;
         const uvArray = this.parent._fontAtlasTextGeometry._uvArray;
 

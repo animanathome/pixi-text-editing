@@ -35,14 +35,14 @@ export class TextOpacityDeformer extends TextDeformer {
         `
     }
 
-    _vertMain(): string {
+    _vertexMain(): string {
         return `
         int transformIndex = int(aWeight);
         vOpacity = uOpacities[transformIndex];
         `
     }
 
-    _fragHead(): string {
+    _fragmentHeader(): string {
         return `
         varying float vOpacity;
         `

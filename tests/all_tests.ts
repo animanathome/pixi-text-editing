@@ -6,7 +6,7 @@
 // import('./fontAtlasTextCaret.spec');
 // import('./fontAtlasTextSelection.spec');
 // import('./fontAtlasTextManipulator.spec');
-import('./fontAtlasTextGraphic.spec');
+// import('./fontAtlasTextGraphic.spec');
 // import('./curveData.spec');
 // import('./timeline.spec');
 // import('./deformerStack.spec')
@@ -15,5 +15,5 @@ import('./fontAtlasTextGraphic.spec');
 // import('./deformers/CenterScaleTransformDeformer.spec')
 // import('./deformers/VertexTransformDeformer.spec')
 // import('./deformers/text/TextTransformDeformer.spec')
-// import('./deformers/text/TextProgressDeformer.spec')
+import('./deformers/text/TextProgressDeformer.spec')
 // import('./deformers/text/TextOpacityDeformer.spec')

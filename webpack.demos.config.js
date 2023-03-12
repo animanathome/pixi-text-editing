@@ -4,6 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
+  watch: true,
   entry: './demos/index.ts',
   target: 'web',
   module: {
