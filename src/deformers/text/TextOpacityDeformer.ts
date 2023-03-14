@@ -37,8 +37,8 @@ export class TextOpacityDeformer extends TextDeformer {
 
     _vertexMain(): string {
         return `
-        int transformIndex = int(aWeight);
-        vOpacity = uOpacities[transformIndex];
+        int opacityTransformIndex = int(aWeight);
+        vOpacity = uOpacities[opacityTransformIndex];
         `
     }
 

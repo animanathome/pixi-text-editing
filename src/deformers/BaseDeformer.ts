@@ -28,6 +28,7 @@ export class BaseDeformer {
         return this._dirty;
     }
 
+    // TODO: there can be a difference in index between the vertex and fragment shader
     get index() {
         return this._deformerStack.deformerIndex(this) + 1;
     }

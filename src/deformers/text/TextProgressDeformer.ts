@@ -84,20 +84,26 @@ export class TextProgressDeformer extends TextDeformer {
         return `
             vec3 getVertexPosition${this.index}(vec3 inputPosition) {
                 int direction = int(uDirection);
-                int transformIndex = int(aWeight);
+                int progressTransformIndex = int(aWeight);
                 int vertexIndex = int(aVertexIndex);
-                float progress = clamp(uProgresses[transformIndex], 0.0, 1.0);
+                float progress = clamp(uProgresses[progressTransformIndex], 0.0, 1.0);
+                float minX = uMinMaxXArray[vertexIndex].x;
+                float maxX = uMinMaxXArray[vertexIndex].y;
+                float minY = uMinMaxYArray[vertexIndex].x;
+                float maxY = uMinMaxYArray[vertexIndex].y;
                 
                 float yPos = inputPosition.y;
-                if (direction == 2) {
-                    float yRange = uMinMaxYArray[vertexIndex].y - uMinMaxYArray[vertexIndex].x;
-                    float yCoord = (inputPosition.y - uMinMaxYArray[vertexIndex].x) / yRange;
-                    yPos = uMinMaxYArray[vertexIndex].x + ((yRange * yCoord) * progress);
+                if (direction == 2) { // top to bottom
+                    float yRange = maxY - minY;
+                    float yCoord = (inputPosition.y - minY) / yRange;
+                    float yOffset = yRange * (1.0 - progress);
+                    yPos = minY + ((yRange * yCoord) * progress) + yOffset;
                 }
-                else if (direction == 3) {
-                    float yRange = uMinMaxXArray[vertexIndex].y - uMinMaxYArray[vertexIndex].x;
-                    float yCoord = (uMinMaxYArray[vertexIndex].y - inputPosition.y) / yRange;
-                    yPos = uMinMaxYArray[vertexIndex].y - ((yRange * yCoord) * progress);
+                else if (direction == 3) { // bottom to top
+                    float yRange = maxY - minY;
+                    float yCoord = (yRange - (inputPosition.y - minY)) / yRange;
+                    float yOffset = yRange * (1.0 - progress);
+                    yPos = minY + (maxY - ((yRange * yCoord) * progress)) - yOffset;
                 }
                 vec3 outPosition = vec3(inputPosition.x, yPos, inputPosition.z);
                 return outPosition;
@@ -108,13 +114,13 @@ export class TextProgressDeformer extends TextDeformer {
     // main
     _vertexMain(): string {
         return `
-            int transformIndex = int(aWeight);
+            int progressTransformIndex = int(aWeight);
             int vertexIndex = int(aVertexIndex);
             
             vMinMaxU = uMinMaxUArray[vertexIndex];
             vMinMaxV = uMinMaxVArray[vertexIndex];
             
-            vProgress = clamp(uProgresses[transformIndex], 0.0, 1.0);
+            vProgress = clamp(uProgresses[progressTransformIndex], 0.0, 1.0);
             vDirection = uDirection;
         `
     }
@@ -188,9 +194,11 @@ export class TextProgressDeformer extends TextDeformer {
         }
         const buffer = this.parent.geometry.getBuffer('aVertexIndex');
         buffer.data = new Float32Array(this._indexArray);
+        // console.log('vertexIndex', this._indexArray)
     }
 
     _generateMinMaxXYUVArrays() {
+        // get the x,y, u and v min max for each glyph
         const vertexArray = this.parent._fontAtlasTextGeometry._vertexArray;
         const uvArray = this.parent._fontAtlasTextGeometry._uvArray;
 
@@ -204,5 +212,6 @@ export class TextProgressDeformer extends TextDeformer {
             this._uMinMaxUArray.push(uvArray[i + 4], uvArray[i + 0]);
             this._uMinMaxVArray.push(uvArray[i + 5], uvArray[i + 1]);
         }
+        // console.log('minMaxY', this._uMinMaxYArray);
     }
 }

@@ -9,7 +9,7 @@ import {EditingEvents} from "./events";
 import {createFontAtlasTextApp, LOCALHOST} from "../tests/utils";
 import {FontAtlasTextManipulator} from "./fontAtlasTextManipulator";
 import {buildCurve, buildCurveData, createCurveTexture} from "./curveDeformer";
-import {PingPongTimeline, TickerTimeline} from "./timeline";
+import {PingPongTimeline, TickerTimeline} from "./animation/timeline";
 import {TRANSFORM_TYPE} from "./deformers/text/TextDeformer";
 import {TextTransformDeformer} from "./deformers/text/TextTransformDeformer";
 import {TextOpacityDeformer} from "./deformers/text/TextOpacityDeformer";

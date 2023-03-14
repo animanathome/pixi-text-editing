@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js'
 import { expect } from 'chai';
-import {TickerTimeline, ProgressTimeline, PingPongTimeline} from "../src/timeline";
+import {TickerTimeline, ProgressTimeline, PingPongTimeline} from "../src/animation/timeline";
 
 async function waitFor(time = 100) {
     await new Promise(resolve => setTimeout(resolve, time));

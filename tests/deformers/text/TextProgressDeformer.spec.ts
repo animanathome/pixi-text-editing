@@ -6,6 +6,7 @@ import {TextProgressDeformer, TRANSFORM_DIRECTION} from "../../../src/deformers/
 describe('TextProgressDeformer', () => {
    it.only('from bottom to top', async() => {
        // Assemble
+       // TODO: fix me for lower case text. We seem to have an incorrect Y-offset
         const displayText = 'ABC';
         const {text, app} = await createFontAtlasTextApp({
             displayText,
@@ -25,9 +26,9 @@ describe('TextProgressDeformer', () => {
         app.ticker.update();
    });
 
-   it('from top to bottom', async() => {
+   it.only('from top to bottom', async() => {
        // Assemble
-        const displayText = 'ABC';
+        const displayText = 'abg';
         const {text, app} = await createFontAtlasTextApp({
             displayText,
             fontSize: 24,

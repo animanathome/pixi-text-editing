@@ -10,6 +10,7 @@ describe('TextOpacityDeformer', () => {
         const displayText = 'AB WA';
         const {text, app} = await createFontAtlasTextApp({displayText});
         document.body.appendChild(app.view);
+
         const deformer = new TextOpacityDeformer();
         text.deform.addDeformer(deformer);
         deformer.transformType = TRANSFORM_TYPE.WORD;

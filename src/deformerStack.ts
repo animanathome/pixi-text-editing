@@ -75,8 +75,10 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         this.addDeformerAtIndex(deformer, index);
     }
 
+    // TODO: we'll need to split this in vertex and fragment parts
     public deformerIndex(deformer: Deformer): number {
-        return this._deformers.indexOf(deformer as Deformer);
+        return 0;
+        // return this._deformers.indexOf(deformer as Deformer);
     }
 
     /* Remove all deformers. */
@@ -229,20 +231,22 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             combineFunctions += `${deformer._vertBody()}\n`;
         });
 
-        // blocks of code which execute compute a matrix or vertex deformer deformer function
-        // these functions contribute to the final vertex position
+        // blocks of code which execute compute a matrix or vertex deformer function and contribute to the final vertex position
         let callFunctions = `vec3 vertexPosition0 = vec3(aVertexPosition.xy, 1.0);\n`;
         let lastIndex = 0;
-        deformers.forEach((deformer, index) => {
-            if (deformer.deformerType.includes(DeformerType.MATRIX)) {
-                callFunctions += `vec3 vertexPosition${index + 1} = getTranslationMatrix${index + 1}() * vertexPosition${index};\n`;
-                lastIndex = index + 1;
-            }
-            if (deformer.deformerType.includes(DeformerType.VERTEX)) {
-                callFunctions += `vec3 vertexPosition${index + 1} = getVertexPosition${index + 1}(vertexPosition${index});\n`;
-                lastIndex = index + 1;
-            }
-        });
+        deformers
+            .filter(deformer => deformer.deformerType.includes(DeformerType.MATRIX) || deformer.deformerType.includes(DeformerType.VERTEX))
+            .forEach((deformer, index) => {
+                console.log('deformer', index, deformer.deformerType);
+                if (deformer.deformerType.includes(DeformerType.MATRIX)) {
+                    callFunctions += `vec3 vertexPosition${index + 1} = getTranslationMatrix${index + 1}() * vertexPosition${index};\n`;
+                    lastIndex = index + 1;
+                }
+                if (deformer.deformerType.includes(DeformerType.VERTEX)) {
+                    callFunctions += `vec3 vertexPosition${index + 1} = getVertexPosition${index + 1}(vertexPosition${index});\n`;
+                    lastIndex = index + 1;
+                }
+            });
         callFunctions += `vec3 finalPosition = vec3(projectionMatrix * translationMatrix * vertexPosition${lastIndex});\n`;
 
         // blocks of code which prepare the varying variables for the fragment shader

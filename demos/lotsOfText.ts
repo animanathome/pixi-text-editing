@@ -92,7 +92,7 @@ export const lotsOfText = async () => {
         return {text1, opacities, progresses, text2WordCount, text3WordCount}
     }
 
-    const {text1,   opacities, progresses, text2WordCount, text3WordCount} = addText();
+    const {text1, opacities, progresses, text2WordCount, text3WordCount} = addText();
     app.ticker.start();
 
     let opacityIndex = 0;
