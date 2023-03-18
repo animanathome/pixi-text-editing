@@ -51,7 +51,7 @@ export class TextProgressDeformer extends TextDeformer {
 
     // TODO: rename aWeight to aVertexWeight
     // header
-    _vertHead(): string {
+    _vertexHeader(): string {
         const transformLength = this._progresses.length;
         const arrayLength = this._uMinMaxXArray.length;
         const totalUniformCount = (arrayLength * 4) + transformLength;

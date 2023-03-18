@@ -7,7 +7,7 @@ export type MeshMixinInterface = {
      * Can be shared between multiple Mesh objects.
      * @type {PIXI.Shader|PIXI.MeshMaterial}
      */
-    get shader(): PIXI.MeshMaterial;
+    get shader(): PIXI.MeshMaterial | PIXI.Shader;
     /**
      * Represents the WebGL state the Mesh required to render, excludes shader and geometry. E.g.,
      * blend mode, culling, depth testing, direction of rendering triangles, backface, etc.
@@ -95,13 +95,13 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
                 console.log('no shader or geometry available. Nothing to render');
                 return;
             }
-            this.shader.alpha = this.worldAlpha;
-            // if the shader has an update method, call it. This is where PIXI updates both the color
-            // and uvMatrix if dirty
-            if (this.shader.update)
-            {
-                this.shader.update();
-            }
+            // this.shader.alpha = this.worldAlpha;
+            // // if the shader has an update method, call it. This is where PIXI updates both the color
+            // // and uvMatrix if dirty
+            // if (this.shader.update)
+            // {
+            //     this.shader.update();
+            // }
             renderer.batch.flush();
 
             // console.log('renderer', renderer.CONTEXT_UID);

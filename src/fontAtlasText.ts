@@ -9,6 +9,9 @@ import {DeformerStack} from "./deformerStack";
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
+    // TODO: make into a property
+    //  is this the same as tint?
+    _color = [1.0, 0.0, 0.0, 1.0];
     _text = 'hello world!';
     _dirty = true; // should use PIXI update properties so as _transformID, see Mesh
     maxWidth = 512;
@@ -37,10 +40,12 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
 
         // NOTE: we should probably set this up during construction
         // TODO: Do we still need this?
+        // @ts-ignore
         this._deformerStack.on('deformerAdded', () => {
             console.log('deformer added');
             this._buildShader();
         });
+        // @ts-ignore
         this._deformerStack.on('deformerChanged', () => {
             console.log('deformer changed');
             this._buildShader();
@@ -457,14 +462,18 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._geometry = geometry;
     }
 
-    _buildShader() {
-        // TODO: make into a property
-        //  is this the same as tint?
-        const color = [1.0, 0.0, 0.0, 1.0];
+    set color(value) {
+        this._color = value;
+    }
 
+    get color() {
+        return this._color;
+    }
+
+    _buildShader() {
         let uniforms = Object.assign({
             uSampler2: this.atlas.texture[0],
-            uColor: color,
+            uColor: this.color,
         }, this.deform._combineUniforms())
         const vertexShader = this.deform._buildVertexShader();
         const fragmentShader = this.deform._buildFragmentShader();

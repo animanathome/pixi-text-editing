@@ -1,7 +1,7 @@
-import {TextDeformer} from "./TextDeformer";
 import {DeformerType} from "../BaseDeformer";
+import {TextGraphicDeformer} from "./TextGraphicDeformer";
 
-export class TextOpacityDeformer extends TextDeformer {
+export class TextGraphicOpacityDeformer extends TextGraphicDeformer {
     _deformerType: DeformerType[] = [DeformerType.COLOR];
     _opacities = [1.0];
 
@@ -22,6 +22,7 @@ export class TextOpacityDeformer extends TextDeformer {
     set opacities(value: number[]) {
         this._validateData(value, 1);
         this._opacities = value;
+        console.log('sync opacities', value);
         this.parent.shader.uniforms.uOpacities = value;
     }
 
@@ -38,7 +39,7 @@ export class TextOpacityDeformer extends TextDeformer {
     _vertexMain(): string {
         return `
         int opacityTransformIndex = int(aWeight);
-        vOpacity = uOpacities[opacityTransformIndex];
+        vOpacity = uOpacities[0];
         `
     }
 

@@ -78,6 +78,7 @@ export class TextDeformer extends BaseDeformer {
     }
 
     _assignWeights() {
+        console.log('weights', this._weights);
         const weightsAttribute = this.parent.geometry.getAttribute('aWeight');
         if (!weightsAttribute) {
             this.parent.geometry.addAttribute('aWeight', this._weights, 1)
@@ -105,6 +106,10 @@ export class TextDeformer extends BaseDeformer {
         return (weights as any).flat();
     }
 
+    /**
+     * Each word is assigned a unique index and each glyph is assigned the same index as the word it belongs to.
+     * For instance: "Hello World" would be [0, 0, 0, 0, 1, 1, 1, 1, 1, 1]
+     */
     _generateWordWeights() {
         const weights:number[][] = [];
         const wordRanges = this.parent.words;

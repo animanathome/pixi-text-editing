@@ -20,7 +20,7 @@ export class TransformDeformer extends BaseDeformer {
     }
 
     /* Vertex Shader Header definition */
-    _vertHead() {
+    _vertexHeader() {
         return `uniform mat3 translationMatrix${this.index};`
     }
 

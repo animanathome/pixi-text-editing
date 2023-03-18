@@ -104,7 +104,6 @@ describe('TextTransformDeformer', () => {
 
             // Act
             deformer.transformType = TRANSFORM_TYPE.WORD;
-            deformer.opacities = [1.0, 0.25, 0.5];
             deformer.transforms = [0.0, 1.0, 0.0, -1.0, 0.0, 0.0];
             app.ticker.update();
             text.deform.logAssembly();

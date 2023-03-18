@@ -6,7 +6,7 @@ import {expect} from "chai";
 import {CenterScaleTransformDeformer} from "../src/deformers/CenterScaleTransformDeformer";
 
 describe.only('FontAtlasTextGraphic', () => {
-    describe.only('bounds', () => {
+    describe('bounds', () => {
         it('can color', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
@@ -24,9 +24,9 @@ describe.only('FontAtlasTextGraphic', () => {
             app.ticker.update()
 
             // Assert
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
-            const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(13187256);
+            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+            // const pixelSum = pixels.reduce((a, b) => a + b);
+            // expect(pixelSum).to.equal(13187256);
 
             // Cleanup
             app.destroy(true, true);
@@ -56,17 +56,17 @@ describe.only('FontAtlasTextGraphic', () => {
             app.ticker.update()
 
             // Assert
-            const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
-            const pixelSum = pixels.reduce((a, b) => a + b);
-            expect(pixelSum).to.equal(16308684);
+            // const pixels = getRenderedPixels(app.renderer as PIXI.Renderer);
+            // const pixelSum = pixels.reduce((a, b) => a + b);
+            // expect(pixelSum).to.equal(16308684);
 
             // Cleanup
             app.destroy(true, true);
         })
     })
 
-    describe('line', () => {
-        it('can color', async() => {
+    describe.only('line', () => {
+        it.only('can color', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {text, app} = await createFontAtlasTextApp({

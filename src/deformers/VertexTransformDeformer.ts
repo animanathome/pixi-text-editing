@@ -11,7 +11,7 @@ export class VertexTransformDeformer extends BaseDeformer {
         }
     }
 
-    _vertHead(): string {
+    _vertexHeader(): string {
         return `
         uniform vec2 offset${this.index};
         `

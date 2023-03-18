@@ -13,6 +13,10 @@
       "dom.iterable"
     ]
   },
+  "include": [
+      "src/**/*",
+      "tests/**/*",
+  ],
   "typeRoots": [
     "./typings",
   ]

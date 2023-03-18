@@ -77,8 +77,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
 
     // TODO: we'll need to split this in vertex and fragment parts
     public deformerIndex(deformer: Deformer): number {
-        return 0;
-        // return this._deformers.indexOf(deformer as Deformer);
+        return this._deformers.indexOf(deformer as Deformer);
     }
 
     /* Remove all deformers. */
@@ -102,13 +101,13 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     // append src since this returns the source code for the shader
     _buildVertexShader() {
         const deformers = this.deformers.filter(deformer => deformer.enabled);
-        return this._combineVertexHeaders(deformers) + this._combineVertexBodies(deformers);
+        return this._combineVertexHeaders(deformers) + '\n\n' + this._combineVertexBodies(deformers);
     }
 
     // append src since this returns the source code for the shader
     _buildFragmentShader() {
         const deformers = this.deformers.filter(deformer => deformer.enabled);
-        return this._combineFragmentHeaders(deformers) + this._combineFragmentBodies(deformers);
+        return this._combineFragmentHeaders(deformers) + '\n\n' + this._combineFragmentBodies(deformers);
     }
 
     _combineFragmentHeaders(deformers: Deformer[]) {
@@ -124,10 +123,10 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             uniform sampler2D uSampler2;`;
         }
 
-        return `
+        return this._reformatHeaderSnippet(`
         ${combinedDeformerHeaders}
         ${uvHeaders}
-        uniform vec4 uColor;`;
+        uniform vec4 uColor;`);
     }
 
     _combineFragmentBodies(deformers: Deformer[]) {
@@ -144,7 +143,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             deformers
                 .filter(deformer => deformer.enabled && deformer.deformerType.includes(DeformerType.UV))
                 .forEach((deformer, index) => {
-                    mainUVFunction += `vec2 uv${index + 1} = getUV${index + 1}(uv${index});\n`;
+                    mainUVFunction += `vec2 uv${index + 1} = getUV${deformer.index}(uv${index});\n`;
                     lastUVIndex = index + 1;
                 });
             mainUVFunction += `vec4 ocolor = texture2D(uSampler2, uv${lastUVIndex});`;
@@ -159,7 +158,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         deformers
             .filter(deformer => deformer.enabled && deformer.deformerType.includes(DeformerType.COLOR))
             .forEach((deformer, index) => {
-                mainColorFunction += `vec4 color${index + 1} = getColor${index + 1}(color${index});\n`;
+                mainColorFunction += `vec4 color${index + 1} = getColor${deformer.index}(color${index});\n`;
                 lastColorIndex = index + 1;
             });
 
@@ -167,14 +166,50 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         const mainFunction = `gl_FragColor = ocolor * color${lastColorIndex};`;
 
         // main
-        return `
+        return this._reformatBodySnippet(`
         ${aggregateFunctions}
         void main() {
             ${mainUVFunction}
             ${mainColorFunction}
             ${mainFunction}
+        }`);
+    }
+
+    _reformatHeaderSnippet(snippet: string) {
+        return snippet
+            .split(/\r?\n/)
+            .map(item => item.trim())
+            .filter(item => item.length > 0)
+            .sort()
+            .join('\n');
+    }
+
+    _reformatBodySnippet(snippet: string) {
+        const lines = snippet
+            .split(/\r?\n/)
+            .map(item => item.trim())
+            .filter(item => item.length > 0)
+
+        let indent = 0;
+        for (let i = 0; i < lines.length; i++) {
+            let prefix = '';
+            if (lines[i].includes('void main(') || (lines[i].includes('get') && lines[i].includes('{'))) {
+                indent += 1;
+                continue;
+            }
+            if (lines[i].includes('}')) {
+                indent -= 1;
+            }
+            if (indent > 0) {
+                prefix = Array(indent + 1).join('\t');
+            }
+            if (lines[i].includes('if') || lines[i].includes('else')) {
+                indent += 1;
+            }
+            lines[i] = prefix  + lines[i];
+
         }
-        `;
+        return lines.join('\n');
     }
 
     _combineVertexHeaders(deformers: Deformer[]) {
@@ -182,7 +217,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         let combineDeformerHeaders = '';
         deformers.forEach(deformer => {
             // TODO: this is really just visual cleanup -- we don't really need this...
-            const lines = deformer._vertHead()
+            const lines = deformer._vertexHeader()
                 .split(/\r?\n/)
                 .map(item => item.trim())
                 .filter(item => item.length > 0);
@@ -208,17 +243,21 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             varying vec2 vUvs;`
         }
 
-        return `
+        return this._reformatHeaderSnippet(`
         attribute vec2 aVertexPosition;
         uniform mat3 projectionMatrix;
         uniform mat3 translationMatrix;
         ${uvHeaders}
         ${combineDeformerHeaders}
-        `
+        `);
     }
 
     logAssembly() {
-        console.log('uniforms', this._combineUniforms());
+        console.log('uniforms', {
+            // uSampler2: this._parent.atlas.texture[0],
+            uColor: this._parent.color,
+            ...this._combineUniforms()
+        });
         console.log('vertex', this._buildVertexShader());
         console.log('fragment', this._buildFragmentShader());
     }
@@ -239,11 +278,11 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             .forEach((deformer, index) => {
                 console.log('deformer', index, deformer.deformerType);
                 if (deformer.deformerType.includes(DeformerType.MATRIX)) {
-                    callFunctions += `vec3 vertexPosition${index + 1} = getTranslationMatrix${index + 1}() * vertexPosition${index};\n`;
+                    callFunctions += `vec3 vertexPosition${index + 1} = getTranslationMatrix${deformer.index}() * vertexPosition${index};\n`;
                     lastIndex = index + 1;
                 }
                 if (deformer.deformerType.includes(DeformerType.VERTEX)) {
-                    callFunctions += `vec3 vertexPosition${index + 1} = getVertexPosition${index + 1}(vertexPosition${index});\n`;
+                    callFunctions += `vec3 vertexPosition${index + 1} = getVertexPosition${deformer.index}(vertexPosition${index});\n`;
                     lastIndex = index + 1;
                 }
             });
@@ -259,13 +298,13 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             varyingCodeBlocks += `${deformer._vertexMain()}\n`;
         });
 
-        return `
+        return this._reformatBodySnippet(`
         ${combineFunctions}
         void main(void) {
             ${callFunctions}
             gl_Position = vec4(finalPosition.xy, 0.0, 1.0);
             ${varyingCodeBlocks}
             ${varyingUVCodeBlock}
-        }`
+        }`);
     }
 }

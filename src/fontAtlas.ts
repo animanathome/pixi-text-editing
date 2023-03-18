@@ -67,7 +67,7 @@ export class FontAtlas {
         // background color
         // this.context.beginPath();
         // this.context.fillRect(0, 0, this.resolution, this.resolution);
-        // this.context.fillStyle = "red";
+        this.context.fillStyle = "white";
         // this.context.fill();
 
         this.context.scale(1, -1);

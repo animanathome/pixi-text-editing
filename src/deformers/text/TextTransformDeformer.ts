@@ -17,7 +17,7 @@ export class TextTransformDeformer extends TextDeformer {
         }
     }
 
-    _vertHead(): string {
+    _vertexHeader(): string {
         const transformCount = this.transforms.length / 2;
 
         return `

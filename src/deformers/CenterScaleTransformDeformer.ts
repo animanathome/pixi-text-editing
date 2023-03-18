@@ -45,7 +45,7 @@ export class CenterScaleTransformDeformer extends BaseDeformer {
         };
     }
 
-    _vertHead() {
+    _vertexHeader() {
         return `
         uniform vec2 scale;
         uniform vec2 scaleAnchor;

@@ -2,15 +2,16 @@ import {InterpolationCache} from "./interpolationCache";
 
 export class ProgressIncrementer {
     _length: number;
-    _progress: number;
-    _duration: number;
-    _offset: number;
+    _progress: number = 0.0;
+    _duration: number = 1.0;
+    _offset: number = 0.5;
     _revert = false;
 
     _start: Float32Array;
     _end: Float32Array;
     _array: Float32Array;
     _interpolationCache: InterpolationCache | null;
+    _valuesPerElement: number = 1; // 1 or 2
     /**
      * Whether the progress array needs to be rebuilt
      */
@@ -20,16 +21,22 @@ export class ProgressIncrementer {
      */
     _rebuild = false;
 
-    constructor(length: number = 1, interpolationCache: InterpolationCache | null = null) {
+    constructor(
+        length: number = 1,
+        interpolationCache: InterpolationCache | null = null,
+        valuesPerElement: number = 1,
+    ) {
         console.log('ProgressIncrementer', length);
         this._length = length;
-        this._progress = 0;
-        this._duration = 1.0;
-        this._offset = 0.5;
         this._interpolationCache = interpolationCache;
+        this._valuesPerElement = valuesPerElement;
 
         this._rebuild = true;
         this._dirty = true;
+    }
+
+    get valuesPerElement() {
+        return this._valuesPerElement;
     }
 
     /**
@@ -141,8 +148,8 @@ export class ProgressIncrementer {
     }
 
     _buildArrays() {
-        if (!this.array || this.array.length === this.length) {
-            this._array = new Float32Array(this.length);
+        if (!this.array || this.array.length === this.length * this.valuesPerElement) {
+            this._array = new Float32Array(this.length * this.valuesPerElement);
             this._start = new Float32Array(this.length);
             this._end = new Float32Array(this.length);
         }
@@ -150,7 +157,7 @@ export class ProgressIncrementer {
 
     _calculateRange() {
         // console.log('calculate range', this.offset, this.duration);
-        const start = this.array.map((_, index) => index * this.offset);
+        const start = this.start.map((_, index) => index * this.offset);
         const end = start.map(value => value + this.duration);
         const lastValue = end[end.length - 1];
         const normalizedStart = start.map(value => value / lastValue);
@@ -178,12 +185,18 @@ export class ProgressIncrementer {
 
     _calculateProgress() {
         // console.log('calculate progress', this.progress);
-        for (let i = 0; i < this.array.length; i++) {
+        for (let i = 0; i < this.start.length; i++) {
             let value = this._calculateProgressForIndex(i);
             if (this._interpolationCache) {
                 value = this._interpolationCache.getCachedValue(value);
             }
-            this.array[i] = value;
+            if (this.valuesPerElement === 1) {
+                this.array[i] = value;
+            }
+            else if (this.valuesPerElement === 2) {
+                this.array[(i * 2)] = value;
+                this.array[(i * 2) + 1] = value;
+            }
         }
         this._dirty = false;
     }

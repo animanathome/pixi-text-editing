@@ -42,7 +42,7 @@ export class BaseDeformer {
 
     get stack() {
         if (!this._deformerStack) {
-            throw new Error('Deformer not added to stack');
+            throw new Error('Deformer is not linked to a stack');
         }
         return this._deformerStack;
     }
@@ -62,7 +62,7 @@ export class BaseDeformer {
         return {};
     }
 
-    _vertHead() {
+    _vertexHeader() {
         return '';
     }
 
@@ -96,6 +96,7 @@ export class BaseDeformer {
     }
 
     emitDeformerChanged() {
+        // @ts-ignore
         this._deformerStack.emit('deformerChanged');
     }
 }

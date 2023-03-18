@@ -18,5 +18,8 @@
 // import('./deformers/text/TextProgressDeformer.spec')
 // import('./deformers/text/TextOpacityDeformer.spec')
 // import('./deformers/text/textDeformer.spec');
-import('./animation/incrementalProgress.spec');
-import('./animation/interpolationCache.spec');
+// import('./deformers/text/TextColorDeformer.spec');
+// import('./deformers/text_graphic/textGraphicDeformer.spec');
+import('./deformers/text_graphic/textGraphicOpacityDeformer.spec');
+// import('./animation/incrementalProgress.spec');
+// import('./animation/interpolationCache.spec');

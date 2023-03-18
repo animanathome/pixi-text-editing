@@ -24,6 +24,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     _mesh: PIXI.Mesh = null;
     _dirty = true;
     _graphicType: GRAPHIC_TYPE = GRAPHIC_TYPE.WORD;
+    _graphicCount: number = 0;
     _padding: Padding = {
         left: 1,
         right: 1,
@@ -32,30 +33,24 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     };
     _color: number[] = [1.0, 0.0, 0.0, 1.0];
     _deformerStack: DeformerStack;
-    _glyph = [];
-    _lines = [];
-    _words = [];
 
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this._fontAtlasText = fontAtlasText;
         this._deformerStack = new DeformerStack(this, {uvs: false});
-    }
 
-    get glyph() {
-        return this._glyph;
-    }
-
-    get lines() {
-        return this._lines;
-    }
-
-    get words() {
-        return this._words;
-    }
-
-    get lineGlyphRanges() {
-        return [];
+        // @ts-ignore
+        this._deformerStack.on('deformerAdded', () => {
+            console.log('deformer added');
+            this._buildShader();
+        });
+        // when do we need this? what exactly is changed? uniforms should just sync up. Maybe when we need to
+        // re-calculate attributes?
+        // @ts-ignore
+        this._deformerStack.on('deformerChanged', () => {
+            console.log('deformer changed');
+            this._buildShader();
+        });
     }
 
     get deform() {
@@ -87,21 +82,26 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         return this._graphicType;
     }
 
+    get graphicCount() {
+        return this._graphicCount;
+    }
+
     get padding() {
         return this._padding;
     }
 
     _buildGeometry() {
         let vertices, indices, uvs, weights = [];
+        let count;
         switch (this._graphicType) {
             case GRAPHIC_TYPE.BOUNDS:
-                ({vertices, indices, uvs, weights} = this._buildBoundsGraphics());
+                ({vertices, indices, uvs, weights, count} = this._buildBoundsGraphics());
                 break;
             case GRAPHIC_TYPE.LINE:
-                ({vertices, indices, uvs, weights} = this._buildLineGraphics());
+                ({vertices, indices, uvs, weights, count} = this._buildLineGraphics());
                 break;
             case GRAPHIC_TYPE.WORD:
-                ({vertices, indices, uvs, weights} = this._buildWordGraphics());
+                ({vertices, indices, uvs, weights, count} = this._buildWordGraphics());
                 break;
             default: console.log('unknown');
         }
@@ -112,23 +112,9 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         geometry.addAttribute('aWeight', weights, 1)
         geometry.addIndex(indices);
         this._geometry = geometry;
-    }
+        this._graphicCount = count;
 
-    _buildShader() {
-        console.log('_buildShader');
-        // build shader
-        // TODO: make into a property
-        //  is this the same as tint?
-        const color = [1.0, 0.0, 0.0, 1.0];
-
-        let uniforms = Object.assign({
-            uColor: color,
-            translationMatrix: this.transform.worldTransform.toArray(true)
-        }, this.deform._combineUniforms())
-        const vertexShader = this.deform._buildVertexShader();
-        const fragmentShader = this.deform._buildFragmentShader();
-        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
-        this._shader = shader;
+        this._weights = weights; // for debugging
     }
 
     _buildBoundsGraphics() {
@@ -137,7 +123,14 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         const x1 = bounds.x + bounds.width + this.padding.right
         const y0 = bounds.y - this.padding.top;
         const y1 = bounds.y + bounds.height + this.padding.bottom;
-        return this._buildRectangle(x0, x1, y0, y1, 0, 0);
+        const {vertices, indices, uvs, weights} = this._buildRectangle(x0, x1, y0, y1, 0, 0);
+        return {
+            vertices,
+            indices,
+            uvs,
+            weights,
+            count: 1
+        }
     }
 
     _buildLineGraphics() {
@@ -194,7 +187,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
             vertices,
             indices,
             uvs,
-            weights,
+            weights
         }
     }
 
@@ -206,6 +199,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         const allIndices:number[][] = [];
         const allUvs:number[][] = [];
         const allWeights:number[][] = [];
+        let count = 0;
         let wordIndex = 0;
         for(let word of selection) {
             const glyphStartIndex = word[0];
@@ -226,12 +220,14 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
             allUvs.push(uvs);
             allWeights.push(weights);
             wordIndex++;
+            count++;
         }
         return {
             vertices: allVertices.flat(),
             indices: allIndices.flat(),
             uvs: allUvs.flat(),
-            weights: allWeights.flat()
+            weights: allWeights.flat(),
+            count
         }
     }
 
@@ -241,6 +237,23 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         }
         this._geometry.destroy();
         this._geometry = null;
+    }
+
+    _buildShader() {
+        console.log('_buildShader');
+        // build shader
+        // TODO: make into a property
+        //  is this the same as tint?
+        const color = [1.0, 0.0, 0.0, 1.0];
+
+        let uniforms = Object.assign({
+            uColor: color,
+            translationMatrix: this.transform.worldTransform.toArray(true)
+        }, this.deform._combineUniforms())
+        const vertexShader = this.deform._buildVertexShader();
+        const fragmentShader = this.deform._buildFragmentShader();
+        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
+        this._shader = shader;
     }
 
     _build() {

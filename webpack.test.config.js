@@ -1,5 +1,6 @@
 const path = require("path");
 const nodeExternals = require('webpack-node-externals');
+const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 
 module.exports = {
   entry: './tests/all_tests.ts',
@@ -8,6 +9,7 @@ module.exports = {
   target: 'node',
   devtool: 'eval-source-map',
   externals: [nodeExternals()],
+  entry: './tests/all_tests.ts',
   output: {
     filename: 'test.js',
     path: path.resolve(__dirname, 'dist'),
@@ -15,6 +17,11 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js'],
   },
+  plugins: [
+      new CleanWebpackPlugin({
+        cleanOnceBeforeBuildPatterns: ['dist']
+      }),
+  ],
   module: {
     rules: [
       {

@@ -21,7 +21,7 @@ export class CurveDeformer extends BaseDeformer {
         };
     }
 
-    _vertHead() {
+    _vertexHeader() {
         return `
         uniform sampler2D texture;
         uniform float pathOffset;

@@ -70,6 +70,7 @@ export class Rectangle extends MeshMixin(PIXI.Container) {
     }
 
     _buildShader() {
+        console.log('buildShader');
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let uniforms = Object.assign({
