@@ -5,6 +5,9 @@ export class TextGraphicDeformer extends BaseDeformer {
         return this.parent.graphicType;
     }
 
+    /**
+     * Ensures the number of values is correct based on the property type. This should be called in each setter.
+     */
     _validateData(value: number[], coordinateCount = 2) {
         const expectedLength = this.parent.graphicCount * coordinateCount;
         if (value.length !== expectedLength) {

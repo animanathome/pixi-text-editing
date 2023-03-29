@@ -253,6 +253,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
     }
 
     logAssembly() {
+        console.log('WARNING: this not necessarily the source the current compiled shader used! This only shows the current source. Re-compile the shader if something doesn\'t match your expectation.');
         console.log('uniforms', {
             // uSampler2: this._parent.atlas.texture[0],
             uColor: this._parent.color,

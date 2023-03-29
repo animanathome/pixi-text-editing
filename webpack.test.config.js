@@ -4,7 +4,6 @@ const {CleanWebpackPlugin} = require("clean-webpack-plugin");
 
 module.exports = {
   entry: './tests/all_tests.ts',
-  watch: true,
   mode: 'development',
   target: 'node',
   devtool: 'eval-source-map',

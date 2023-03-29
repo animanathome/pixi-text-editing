@@ -1,5 +1,8 @@
 import {InterpolationCache} from "./interpolationCache";
 
+/**
+ * Incremental progress array generator
+ */
 export class ProgressIncrementer {
     _length: number;
     _progress: number = 0.0;
@@ -11,7 +14,7 @@ export class ProgressIncrementer {
     _end: Float32Array;
     _array: Float32Array;
     _interpolationCache: InterpolationCache | null;
-    _valuesPerElement: number = 1; // 1 or 2
+    _valuesPerElement: number = 1; // WARNING: hardcoded to 1 or 2
     /**
      * Whether the progress array needs to be rebuilt
      */

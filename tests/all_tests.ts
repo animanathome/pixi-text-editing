@@ -20,6 +20,8 @@
 // import('./deformers/text/textDeformer.spec');
 // import('./deformers/text/TextColorDeformer.spec');
 // import('./deformers/text_graphic/textGraphicDeformer.spec');
-import('./deformers/text_graphic/textGraphicOpacityDeformer.spec');
+// if a filename is to long, it won't be picked up by the watcher
+import('./deformers/text_graphic/bla.spec');
+// import('./animation/oneByOne.spec');
 // import('./animation/incrementalProgress.spec');
 // import('./animation/interpolationCache.spec');

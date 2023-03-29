@@ -26,12 +26,12 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     _graphicType: GRAPHIC_TYPE = GRAPHIC_TYPE.WORD;
     _graphicCount: number = 0;
     _padding: Padding = {
-        left: 1,
-        right: 1,
-        top: 1,
-        bottom: 1,
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
     };
-    _color: number[] = [1.0, 0.0, 0.0, 1.0];
+    _color: number[] = [0.0, 1.0, 0.0, 1.0];
     _deformerStack: DeformerStack;
 
     constructor(fontAtlasText: FontAtlasText) {
@@ -109,7 +109,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', vertices, 2);
         geometry.addAttribute('aUvs', uvs, 2);
-        geometry.addAttribute('aWeight', weights, 1)
+        geometry.addAttribute('aWeight', weights, 1);
         geometry.addIndex(indices);
         this._geometry = geometry;
         this._graphicCount = count;
@@ -244,10 +244,10 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
         // build shader
         // TODO: make into a property
         //  is this the same as tint?
-        const color = [1.0, 0.0, 0.0, 1.0];
+        // const color = [1.0, 0.0, 0.0, 1.0];
 
         let uniforms = Object.assign({
-            uColor: color,
+            uColor: this.color,
             translationMatrix: this.transform.worldTransform.toArray(true)
         }, this.deform._combineUniforms())
         const vertexShader = this.deform._buildVertexShader();

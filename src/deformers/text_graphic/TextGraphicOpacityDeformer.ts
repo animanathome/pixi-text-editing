@@ -11,7 +11,12 @@ export class TextGraphicOpacityDeformer extends TextGraphicDeformer {
         }
     }
 
-    _resetStateOnProperties(expectedLength) {
+    /**
+     * UpdateProperties gets called as part of the update step if the object is dirty.
+     */
+    _updateProperties() {
+        // We need to specify the array length at shader compilation time. We can not change it once it's created!
+        const expectedLength = this.parent.graphicCount;
         this._opacities = new Array(expectedLength).fill(1.0);
     }
 
@@ -22,8 +27,7 @@ export class TextGraphicOpacityDeformer extends TextGraphicDeformer {
     set opacities(value: number[]) {
         this._validateData(value, 1);
         this._opacities = value;
-        console.log('sync opacities', value);
-        this.parent.shader.uniforms.uOpacities = value;
+        this.parent.shader.uniforms.uOpacities = new Float32Array(value);
     }
 
     _vertexHeader(): string {
@@ -39,7 +43,7 @@ export class TextGraphicOpacityDeformer extends TextGraphicDeformer {
     _vertexMain(): string {
         return `
         int opacityTransformIndex = int(aWeight);
-        vOpacity = uOpacities[0];
+        vOpacity = uOpacities[opacityTransformIndex];
         `
     }
 
