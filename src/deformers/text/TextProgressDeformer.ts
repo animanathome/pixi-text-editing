@@ -1,15 +1,11 @@
-import {BaseDeformer, DeformerType} from "../BaseDeformer";
-import {TextDeformer, TRANSFORM_TYPE} from "./TextDeformer";
-
-export enum TRANSFORM_DIRECTION {
-    LEFT_TO_RIGHT,
-    RIGHT_TO_LEFT,
-    TOP_TO_BOTTOM,
-    BOTTOM_TO_TOP
-}
+import {
+    DEFORMER_MANIP_ENUM,
+    TRANSFORM_DIRECTION
+} from "../enums";
+import {TextDeformer} from "./TextDeformer";
 
 export class TextProgressDeformer extends TextDeformer {
-    _deformerType: DeformerType[] = [DeformerType.VERTEX, DeformerType.UV];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.VERTEX, DEFORMER_MANIP_ENUM.UV];
     _progresses: number[] = [];
     _direction: TRANSFORM_DIRECTION = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
 

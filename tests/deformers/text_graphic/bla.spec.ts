@@ -1,7 +1,7 @@
 import {createFontAtlasTextApp} from "../../utils";
 import {TextGraphicOpacityDeformer} from "../../../src/deformers/text_graphic/TextGraphicOpacityDeformer";
 import {TextOpacityDeformer} from "../../../src/deformers/text/TextOpacityDeformer";
-import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
+import {TEXT_TRANSFORM_ENUM} from "../../../src/deformers/enums";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../../../src/fontAtlasTextGraphic";
 
 describe('TextGraphicOpacityDeformer', () => {
@@ -15,7 +15,7 @@ describe('TextGraphicOpacityDeformer', () => {
 
         const textDeformer = new TextOpacityDeformer();
         text.deform.addDeformer(textDeformer);
-        textDeformer.transformType = TRANSFORM_TYPE.WORD;
+        textDeformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
         textDeformer.opacities = [0.25, 1.0, 1.0, 0.25];
         console.log('opacities', textDeformer.opacities);
         app.ticker.update()

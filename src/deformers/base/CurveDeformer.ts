@@ -1,14 +1,25 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
+import {BaseDeformer} from "./BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 export class CurveDeformer extends BaseDeformer {
-    _deformerType: DeformerType[] = [DeformerType.VERTEX];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.VERTEX];
     texture: PIXI.Texture;
     pathOffset: number = 0.0;
     pathSegment: number = 1.0;
     spineOffset: number = 0.0;
     spineLength: number = 0.0;
     flow: number = 1;
+
+    public get animatableProperties() {
+        return [
+                'pathOffset',
+                'pathSegment',
+                'spineOffset',
+                'spineLength',
+                'flow'
+            ];
+    }
 
     _uniforms() {
         return {

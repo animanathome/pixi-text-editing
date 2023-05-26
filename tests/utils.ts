@@ -120,7 +120,7 @@ export const createFontAtlasText = async({
     await fontLoader.load();
 
     const atlas = new FontAtlas({
-        font: fontLoader.font,
+        fontLoader,
         resolution: fontAtlasResolution,
         fontSize: fontAtlasSize,
     })

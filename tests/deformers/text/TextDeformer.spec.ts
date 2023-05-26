@@ -1,6 +1,6 @@
 import {createFontAtlasTextApp} from "../../utils";
+import {TEXT_TRANSFORM_ENUM} from "../../../src/deformers/enums";
 import {TextOpacityDeformer} from "../../../src/deformers/text/TextOpacityDeformer";
-import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
 import {TextProgressDeformer} from "../../../src/deformers/text/TextProgressDeformer";
 
 describe('TextDeformer', () => {
@@ -12,12 +12,12 @@ describe('TextDeformer', () => {
 
         const opacityDeformer = new TextOpacityDeformer();
         text.deform.addDeformer(opacityDeformer);
-        opacityDeformer.transformType = TRANSFORM_TYPE.WORD;
+        opacityDeformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
         opacityDeformer.opacities = [0.25, 1.0];
 
         const progressDeformer = new TextProgressDeformer();
         text.deform.addDeformer(progressDeformer);
-        progressDeformer.transformType = TRANSFORM_TYPE.LINE;
+        progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
         progressDeformer.progresses = [0.5, 1.0];
 
         app.ticker.update();

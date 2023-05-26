@@ -1,4 +1,4 @@
-import {BaseDeformer} from "../BaseDeformer";
+import {BaseDeformer} from "../base/BaseDeformer";
 
 export class TextGraphicDeformer extends BaseDeformer {
     get transformType() {

@@ -1,18 +1,16 @@
 import {DeformerStack} from "../deformerStack";
-
-export enum DeformerType {
-    VERTEX  , // manipulates vertices
-    MATRIX, // manipulates the transformation matrix
-    UV  , // manipulates uvs
-    COLOR = 4, // manipulates colors
-}
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 export class BaseDeformer {
-    _deformerStack: DeformerStack;
-    _deformerType: DeformerType[] = [DeformerType.MATRIX];
+    _deformerStack: DeformerStack; // TODO: maybe we should pass this to the constructor? we can't do anything without it
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.MATRIX];
     _weights = [];
     _dirty = true;
     _enabled = true;
+
+    public get animatableProperties() {
+        return [];
+    }
 
     get enabled() {
         return this._enabled;
@@ -23,7 +21,7 @@ export class BaseDeformer {
         this._dirty = true;
     }
 
-    get isDirty() {
+    get dirty() {
         // console.log(this.constructor.name, 'isDirty', this._dirty);
         return this._dirty;
     }
@@ -86,9 +84,26 @@ export class BaseDeformer {
         if (!this._dirty) {
             return
         }
+        if (!this.canUpdate) {
+            return
+        }
         this._updateProperties();
         this._dirty = false;
         this.emitDeformerChanged();
+    }
+
+    /**
+     * Returns true if the deformer can be updated. A deformer can be updated if it has a parent and that parent
+     * has a geometry built.
+     */
+    get canUpdate() {
+        if (!this.parent) {
+            return false;
+        }
+        if (!this.parent.geometry) {
+            return false;
+        }
+        return true;
     }
 
     _updateProperties() {

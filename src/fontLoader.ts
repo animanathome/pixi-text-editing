@@ -1,3 +1,4 @@
+import * as PIXI from 'pixi.js';
 import fontkit from 'fontkit-next';
 
 export enum FONT_STATUS {
@@ -7,7 +8,9 @@ export enum FONT_STATUS {
     FAILED = 3
 };
 
-export class FontLoader {
+const VERBOSE = false;
+
+export class FontLoader extends PIXI.utils.EventEmitter{
     sourceUrl = undefined;
     font = undefined;
     status = FONT_STATUS.ADDED;
@@ -21,11 +24,33 @@ export class FontLoader {
             const font = fontkit.create(buffer);
             this.status = FONT_STATUS.LOADED;
             this.font = font;
+            this.emit('loaded');
+            VERBOSE && console.log(`loaded font ${this.sourceUrl}`);
         }
         catch (e) {
             this.status = FONT_STATUS.FAILED;
+            this.emit('error');
+            console.log(`unable to load font ${this.sourceUrl}`);
             throw e;
         }
+    }
+
+    async onLoaded() {
+        if (this.loaded()) {
+            return;
+        }
+        await new Promise<void>((resolve, reject) => {
+            this.on('loaded', () => {
+                resolve();
+            })
+            this.on('error', () => {
+                reject();
+            })
+        });
+    }
+
+    loaded() {
+        return this.status === FONT_STATUS.LOADED;
     }
 }
 

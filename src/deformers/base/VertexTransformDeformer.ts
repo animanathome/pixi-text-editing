@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
+import {BaseDeformer} from "./BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 export class VertexTransformDeformer extends BaseDeformer {
-    _deformerType: DeformerType[] = [DeformerType.VERTEX];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.VERTEX];
     offset: PIXI.Point = new PIXI.Point();
 
     _uniforms(): {} {

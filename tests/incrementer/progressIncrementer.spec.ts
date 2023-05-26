@@ -1,7 +1,7 @@
-import { ProgressIncrementer } from '../../src/animation/progressIncrementer';
+import { ProgressIncrementer } from '../../src/incrementer/progressIncrementer';
 import { expect } from 'chai';
 
-describe('IncrementalProgress', () => {
+describe('ProgressIncrementer', () => {
     it('full overlap', () => {
         // Assemble
         const incrementer = new ProgressIncrementer(2);

@@ -6,7 +6,7 @@
 // import('./fontAtlasTextCaret.spec');
 // import('./fontAtlasTextSelection.spec');
 // import('./fontAtlasTextManipulator.spec');
-// import('./fontAtlasTextGraphic.spec');
+// // import('./fontAtlasTextGraphic.spec');
 // import('./curveData.spec');
 // import('./timeline.spec');
 // import('./deformerStack.spec')
@@ -20,8 +20,10 @@
 // import('./deformers/text/textDeformer.spec');
 // import('./deformers/text/TextColorDeformer.spec');
 // import('./deformers/text_graphic/textGraphicDeformer.spec');
-// if a filename is to long, it won't be picked up by the watcher
-import('./deformers/text_graphic/bla.spec');
-// import('./animation/oneByOne.spec');
-// import('./animation/incrementalProgress.spec');
-// import('./animation/interpolationCache.spec');
+// // if a filename is to long, it won't be picked up by the watcher
+// import('./deformers/text_graphic/bla.spec');
+// import('./incrementer/oneByOneIncrementer.spec');
+// import('./incrementer/progressIncrementer.spec');
+// import('./interpolationCache.spec');
+// import('./animation/animationStack.spec');
+import('./textPlayground.spec');

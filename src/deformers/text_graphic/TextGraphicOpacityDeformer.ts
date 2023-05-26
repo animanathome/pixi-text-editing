@@ -1,9 +1,15 @@
-import {DeformerType} from "../BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 import {TextGraphicDeformer} from "./TextGraphicDeformer";
 
 export class TextGraphicOpacityDeformer extends TextGraphicDeformer {
-    _deformerType: DeformerType[] = [DeformerType.COLOR];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.COLOR];
     _opacities = [1.0];
+
+    public get animatableProperties() {
+        return [
+            'opacities',
+        ];
+    }
 
     _uniforms(): {} {
         return {

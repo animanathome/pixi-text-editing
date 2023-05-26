@@ -3,7 +3,7 @@ import * as PIXI from "pixi.js";
 import {createFontAtlasTextApp, getRenderedPixels} from "./utils";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {expect} from "chai";
-import {CenterScaleTransformDeformer} from "../src/deformers/CenterScaleTransformDeformer";
+import {CenterScaleTransformDeformer} from "../src/deformers/base/CenterScaleTransformDeformer";
 
 describe.only('FontAtlasTextGraphic', () => {
     describe('bounds', () => {

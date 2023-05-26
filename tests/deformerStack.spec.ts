@@ -1,15 +1,15 @@
 import {expect} from 'chai';
-import {TransformDeformer} from "../src/deformers/TransformDeformer";
+import {TransformDeformer} from "../src/deformers/base/TransformDeformer";
 import {createFontAtlasTextApp, createRectangleApp} from "./utils";
-import {VertexTransformDeformer} from "../src/deformers/VertexTransformDeformer";
-import {TextProgressDeformer, TRANSFORM_DIRECTION} from "../src/deformers/text/TextProgressDeformer";
-import {TRANSFORM_TYPE} from "../src/deformers/text/TextDeformer";
+import {VertexTransformDeformer} from "../src/deformers/base/VertexTransformDeformer";
+import {TextProgressDeformer} from "../src/deformers/text/TextProgressDeformer";
+import {TRANSFORM_DIRECTION, TEXT_TRANSFORM_ENUM} from "../src/deformers/enums";
 import {Renderer} from "pixi.js";
 import {TextTransformDeformer} from "../src/deformers/text/TextTransformDeformer";
-import {CenterScaleTransformDeformer} from "../src/deformers/CenterScaleTransformDeformer";
+import {CenterScaleTransformDeformer} from "../src/deformers/base/CenterScaleTransformDeformer";
 import * as PIXI from "pixi.js";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../src/curveDeformer";
-import {CurveDeformer} from "../src/deformers/CurveDeformer";
+import {CurveDeformer} from "../src/deformers/base/CurveDeformer";
 
 describe('DeformerStack', () => {
     it('can add deformer', async() => {
@@ -45,7 +45,7 @@ describe('DeformerStack', () => {
         app.destroy(true, true);
     });
 
-    describe.only('can mix multiple deformers of type', () => {
+    describe('can mix multiple deformers of type', () => {
         it('MATRIX', async() => {
             // Assemble
             const {app, rectangle} = createRectangleApp();
@@ -131,7 +131,7 @@ describe('DeformerStack', () => {
             });
             const progressDeformer = new TextProgressDeformer();
             text.deform.addDeformer(progressDeformer);
-            progressDeformer.transformType = TRANSFORM_TYPE.LINE;
+            progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 
@@ -149,7 +149,7 @@ describe('DeformerStack', () => {
             });
             const progressDeformer = new TextProgressDeformer();
             text.deform.addDeformer(progressDeformer);
-            progressDeformer.transformType = TRANSFORM_TYPE.LINE;
+            progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 
@@ -159,7 +159,7 @@ describe('DeformerStack', () => {
             //  how we can reuse them
             const transformDeformer = new TextTransformDeformer();
             text.deform.addDeformer(transformDeformer);
-            transformDeformer.transformType = TRANSFORM_TYPE.LINE;
+            transformDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             transformDeformer.transforms = [5.0, 0.0, 10.0, 0.0];
 
             text.deform.logAssembly();
@@ -181,7 +181,7 @@ describe('DeformerStack', () => {
             // vertex deformer
             const transformDeformer = new TextTransformDeformer();
             text.deform.addDeformer(transformDeformer);
-            transformDeformer.transformType = TRANSFORM_TYPE.GLYPH;
+            transformDeformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
             transformDeformer.transforms = [
                 0.0, 5.0,
                 0.0, -5.0,
@@ -226,7 +226,7 @@ describe('DeformerStack', () => {
 
             const progressDeformer = new TextProgressDeformer();
             text.deform.addDeformer(progressDeformer);
-            progressDeformer.transformType = TRANSFORM_TYPE.LINE;
+            progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 

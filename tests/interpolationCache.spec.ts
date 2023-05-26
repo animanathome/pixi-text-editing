@@ -1,10 +1,10 @@
-import { InterpolationCache } from '../../src/animation/interpolationCache';
+import { InterpolationCache } from '../src/interpolationCache';
 import { expect } from 'chai';
 
 describe('InterpolationCache', () => {
     it('caches step', () => {
         // Assemble
-        const cache = new InterpolationCache(10, 'step');
+        const cache = new InterpolationCache(10, 'stepped');
 
         // Act and Assert
         expect(cache.cache.length).to.equal(10);
@@ -34,7 +34,7 @@ describe('InterpolationCache', () => {
 
     it('can get value from cache', () => {
         // Assemble
-        const cache = new InterpolationCache(100, 'step');
+        const cache = new InterpolationCache(100, 'stepped');
 
         // Assert
         expect(cache.getCachedValue(0.0)).to.equal(0.0);
@@ -44,7 +44,7 @@ describe('InterpolationCache', () => {
     });
 
     // TODO: Add tests for other interpolation types
-    it.skip('cashes bezier', () => {
+    it.skip('caches bezier', () => {
 
     });
 

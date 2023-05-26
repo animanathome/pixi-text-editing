@@ -1,9 +1,10 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
+import {BaseDeformer} from "./BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 
 export class TransformDeformer extends BaseDeformer {
-    _deformerType: DeformerType[] = [DeformerType.MATRIX];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.MATRIX];
     _transform: PIXI.Transform;
 
     constructor() {

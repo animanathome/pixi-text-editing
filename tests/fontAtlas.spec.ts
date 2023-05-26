@@ -13,7 +13,7 @@ describe('fontAtlas', () => {
 
         // Act
         const atlas = new FontAtlas({
-            font: fontLoader.font,
+            fontLoader,
             resolution: 64,
             fontSize: 12,
         })

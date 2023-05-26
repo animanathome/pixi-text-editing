@@ -1,13 +1,22 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer, DeformerType} from "./deformers/BaseDeformer";
-import {CurveDeformer} from "./deformers/CurveDeformer";
-import {TextTransformDeformer} from "./deformers/text/TextTransformDeformer";
-import {TransformDeformer} from "./deformers/TransformDeformer";
-import {VertexTransformDeformer} from "./deformers/VertexTransformDeformer";
-import {TextProgressDeformer} from "./deformers/text/TextProgressDeformer";
+import {BaseDeformer} from "./base/BaseDeformer";
+import {CurveDeformer} from "./base/CurveDeformer";
+import {TextTransformDeformer} from "./text/TextTransformDeformer";
+import {TransformDeformer} from "./base/TransformDeformer";
+import {VertexTransformDeformer} from "./base/VertexTransformDeformer";
+import {TextProgressDeformer} from "./text/TextProgressDeformer";
+import {ALL_DEFORMERS} from "./constants";
+import {DeformerType} from "./types";
+import {DEFORMER_MANIP_ENUM} from "./enums";
+import {createDeformerOfType} from "./factory";
 
-type Deformer = BaseDeformer | TransformDeformer | CurveDeformer | TextProgressDeformer | VertexTransformDeformer | TextTransformDeformer;
+export type Deformer = BaseDeformer | TransformDeformer | CurveDeformer | TextProgressDeformer | VertexTransformDeformer | TextTransformDeformer;
 
+const VERBOSE = false;
+
+/**
+ * Manages the deformers for a single object
+ */
 export class DeformerStack extends PIXI.utils.EventEmitter {
     _deformers: Deformer[];
     _parent = undefined;
@@ -18,7 +27,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         this._deformers = [];
         this._parent = parent;
         if ('uvs' in settings) {
-            console.log('uvs', settings.uvs);
+            VERBOSE && console.log('uvs', settings.uvs);
             this._uvs = settings.uvs;
         }
     }
@@ -27,24 +36,35 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         return this._uvs;
     }
 
-    get isDirty() {
-        return this.deformers.some(deformer => deformer.isDirty);
+    /**
+     * What does it mean for the deformer stack to be dirty?
+     */
+    get dirty() {
+        return this.deformers.some(deformer => deformer.dirty);
     }
 
     update() {
+        VERBOSE && console.log('deformerStack update');
         this.deformers.forEach(deformer => deformer.update());
     }
 
     get matrixDeformers() {
-        return this._deformers.filter(deformer => deformer.deformerType.includes(DeformerType.MATRIX));
+        return this._deformers.filter(deformer => deformer.deformerType.includes(DEFORMER_MANIP_ENUM.MATRIX));
     }
 
     get vertexDeformers() {
-        return this._deformers.filter(deformer => deformer.deformerType.includes(DeformerType.VERTEX));
+        return this._deformers.filter(deformer => deformer.deformerType.includes(DEFORMER_MANIP_ENUM.VERTEX));
     }
 
     get deformers() {
         return this._deformers;
+    }
+
+    /* Add a deformer of a specific type. */
+    public addDeformerOfType(deformerType: typeof ALL_DEFORMERS[number]): DeformerType {
+        const deformer = createDeformerOfType(deformerType);
+        this.addDeformer(deformer);
+        return deformer;
     }
 
     /* Add a deformer. */
@@ -141,7 +161,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
             mainUVFunction = `vec2 uv0 = vUvs;\n`;
             let lastUVIndex = 0;
             deformers
-                .filter(deformer => deformer.enabled && deformer.deformerType.includes(DeformerType.UV))
+                .filter(deformer => deformer.enabled && deformer.deformerType.includes(DEFORMER_MANIP_ENUM.UV))
                 .forEach((deformer, index) => {
                     mainUVFunction += `vec2 uv${index + 1} = getUV${deformer.index}(uv${index});\n`;
                     lastUVIndex = index + 1;
@@ -156,7 +176,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         let mainColorFunction = `vec4 color0 = uColor;\n`;
         let lastColorIndex = 0;
         deformers
-            .filter(deformer => deformer.enabled && deformer.deformerType.includes(DeformerType.COLOR))
+            .filter(deformer => deformer.enabled && deformer.deformerType.includes(DEFORMER_MANIP_ENUM.COLOR))
             .forEach((deformer, index) => {
                 mainColorFunction += `vec4 color${index + 1} = getColor${deformer.index}(color${index});\n`;
                 lastColorIndex = index + 1;
@@ -275,14 +295,14 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
         let callFunctions = `vec3 vertexPosition0 = vec3(aVertexPosition.xy, 1.0);\n`;
         let lastIndex = 0;
         deformers
-            .filter(deformer => deformer.deformerType.includes(DeformerType.MATRIX) || deformer.deformerType.includes(DeformerType.VERTEX))
+            .filter(deformer => deformer.deformerType.includes(DEFORMER_MANIP_ENUM.MATRIX) || deformer.deformerType.includes(DEFORMER_MANIP_ENUM.VERTEX))
             .forEach((deformer, index) => {
-                console.log('deformer', index, deformer.deformerType);
-                if (deformer.deformerType.includes(DeformerType.MATRIX)) {
+                VERBOSE && console.log('deformer', index, deformer.deformerType);
+                if (deformer.deformerType.includes(DEFORMER_MANIP_ENUM.MATRIX)) {
                     callFunctions += `vec3 vertexPosition${index + 1} = getTranslationMatrix${deformer.index}() * vertexPosition${index};\n`;
                     lastIndex = index + 1;
                 }
-                if (deformer.deformerType.includes(DeformerType.VERTEX)) {
+                if (deformer.deformerType.includes(DEFORMER_MANIP_ENUM.VERTEX)) {
                     callFunctions += `vec3 vertexPosition${index + 1} = getVertexPosition${deformer.index}(vertexPosition${index});\n`;
                     lastIndex = index + 1;
                 }

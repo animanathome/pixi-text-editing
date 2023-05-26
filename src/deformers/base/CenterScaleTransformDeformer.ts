@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js';
-import {BaseDeformer, DeformerType} from "./BaseDeformer";
+import {BaseDeformer} from "./BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 export class CenterScaleTransformDeformer extends BaseDeformer {
-    _deformerType: DeformerType[] = [DeformerType.MATRIX];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.MATRIX];
     _scale: PIXI.Point = new PIXI.Point(1, 1);
     _scaleAnchor: PIXI.Point = new PIXI.Point(0, 0);
 

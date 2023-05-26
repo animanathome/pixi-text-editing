@@ -1,10 +1,10 @@
 import {expect} from "chai";
 import {createFontAtlasTextApp} from "../../utils";
-import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
-import {TextProgressDeformer, TRANSFORM_DIRECTION} from "../../../src/deformers/text/TextProgressDeformer";
+import {TEXT_TRANSFORM_ENUM, TRANSFORM_DIRECTION} from "../../../src/deformers/enums";
+import {TextProgressDeformer} from "../../../src/deformers/text/TextProgressDeformer";
 
 describe('TextProgressDeformer', () => {
-   it.only('from bottom to top', async() => {
+   it('from bottom to top', async() => {
        // Assemble
        // TODO: fix me for lower case text. We seem to have an incorrect Y-offset
         const displayText = 'ABC';
@@ -18,7 +18,7 @@ describe('TextProgressDeformer', () => {
 
         const deformer = new TextProgressDeformer();
         text.deform.addDeformer(deformer);
-        deformer.transformType = TRANSFORM_TYPE.GLYPH;
+        deformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
         deformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
         deformer.progresses = [0.5, 0.75, 1.0];
 
@@ -26,7 +26,7 @@ describe('TextProgressDeformer', () => {
         app.ticker.update();
    });
 
-   it.only('from top to bottom', async() => {
+   it('from top to bottom', async() => {
        // Assemble
         const displayText = 'abg';
         const {text, app} = await createFontAtlasTextApp({
@@ -39,7 +39,7 @@ describe('TextProgressDeformer', () => {
 
         const deformer = new TextProgressDeformer();
         text.deform.addDeformer(deformer);
-        deformer.transformType = TRANSFORM_TYPE.GLYPH;
+        deformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
         deformer.direction = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
         deformer.progresses = [0.5, 0.75, 1.0];
 

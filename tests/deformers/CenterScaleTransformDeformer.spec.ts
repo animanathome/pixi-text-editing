@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import {createRectangleApp} from "../utils";
-import {CenterScaleTransformDeformer} from "../../src/deformers/CenterScaleTransformDeformer";
+import {CenterScaleTransformDeformer} from "../../src/deformers/base/CenterScaleTransformDeformer";
 
 describe('CenterScaleTransformDeformer', () => {
     it('can add deformer', async() => {

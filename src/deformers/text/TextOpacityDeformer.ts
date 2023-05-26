@@ -1,10 +1,15 @@
 import {TextDeformer} from "./TextDeformer";
-import {DeformerType} from "../BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
+
+const VERBOSE = false;
 
 export class TextOpacityDeformer extends TextDeformer {
-    _deformerType: DeformerType[] = [DeformerType.COLOR];
-    _opacities = [1.0];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.COLOR];
+    _opacities = [];
 
+    public get animatableProperties() {
+        return ['opacities'];
+    }
     _uniforms(): {} {
         return {
             uOpacities: this.opacities,
@@ -12,7 +17,17 @@ export class TextOpacityDeformer extends TextDeformer {
     }
 
     _resetStateOnProperties(expectedLength) {
+        VERBOSE && console.log('resetting state on properties', expectedLength);
         this._opacities = new Array(expectedLength).fill(1.0);
+    }
+
+    _updateProperties() {
+        // Ensure we have populated the opacities array in case we haven't set it yet, otherwise we will get a shader
+        // error.
+        if (this._opacities.length === 0) {
+            this._resetState()
+        }
+        super._updateProperties();
     }
 
     get opacities() {

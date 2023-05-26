@@ -2,10 +2,10 @@ import {createFontAtlasTextApp} from "../../utils";
 
 import { expect } from 'chai';
 import {TextOpacityDeformer} from "../../../src/deformers/text/TextOpacityDeformer";
-import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
+import {TEXT_TRANSFORM_ENUM} from "../../../src/deformers/enums";
 
 describe('TextOpacityDeformer', () => {
-    it.only('passes properties as uniforms to shader', async() => {
+    it('passes properties as uniforms to shader', async() => {
         // Assemble
         const displayText = 'AB WA';
         const {text, app} = await createFontAtlasTextApp({displayText});
@@ -13,7 +13,7 @@ describe('TextOpacityDeformer', () => {
 
         const deformer = new TextOpacityDeformer();
         text.deform.addDeformer(deformer);
-        deformer.transformType = TRANSFORM_TYPE.WORD;
+        deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
 
         // Act
         deformer.opacities = [0.25, 1.0];

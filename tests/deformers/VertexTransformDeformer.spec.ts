@@ -1,5 +1,5 @@
 import {createRectangleApp} from "../utils";
-import {VertexTransformDeformer} from "../../src/deformers/VertexTransformDeformer";
+import {VertexTransformDeformer} from "../../src/deformers/base/VertexTransformDeformer";
 import {expect} from "chai";
 
 describe('VertexTransformDeformer', () => {

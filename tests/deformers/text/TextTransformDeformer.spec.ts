@@ -1,15 +1,15 @@
 import {createFontAtlasTextApp} from "../../utils";
-import {TRANSFORM_TYPE} from "../../../src/deformers/text/TextDeformer";
+import {TEXT_TRANSFORM_ENUM, TRANSFORM_DIRECTION} from "../../../src/deformers/enums";
 import {TextTransformDeformer} from "../../../src/deformers/text/TextTransformDeformer";
 
 import {expect} from 'chai';
-import {CurveDeformer} from "../../../src/deformers/CurveDeformer";
+import {CurveDeformer} from "../../../src/deformers/base/CurveDeformer";
 import * as PIXI from "pixi.js";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../../src/curveDeformer";
-import {TextProgressDeformer, TRANSFORM_DIRECTION} from "../../../src/deformers/text/TextProgressDeformer";
+import {TextProgressDeformer} from "../../../src/deformers/text/TextProgressDeformer";
 
 describe('TextTransformDeformer', () => {
-    it.only('can mix deformers', async() => {
+    it('can mix deformers', async() => {
         // Assemble
         const displayText = 'TITLES';
         const {text, app} = await createFontAtlasTextApp({
@@ -37,13 +37,13 @@ describe('TextTransformDeformer', () => {
         // Act
         const progressDeformer = new TextProgressDeformer()
         text.deform.addDeformer(progressDeformer);
-        progressDeformer.transformType = TRANSFORM_TYPE.BOUNDS;
+        progressDeformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
         progressDeformer.direction = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
         progressDeformer.progresses = [0.5];
 
         const transDeformer = new TextTransformDeformer();
         text.deform.addDeformer(transDeformer);
-        transDeformer.transformType = TRANSFORM_TYPE.BOUNDS;
+        transDeformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
         transDeformer.transforms = [0, 10];
 
         const curveDeformer = new CurveDeformer();
@@ -70,7 +70,7 @@ describe('TextTransformDeformer', () => {
         document.body.appendChild(app.view);
         const deformer = new TextTransformDeformer();
         text.deform.addDeformer(deformer);
-        deformer.transformType = TRANSFORM_TYPE.BOUNDS;
+        deformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
 
         // Act
         deformer.scales = [1.5, 1.5];
@@ -88,7 +88,7 @@ describe('TextTransformDeformer', () => {
         // app.destroy(true, true);
     });
 
-    describe.only('can change transform type to', () => {
+    describe('can change transform type to', () => {
         it('word', async () => {
             // Assemble
             const displayText = 'A B C';
@@ -99,11 +99,11 @@ describe('TextTransformDeformer', () => {
 
             const deformer = new TextTransformDeformer();
             text.deform.addDeformer(deformer);
-            deformer.transformType = TRANSFORM_TYPE.BOUNDS;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
             app.ticker.update();
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.WORD;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             deformer.transforms = [0.0, 1.0, 0.0, -1.0, 0.0, 0.0];
             app.ticker.update();
             text.deform.logAssembly();
@@ -134,7 +134,7 @@ describe('TextTransformDeformer', () => {
 
             const deformer = new TextTransformDeformer();
             text.deform.addDeformer(deformer);
-            deformer.transformType = TRANSFORM_TYPE.BOUNDS;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
             app.ticker.update();
 
             const expectedResult = [9.8994140625, 12]
@@ -154,7 +154,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.LINE;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             app.ticker.update();
 
             // Assert
@@ -175,7 +175,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.WORD;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             app.ticker.update();
 
             // Assert
@@ -196,7 +196,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.GLYPH;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
             app.ticker.update();
 
             // Assert
@@ -220,7 +220,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.BOUNDS;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
             app.ticker.update();
 
             // Assert
@@ -241,7 +241,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.LINE;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             app.ticker.update();
 
             // Assert
@@ -262,7 +262,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.WORD;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             app.ticker.update();
 
             // Assert
@@ -283,7 +283,7 @@ describe('TextTransformDeformer', () => {
             text.deform.addDeformer(deformer);
 
             // Act
-            deformer.transformType = TRANSFORM_TYPE.GLYPH;
+            deformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
             app.ticker.update();
 
             // Assert

@@ -1,12 +1,12 @@
 import {buildTextCanvas} from "./utilities";
 import {ProgressTimeline, TickerTimeline} from "../src/animation/timeline";
 import {TextOpacityDeformer} from "../src/deformers/text/TextOpacityDeformer";
-import {TRANSFORM_TYPE} from "../src/deformers/text/TextDeformer";
-import {ProgressIncrementer} from "../src/animation/progressIncrementer";
-import {InterpolationCache} from "../src/animation/interpolationCache";
+import {TEXT_TRANSFORM_ENUM} from "../src/deformers/text/TextDeformer";
+import {ProgressIncrementer} from "../src/incrementer/progressIncrementer";
+import {InterpolationCache} from "../src/interpolationCache";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {TextGraphicOpacityDeformer} from "../src/deformers/text_graphic/TextGraphicOpacityDeformer";
-import {OneByOne} from "../src/animation/oneByOne";
+import {OneByOneIncrementer} from "../src/animation/oneByOne";
 
 
 export const focusOnWordByWordByUsingGraphic = async() => {
@@ -21,7 +21,7 @@ export const focusOnWordByWordByUsingGraphic = async() => {
     graphicColor.deform.addDeformer(graphicOpacityDeformer);
 
     const wordCount = graphicColor.graphicCount;
-    const oneByOneOpacity = new OneByOne(wordCount);
+    const oneByOneOpacity = new OneByOneIncrementer(wordCount);
     oneByOneOpacity.update();
 
     graphicOpacityDeformer.opacities = oneByOneOpacity.array as any;
@@ -57,7 +57,7 @@ export const focusOnWordByWordByUsingOpacity = async() => {
 
     const assetOpacityDeformer = new TextOpacityDeformer();
     asset.deform.addDeformer(assetOpacityDeformer);
-    assetOpacityDeformer.transformType = TRANSFORM_TYPE.WORD;
+    assetOpacityDeformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
     const assetGlyphCount = assetOpacityDeformer._expectTransformsLength(1);
 
     const opacityIncrementer = new ProgressIncrementer(assetGlyphCount, steppedInterpolationCache, 1);

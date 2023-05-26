@@ -1,9 +1,12 @@
-import {DeformerType} from "../BaseDeformer";
+import {
+    DEFORMER_MANIP_ENUM,
+    TEXT_TRANSFORM_ENUM
+} from "../enums";
 import {average} from "../../utils";
-import {TRANSFORM_TYPE, TextDeformer} from "./TextDeformer";
+import {TextDeformer} from "./TextDeformer";
 
 export class TextTransformDeformer extends TextDeformer {
-    _deformerType: DeformerType[] = [DeformerType.MATRIX];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.MATRIX];
     _transforms = [0.0, 0.0];
     _scales = [1.0, 1.0];
     _scaleAnchors = [];
@@ -86,13 +89,13 @@ export class TextTransformDeformer extends TextDeformer {
     _generateScaleAnchors() {
         let anchors = []
         switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
+            case TEXT_TRANSFORM_ENUM.BOUNDS:
                 anchors = [this._generateBoundScaleAnchors()]; break;
-            case TRANSFORM_TYPE.LINE:
+            case TEXT_TRANSFORM_ENUM.LINE:
                 anchors = this._generateLineScaleAnchors(); break;
-            case TRANSFORM_TYPE.WORD:
+            case TEXT_TRANSFORM_ENUM.WORD:
                 anchors = this._generateWordScaleAnchors(); break;
-            case TRANSFORM_TYPE.GLYPH:
+            case TEXT_TRANSFORM_ENUM.GLYPH:
                 anchors = this._generateGlyphScaleAnchors(); break;
         }
         this._scaleAnchors = anchors.flatMap(item => [item.x, item.y]);

@@ -1,4 +1,6 @@
-import {InterpolationCache} from "./interpolationCache";
+import {InterpolationCache} from "../interpolationCache";
+
+const VERBOSE = false;
 
 /**
  * Incremental progress array generator
@@ -16,26 +18,21 @@ export class ProgressIncrementer {
     _interpolationCache: InterpolationCache | null;
     _valuesPerElement: number = 1; // WARNING: hardcoded to 1 or 2
     /**
-     * Whether the progress array needs to be rebuilt
+     * True if the internal state has changed since the last query
      */
     _dirty = false;
-    /**
-     * Whether the start and end array needs to be rebuilt
-     */
-    _rebuild = false;
 
     constructor(
         length: number = 1,
         interpolationCache: InterpolationCache | null = null,
         valuesPerElement: number = 1,
     ) {
-        console.log('ProgressIncrementer', length);
+        VERBOSE && console.log('create ProgressIncrementer', length);
         this._length = length;
         this._interpolationCache = interpolationCache;
         this._valuesPerElement = valuesPerElement;
 
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get valuesPerElement() {
@@ -43,16 +40,16 @@ export class ProgressIncrementer {
     }
 
     /**
-     * Whether the array should be reversed
+     * Whether the array should be reversed. Changing this property will rebuilt the internal state and set the object
+     * as dirty.
      */
     set revert(value) {
+        VERBOSE && console.log('setting revert from', this._revert, 'to', value);
         if (value === this._revert) {
             return;
         }
-        console.log('set revert', value);
         this._revert = value;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get revert() {
@@ -63,12 +60,12 @@ export class ProgressIncrementer {
      * The length of the array to generate
      */
     set length(value) {
+        VERBOSE && console.log('setting length from', this._length, 'to', value);
         if (value === this._length) {
             return;
         }
         this._length = value;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get length() {
@@ -99,8 +96,7 @@ export class ProgressIncrementer {
             return;
         }
         this._offset = value;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get offset() {
@@ -115,8 +111,7 @@ export class ProgressIncrementer {
             return;
         }
         this._duration = value;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get duration() {
@@ -145,13 +140,14 @@ export class ProgressIncrementer {
     }
 
     _build() {
+        VERBOSE && console.log('_build')
         this._buildArrays();
         this._calculateRange();
-        this._rebuild = false;
+        this._dirty = true;
     }
 
     _buildArrays() {
-        if (!this.array || this.array.length === this.length * this.valuesPerElement) {
+        if (!this.array || this.array.length !== this.length * this.valuesPerElement) {
             this._array = new Float32Array(this.length * this.valuesPerElement);
             this._start = new Float32Array(this.length);
             this._end = new Float32Array(this.length);
@@ -172,18 +168,12 @@ export class ProgressIncrementer {
         this._start = normalizedStart;
         this._end = normalizedEnd;
     }
-
-    _calculateProgressForIndex(index) {
-        if (this.progress >= this._end[index]) {
-            return 1.0;
+    update() {
+        VERBOSE && console.log('update')
+        if (!this._dirty) {
+            return;
         }
-        else if (this.progress >= this._start[index] && this.progress <= this._end[index]) {
-            const duration = this._end[index] - this._start[index];
-            const localProgress = this.progress - this._start[index];
-            return localProgress / duration;
-        } else {
-            return 0.0;
-        }
+        this._calculateProgress();
     }
 
     _calculateProgress() {
@@ -204,12 +194,16 @@ export class ProgressIncrementer {
         this._dirty = false;
     }
 
-    update() {
-        if (this._rebuild) {
-            this._build();
+    _calculateProgressForIndex(index) {
+        if (this.progress >= this._end[index]) {
+            return 1.0;
         }
-        if (this._dirty) {
-            this._calculateProgress();
+        else if (this.progress >= this._start[index] && this.progress <= this._end[index]) {
+            const duration = this._end[index] - this._start[index];
+            const localProgress = this.progress - this._start[index];
+            return localProgress / duration;
+        } else {
+            return 0.0;
         }
     }
 }

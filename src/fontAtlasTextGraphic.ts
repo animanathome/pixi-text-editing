@@ -3,7 +3,7 @@ import {FontAtlasText} from "./fontAtlasText";
 import {deformVertexSrc, simpleVertexSrc, transformVertexSrc} from "./vertexShader";
 import {colorFragmentSrc, rectangleFragmentSrc, textureFragmentSrc} from "./fragmentShader";
 import {MeshMixin} from "./meshMixin";
-import {DeformerStack} from "./deformerStack";
+import {DeformerStack} from "./deformers/deformerStack";
 
 export enum GRAPHIC_TYPE {
     BOUNDS,
@@ -268,7 +268,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
 
     _render(renderer: PIXI.Renderer) {
         this._build();
-        if (this.deform.isDirty) {
+        if (this.deform.dirty) {
             this.deform.update();
             this._buildShader();
         }

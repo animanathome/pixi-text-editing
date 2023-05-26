@@ -2,10 +2,10 @@ import { expect } from 'chai';
 import * as PIXI from 'pixi.js';
 import * as THREE from 'three';
 import {createFontAtlasTextApp, createRectangleApp} from "../utils";
-import {CurveDeformer} from "../../src/deformers/CurveDeformer";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../src/curveDeformer";
-import {VertexTransformDeformer} from "../../src/deformers/VertexTransformDeformer";
-import {TRANSFORM_TYPE} from "../../src/deformers/text/TextDeformer";
+import {CurveDeformer} from "../../src/deformers/base/CurveDeformer";
+import {TEXT_TRANSFORM_ENUM} from "../../src/deformers/enums";
+import {VertexTransformDeformer} from "../../src/deformers/base/VertexTransformDeformer";
 import {TextTransformDeformer} from "../../src/deformers/text/TextTransformDeformer";
 
 describe('CurveDeformer', () => {
@@ -42,6 +42,15 @@ describe('CurveDeformer', () => {
         app.destroy(true, true);
     });
 
+    it('can get animatable properties', async() => {
+        // Assemble
+        const curveDeformer = new CurveDeformer();
+
+        // Act and assert
+        const expectedResult = ["pathOffset", "pathSegment", "spineOffset", "spineLength", "flow"];
+        expect(curveDeformer.animatableProperties).to.eql(expectedResult);
+    });
+
     describe('can be combined with', () => {
         it('text deformer', async() => {
             // Assemble
@@ -67,7 +76,7 @@ describe('CurveDeformer', () => {
 
             const textDeformer = new TextTransformDeformer();
             text.deform.addDeformer(textDeformer);
-            textDeformer.transformType = TRANSFORM_TYPE.WORD;
+            textDeformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             textDeformer.scales = [1.2, 1.2, 0.8, 0.8];
             textDeformer.transforms = [0, 3, 0, 0];
 

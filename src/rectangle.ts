@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import {MeshMixin} from "./meshMixin";
 import {simpleVertexSrc} from "./vertexShader";
 import {colorFragmentSrc} from "./fragmentShader";
-import {DeformerStack} from "./deformerStack";
+import {DeformerStack} from "./deformers/deformerStack";
 
 export class Rectangle extends MeshMixin(PIXI.Container) {
     _width: number = 1;

@@ -1,4 +1,4 @@
-export class OneByOne {
+export class OneByOneIncrementer {
     _length: number;
     _progress: number = 0.0;
     _duration: number = 1.0;
@@ -7,33 +7,61 @@ export class OneByOne {
      * Whether the progress array needs to be rebuilt
      */
     _dirty = false;
-    /**
-     * Whether the start and end array needs to be rebuilt
-     */
-    _rebuild = false;
 
     constructor(
         length: number = 1,
     ) {
+        console.log('create OneByOneIncrementer', length);
         this._length = length;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     /**
      * The length of the array to generate
      */
     set length(value) {
+        console.log('setting length', this._length, 'to', value);
         if (value === this._length) {
             return;
         }
         this._length = value;
-        this._rebuild = true;
-        this._dirty = true;
+        this._build();
     }
 
     get length() {
         return this._length;
+    }
+
+    /**
+     * The duration of the incrementer
+     */
+    set duration(value) {
+        if (value === this._duration) {
+            return;
+        }
+        this._duration = value;
+        this._build();
+    }
+
+    get duration() {
+        return this._duration;
+    }
+
+    /**
+     * The array of values
+     */
+    get array() {
+        return this._array;
+    }
+
+    _build() {
+        this._buildArrays();
+    }
+
+    _buildArrays() {
+        if (!this.array || this.array.length === this.length) {
+            this._array = new Float32Array(this.length);
+        }
     }
 
     /**
@@ -52,38 +80,11 @@ export class OneByOne {
         return this._progress;
     }
 
-    /**
-     * The duration of the incrementer
-     */
-    set duration(value) {
-        if (value === this._duration) {
-            return;
+    update() {
+        if (this._dirty) {
+            return false;
         }
-        this._duration = value;
-        this._rebuild = true;
-        this._dirty = true;
-    }
-
-    get duration() {
-        return this._duration;
-    }
-
-    /**
-     * The array of values
-     */
-    get array() {
-        return this._array;
-    }
-
-    _build() {
-        this._buildArrays();
-        this._rebuild = false;
-    }
-
-    _buildArrays() {
-        if (!this.array || this.array.length === this.length) {
-            this._array = new Float32Array(this.length);
-        }
+        this._calculateProgress();
     }
 
     _calculateProgress() {
@@ -91,15 +92,6 @@ export class OneByOne {
         const activeIndex = Math.max(0, Math.round(this.progress / increment) - 1);
         for (let i = 0; i < this.length; i++) {
             this._array[i] = i === activeIndex ? 1 : 0;
-        }
-    }
-
-    update() {
-        if (this._rebuild) {
-            this._build();
-        }
-        if (this._dirty) {
-            this._calculateProgress();
         }
     }
 }

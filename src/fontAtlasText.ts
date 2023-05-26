@@ -4,8 +4,10 @@ import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
-import {DeformerStack} from "./deformerStack";
+import {DeformerStack} from "./deformers/deformerStack";
+import {AnimationStack} from "./animation/animationStack";
 
+const VERBOSE = false;
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
@@ -27,27 +29,37 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _words = [];
     // TODO: rename to GeometryBuilder instead?
     _fontAtlasTextGeometry = new FontAtlasTextGeometry();
-    _deformerStack: DeformerStack;
+    _deformerStack: DeformerStack; // shader stack? here we build  shader
+
+    // _time = 0;
+    _animationStack: AnimationStack; // here we really always animate shaders...
 
     get deform() {
         return this._deformerStack;
     }
 
+    get anim() {
+        return this._animationStack;
+    }
+
     set atlas(atlas: FontAtlas) {
+        VERBOSE && console.log('set atlas', atlas);
+
         this._atlas = atlas;
         this._fontAtlasTextGeometry.atlasResolution = atlas.resolution;
         this._deformerStack = new DeformerStack(this, {uvs: true});
+        this._animationStack = new AnimationStack(this);
 
         // NOTE: we should probably set this up during construction
-        // TODO: Do we still need this?
+        // TODO: Do we still need this? This should just run during update no?
         // @ts-ignore
         this._deformerStack.on('deformerAdded', () => {
-            console.log('deformer added');
+            VERBOSE && console.log('deformer added');
             this._buildShader();
         });
         // @ts-ignore
         this._deformerStack.on('deformerChanged', () => {
-            console.log('deformer changed');
+            VERBOSE && console.log('deformer changed');
             this._buildShader();
         });
     }
@@ -290,16 +302,51 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         return this._words;
     }
 
-    _build() {
+    /**
+     * Determines if the text is dirty and needs any of its elements to be rebuilt. This includes the text,
+     * deformation stack and animation. Note to be confused with _dirty.
+     */
+    get dirty() {
+        if (this.anim.dirty) {
+            return true;
+        }
+        if (this.deform.dirty) {
+            return true;
+        }
+        return this._dirty;
+    }
+
+    /**
+     * Here we update the internal state. We don't really build any new objects which the caller can interact with
+     * separately.
+     */
+    _update() {
+        VERBOSE && console.log('text build', this.dirty)
         if (!this._dirty) {
+            // it's important that we keep evaluating this while the text hasn't been fully updated.
+            // this will allow us to easily determine whether everything is up-to-date.
+            VERBOSE && console.log('nothing to do')
             return;
         }
-        this._calculateFontFactor();
-        this._deleteGeometry();
-        this._buildGlyphs();
-        this._layoutGlyphs();
-        this._buildGeometry();
-        this._buildShader();
+        if (!this.atlas.loaded) {
+            VERBOSE && console.log('unable to build text, atlas not loaded')
+            return;
+        }
+        if (this._dirty) {
+            this._calculateFontFactor();
+            this._deleteGeometry();
+            this._buildGlyphs();
+            this._layoutGlyphs();
+            this._buildGeometry();
+            this._buildShader();
+        }
+        if (this.deform.dirty) {
+            this.deform.update();
+            this._buildShader();
+        }
+        if (this.anim.dirty) {
+            this.anim.update();
+        }
         this._dirty = false;
     }
 
@@ -509,11 +556,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _render(renderer: PIXI.Renderer) {
-        this._build();
-        if (this.deform.isDirty) {
-            this.deform.update();
-            this._buildShader();
-        }
+        this._update();
         this._renderDefault(renderer);
     }
 }

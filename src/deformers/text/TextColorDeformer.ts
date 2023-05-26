@@ -1,13 +1,13 @@
 import * as PIXI from "pixi.js";
 import {TextDeformer} from "./TextDeformer";
-import {DeformerType} from "../BaseDeformer";
+import {DEFORMER_MANIP_ENUM} from "../enums";
 
 const red = 16711680;
 const green = 65280;
 const blue = 255;
 
 export class TextColorDeformer extends TextDeformer {
-    _deformerType: DeformerType[] = [DeformerType.COLOR];
+    _deformerType: DEFORMER_MANIP_ENUM[] = [DEFORMER_MANIP_ENUM.COLOR];
     _colors: number [] = [red, green, blue];
     _colorIndices = [0];
 

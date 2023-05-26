@@ -1,10 +1,10 @@
-import { OneByOne } from "../../src/animation/oneByOne";
 import { expect } from "chai";
+import {OneByOneIncrementer} from "../../src/incrementer/oneByOneIncrementer";
 
-describe("OneByOne", () => {
+describe("OneByOneIncrementer", () => {
     it('properly calculates progress for even increments', () => {
         // Assemble
-        const oneByOne = new OneByOne(10);
+        const oneByOne = new OneByOneIncrementer(10);
 
         // Act and Assert
         oneByOne.progress = 0;
@@ -24,7 +24,7 @@ describe("OneByOne", () => {
 
     it('properly calculates progress for uneven increments', () => {
         // Assemble
-        const oneByOne = new OneByOne(5);
+        const oneByOne = new OneByOneIncrementer(5);
 
         // Act and Assert
         oneByOne.progress = 0;

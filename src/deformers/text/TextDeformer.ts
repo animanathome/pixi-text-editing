@@ -1,14 +1,10 @@
-import {BaseDeformer} from "../BaseDeformer";
+import {BaseDeformer} from "../base/BaseDeformer";
+import {TEXT_TRANSFORM_ENUM} from "../enums";
 
-export enum TRANSFORM_TYPE {
-    BOUNDS,
-    LINE,
-    WORD,
-    GLYPH
-}
+const VERBOSE = false;
 
 export class TextDeformer extends BaseDeformer {
-    _transformType = TRANSFORM_TYPE.BOUNDS;
+    _transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
     _weights = [];
 
     get transformType() {
@@ -16,18 +12,20 @@ export class TextDeformer extends BaseDeformer {
     }
 
     set transformType(value) {
-        console.log('set transform type', value);
+        VERBOSE && console.log('set transform type', value);
         this._transformType = value;
         this._resetState()
         this._dirty = true;
     }
 
     _updateProperties() {
+        VERBOSE && console.log('_updateProperties');
         this._generateWeights();
         this._assignWeights();
     }
 
     _resetState() {
+        VERBOSE && console.log('reset state');
         const expectedLength = this._expectTransformsLength(1);
         this._resetStateOnProperties(expectedLength);
     }
@@ -46,16 +44,16 @@ export class TextDeformer extends BaseDeformer {
     _expectTransformsLength(coordinateCount = 2) {
         let expectedLength = -1;
         switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
+            case TEXT_TRANSFORM_ENUM.BOUNDS:
                 expectedLength = coordinateCount;
                 break;
-            case TRANSFORM_TYPE.LINE:
+            case TEXT_TRANSFORM_ENUM.LINE:
                 expectedLength = this.parent.lines.length * coordinateCount;
                 break;
-            case TRANSFORM_TYPE.WORD:
+            case TEXT_TRANSFORM_ENUM.WORD:
                 expectedLength = this.parent.words.length * coordinateCount;
                 break;
-            case TRANSFORM_TYPE.GLYPH:
+            case TEXT_TRANSFORM_ENUM.GLYPH:
                 expectedLength = this.parent.glyph.length * coordinateCount;
                 break;
         }
@@ -65,20 +63,22 @@ export class TextDeformer extends BaseDeformer {
     _generateWeights() {
         let weights = [];
         switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
+            case TEXT_TRANSFORM_ENUM.BOUNDS:
                 weights = this._generateBoundWeights(); break;
-            case TRANSFORM_TYPE.LINE:
+            case TEXT_TRANSFORM_ENUM.LINE:
                 weights = this._generateLineWeights(); break;
-            case TRANSFORM_TYPE.WORD:
+            case TEXT_TRANSFORM_ENUM.WORD:
                 weights = this._generateWordWeights(); break;
-            case TRANSFORM_TYPE.GLYPH:
+            case TEXT_TRANSFORM_ENUM.GLYPH:
                 weights = this._generateGlyphWeights(); break;
         }
         this._weights = weights;
     }
 
     _assignWeights() {
-        console.log('weights', this._weights);
+        VERBOSE && console.log('weights', this._weights);
+        VERBOSE && console.log('parent', this.parent);
+        VERBOSE && console.log('parent geometry', this.parent.geometry);
         const weightsAttribute = this.parent.geometry.getAttribute('aWeight');
         if (!weightsAttribute) {
             this.parent.geometry.addAttribute('aWeight', this._weights, 1)
