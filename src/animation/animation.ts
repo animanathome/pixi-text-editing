@@ -14,7 +14,7 @@ import {ProgressIncrementer} from "../incrementer/progressIncrementer";
 import {PingPongTimeline} from "../timeline/PingPongTimeline";
 import {ProgressTimeline} from "../timeline/ProgressTimeline";
 
-const VERBOSE = false;
+const VERBOSE = true;
 export class Animation {
     _dirty = true;
     _target: Deformer;
@@ -33,6 +33,7 @@ export class Animation {
 
         this._createIncrementer();
         this._createTimeline();
+        this._dirty = false;
     }
 
     get target() {

@@ -7,6 +7,7 @@ import {FontAtlasText} from "../src/fontAtlasText";
 import {Rectangle} from "../src/rectangle";
 
 export const LOCALHOST = 'http://127.0.0.1:8080/resources/'
+const VERBOSE = false;
 
 export const roundBounds = (bounds) => {
     return {
@@ -61,6 +62,18 @@ export const createRectangleApp = () => {
     }
 }
 
+/**
+ * Convenience function to create a simple PIXI app with a preloaded FontAtlasText object. This object can be used in
+ * tests.
+ * @param displayText
+ * @param width
+ * @param height
+ * @param resolution
+ * @param fontSize
+ * @param fontAtlasSize
+ * @param fontAtlasResolution
+ * @param fontUrl
+ */
 export const createFontAtlasTextApp = async({
         displayText = 'abc',
         width = 128,
@@ -118,12 +131,15 @@ export const createFontAtlasText = async({
     const fontLoader = new FontLoader();
     fontLoader.sourceUrl = fontUrl;
     await fontLoader.load();
+    VERBOSE && console.log('loaded font', fontLoader.sourceUrl)
 
     const atlas = new FontAtlas({
         fontLoader,
         resolution: fontAtlasResolution,
         fontSize: fontAtlasSize,
     })
+    atlas.update();
+
     // pre-load glyphs
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
@@ -135,7 +151,7 @@ export const createFontAtlasText = async({
     text.maxWidth = height;
     text.fontSize = fontSize;
     text.text = displayText;
-    text._build();
+    text._update();
 
     return {
         fontLoader,

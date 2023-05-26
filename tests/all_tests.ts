@@ -25,5 +25,5 @@
 // import('./incrementer/oneByOneIncrementer.spec');
 // import('./incrementer/progressIncrementer.spec');
 // import('./interpolationCache.spec');
-// import('./animation/animationStack.spec');
-import('./textPlayground.spec');
+import('./animation/animationStack.spec');
+// import('./textPlayground.spec');

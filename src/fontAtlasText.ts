@@ -7,7 +7,7 @@ import {MeshMixin} from "./meshMixin";
 import {DeformerStack} from "./deformers/deformerStack";
 import {AnimationStack} from "./animation/animationStack";
 
-const VERBOSE = false;
+const VERBOSE = true;
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
@@ -556,6 +556,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _render(renderer: PIXI.Renderer) {
+        VERBOSE && console.log('render')
         this._update();
         this._renderDefault(renderer);
     }

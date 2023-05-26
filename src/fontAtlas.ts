@@ -12,7 +12,7 @@ type FontAtlasSettings = {
     debugBounds?: boolean,
 };
 
-const VERBOSE = false;
+const VERBOSE = true;
 
 export class FontAtlas {
     fontLoader : FontLoader = undefined;
@@ -65,6 +65,7 @@ export class FontAtlas {
     }
 
     update() {
+        VERBOSE && console.log('update');
         if (!this.fontLoader.loaded()) {
             VERBOSE && console.log('unable to continue, font not loaded yet')
             return;

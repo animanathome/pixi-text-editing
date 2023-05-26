@@ -50,13 +50,11 @@ describe('AnimationStack', () => {
         const deformer = new TextOpacityDeformer();
         text.deform.addDeformer(deformer);
         deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
-        app.ticker.update();
-
         text.anim.addAnimation(deformer, 'opacities');
         app.ticker.update();
 
         // Act
-        text.time = 10;
+        text.anim.animations[0].time = 10;
         app.ticker.update();
 
         // Expect
@@ -77,7 +75,6 @@ describe('AnimationStack', () => {
             text.deform.addDeformer(deformer);
             deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             const animation = text.anim.addAnimation(deformer, 'opacities');
-            app.ticker.update();
 
             // Verify assemble
             expect(animation.timelineType).to.be.equal(PROGRESS_TIMELINE);
