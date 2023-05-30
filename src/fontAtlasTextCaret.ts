@@ -34,7 +34,7 @@ export class FontAtlasTextCaret extends PIXI.Container {
             return;
         }
         if (this.glyphIndex > this.fontAtlasText.text.length - 1) {
-            console.warn('-- to big --');
+            console.warn(`glyphIndex ${this.glyphIndex} is out of bounds. Setting to ${this.fontAtlasText.text.length - 1}`);
         }
         this._glyphIndex = value;
         this._dirty = true;

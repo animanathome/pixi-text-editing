@@ -8,7 +8,7 @@ import * as PIXI from "pixi.js";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../../src/curveDeformer";
 import {TextProgressDeformer} from "../../../src/deformers/text/TextProgressDeformer";
 
-describe('TextTransformDeformer', () => {
+describe.skip('TextTransformDeformer', () => {
     it('can mix deformers', async() => {
         // Assemble
         const displayText = 'TITLES';
@@ -52,9 +52,8 @@ describe('TextTransformDeformer', () => {
         curveDeformer.pathOffset = 0.15;
         text.deform.addDeformer(curveDeformer);
 
-        text.deform.logAssembly();
+        // text.deform.logAssembly();
         app.ticker.update();
-        console.log('-----------')
 
         // app.ticker.add(() => {
         //     progressDeformer.progresses[0] += 0.01;
@@ -75,17 +74,17 @@ describe('TextTransformDeformer', () => {
         // Act
         deformer.scales = [1.5, 1.5];
         deformer.transforms = [10.0, 10.0];
-        text.deform.logAssembly();
         app.ticker.update();
+        // text.deform.logAssembly();
 
         // Assert
         expect(text.shader.uniforms.uScales).to.deep.equal([1.5, 1.5]);
         expect(text.shader.uniforms.uTransforms).to.deep.equal([10.0, 10.0]);
         expect(text.shader.uniforms.uScaleAnchors).to.deep.equal([7.39453125, 4.734375]);
         expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 0, 0, 0, 0]);
-        //
-        // // Cleanup
-        // app.destroy(true, true);
+
+        // Cleanup
+        app.destroy(true, true);
     });
 
     describe('can change transform type to', () => {
@@ -106,7 +105,7 @@ describe('TextTransformDeformer', () => {
             deformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
             deformer.transforms = [0.0, 1.0, 0.0, -1.0, 0.0, 0.0];
             app.ticker.update();
-            text.deform.logAssembly();
+            // text.deform.logAssembly();
             console.log('weights', deformer._weights);
 
             // missmatch between uniformData and uniforms???

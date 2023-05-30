@@ -22,7 +22,7 @@ describe('TextProgressDeformer', () => {
         deformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
         deformer.progresses = [0.5, 0.75, 1.0];
 
-        text.deform.logAssembly();
+        // text.deform.logAssembly();
         app.ticker.update();
    });
 
@@ -43,7 +43,7 @@ describe('TextProgressDeformer', () => {
         deformer.direction = TRANSFORM_DIRECTION.TOP_TO_BOTTOM;
         deformer.progresses = [0.5, 0.75, 1.0];
 
-        text.deform.logAssembly();
+        // text.deform.logAssembly();
         app.ticker.update();
    });
 });

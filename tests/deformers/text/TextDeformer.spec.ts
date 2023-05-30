@@ -21,6 +21,6 @@ describe('TextDeformer', () => {
         progressDeformer.progresses = [0.5, 1.0];
 
         app.ticker.update();
-        text.deform.logAssembly();
+        // text.deform.logAssembly();
    });
 });

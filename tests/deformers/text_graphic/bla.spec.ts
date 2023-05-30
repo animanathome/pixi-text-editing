@@ -17,10 +17,8 @@ describe('TextGraphicOpacityDeformer', () => {
         text.deform.addDeformer(textDeformer);
         textDeformer.transformType = TEXT_TRANSFORM_ENUM.WORD;
         textDeformer.opacities = [0.25, 1.0, 1.0, 0.25];
-        console.log('opacities', textDeformer.opacities);
         app.ticker.update()
 
-        console.log('|------------ GRAPHIC --------|');
         const graphicColor = new FontAtlasTextGraphic(text);
         graphicColor.graphicType = GRAPHIC_TYPE.WORD;
         app.stage.addChildAt(graphicColor, 0);
@@ -35,13 +33,13 @@ describe('TextGraphicOpacityDeformer', () => {
 
         // text.deform.logAssembly();
         // console.log(text.shader.uniforms);
-        console.log('text', text.shader.program.uniformData);
-        console.log(text.shader)
+        // console.log('text', text.shader.program.uniformData);
+        // console.log(text.shader)
         // console.log('-------------')
-        graphicColor.deform.logAssembly();
+        // graphicColor.deform.logAssembly();
         // console.log(graphicColor.shader.uniforms);
-        console.log('graphic', graphicColor.shader.program.uniformData); // uniform data is not updated
-        console.log(text.shader);
+        // console.log('graphic', graphicColor.shader.program.uniformData); // uniform data is not updated
+        // console.log(text.shader);
         // graphicColor.shader.program.uniformData.uOpacities.size = 4;
         // graphicColor.shader.program.uniformData.uOpacities.value = [0.25, 0.5, 0.75, 1.0];
     });

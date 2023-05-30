@@ -5,6 +5,7 @@ import {colorFragmentSrc, rectangleFragmentSrc, textureFragmentSrc} from "./frag
 import {MeshMixin} from "./meshMixin";
 import {DeformerStack} from "./deformers/deformerStack";
 
+const VERBOSE = false;
 export enum GRAPHIC_TYPE {
     BOUNDS,
     LINE,
@@ -41,14 +42,14 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
 
         // @ts-ignore
         this._deformerStack.on('deformerAdded', () => {
-            console.log('deformer added');
+            VERBOSE && console.log('deformer added');
             this._buildShader();
         });
         // when do we need this? what exactly is changed? uniforms should just sync up. Maybe when we need to
         // re-calculate attributes?
         // @ts-ignore
         this._deformerStack.on('deformerChanged', () => {
-            console.log('deformer changed');
+            VERBOSE && console.log('deformer changed');
             this._buildShader();
         });
     }
@@ -240,7 +241,7 @@ export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     }
 
     _buildShader() {
-        console.log('_buildShader');
+        VERBOSE && console.log('_buildShader');
         // build shader
         // TODO: make into a property
         //  is this the same as tint?

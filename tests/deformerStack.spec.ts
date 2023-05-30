@@ -135,7 +135,7 @@ describe('DeformerStack', () => {
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 
-            text.deform.logAssembly();
+            // text.deform.logAssembly();
 
             // text._render(app.renderer as Renderer);
             app.ticker.update();
@@ -162,7 +162,7 @@ describe('DeformerStack', () => {
             transformDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             transformDeformer.transforms = [5.0, 0.0, 10.0, 0.0];
 
-            text.deform.logAssembly();
+            // text.deform.logAssembly();
             app.ticker.update();
 
             app.destroy(true, true);
@@ -209,7 +209,7 @@ describe('DeformerStack', () => {
             textCurveDeformer.pathOffset = 0.5;
             text.deform.addDeformer(textCurveDeformer);
 
-            text.deform.logAssembly();
+            // text.deform.logAssembly();
             app.ticker.update();
 
             app.destroy(true, true);
@@ -230,7 +230,7 @@ describe('DeformerStack', () => {
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 
-            text.deform.logAssembly();
+            // text.deform.logAssembly();
             app.ticker.update();
 
             app.destroy(true, true);

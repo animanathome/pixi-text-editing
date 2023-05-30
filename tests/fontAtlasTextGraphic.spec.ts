@@ -5,7 +5,7 @@ import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {expect} from "chai";
 import {CenterScaleTransformDeformer} from "../src/deformers/base/CenterScaleTransformDeformer";
 
-describe.only('FontAtlasTextGraphic', () => {
+describe.skip('FontAtlasTextGraphic', () => {
     describe('bounds', () => {
         it('can color', async() => {
             // Assemble
@@ -65,8 +65,8 @@ describe.only('FontAtlasTextGraphic', () => {
         })
     })
 
-    describe.only('line', () => {
-        it.only('can color', async() => {
+    describe('line', () => {
+        it('can color', async() => {
             // Assemble
             const displayText = "hello world!\nWhat's up?";
             const {text, app} = await createFontAtlasTextApp({

@@ -1,6 +1,8 @@
+const VERBOSE = false;
+
 export class OneByOneIncrementer {
     _length: number;
-    _progress: number = 0.0;
+    _progress: number = -1.0;
     _duration: number = 1.0;
     _array: Float32Array;
     /**
@@ -11,7 +13,7 @@ export class OneByOneIncrementer {
     constructor(
         length: number = 1,
     ) {
-        console.log('create OneByOneIncrementer', length);
+        VERBOSE && console.log('create OneByOneIncrementer', length);
         this._length = length;
         this._build();
     }
@@ -20,7 +22,7 @@ export class OneByOneIncrementer {
      * The length of the array to generate
      */
     set length(value) {
-        console.log('setting length', this._length, 'to', value);
+        VERBOSE && console.log('setting length', this._length, 'to', value);
         if (value === this._length) {
             return;
         }
@@ -65,13 +67,13 @@ export class OneByOneIncrementer {
     }
 
     /**
-     * The current progress of the incrementer
+     * The current progress of the incrementer. This is a value between 0 and 1.
      */
     set progress(value) {
         if (value === this._progress) {
             return;
         }
-        // console.log('set progress', value);
+        VERBOSE && console.log('set progress', value);
         this._progress = value;
         this._dirty = true;
     }
@@ -81,7 +83,8 @@ export class OneByOneIncrementer {
     }
 
     update() {
-        if (this._dirty) {
+        if (!this._dirty) {
+            VERBOSE && console.log('Nothing to update');
             return false;
         }
         this._calculateProgress();

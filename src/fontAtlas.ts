@@ -9,10 +9,11 @@ type FontAtlasSettings = {
     resolution?: number,
     paddingInX?: number,
     paddingInY?: number,
+    fillStyle?: string,
     debugBounds?: boolean,
 };
 
-const VERBOSE = true;
+const VERBOSE = false;
 
 export class FontAtlas {
     fontLoader : FontLoader = undefined;
@@ -44,16 +45,19 @@ export class FontAtlas {
     wordSpacing = 0;
     script = 'latn';
     direction = 'ltr';
+    fillStyle = 'white';
 
     x = 0;
     y = 0;
     prevId = undefined;
     constructor(settings?: FontAtlasSettings) {
+        VERBOSE && console.log('create font atlas', settings);
         this.fontLoader = settings.fontLoader;
         this.fontSize = settings.fontSize ?? this.fontSize;
         this.resolution = settings.resolution ?? this.resolution;
         this.paddingInX = settings.paddingInX ?? this.paddingInX;
         this.paddingInY = settings.paddingInY ?? this.paddingInY;
+        this.fillStyle = settings.fillStyle ?? this.fillStyle;
         this.debugBounds = settings.debugBounds ?? this.debugBounds;
     }
 
@@ -95,7 +99,7 @@ export class FontAtlas {
         // background color
         // this.context.beginPath();
         // this.context.fillRect(0, 0, this.resolution, this.resolution);
-        this.context.fillStyle = "white";
+        this.context.fillStyle = this.fillStyle;
         // this.context.fill();
 
         this.context.scale(1, -1);
@@ -177,6 +181,7 @@ export class FontAtlas {
     }
 
     _addGlyph(character) {
+        VERBOSE && console.log('_addGlyph', character)
         const glyphId = this._glyphsForString(character);
         const glyph = this.font.getGlyph(glyphId);
 

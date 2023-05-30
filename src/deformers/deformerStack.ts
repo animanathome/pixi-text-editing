@@ -243,7 +243,7 @@ export class DeformerStack extends PIXI.utils.EventEmitter {
                 .filter(item => item.length > 0);
 
             // TODO: warning, this assumes every deformer uses the same transform type!!!
-            //  we probably don't want this
+            //  we probably want to make this variable
             lines.forEach(line => {
                 // remove possible duplicate aWeight
                 if (line.includes('aWeight')) {

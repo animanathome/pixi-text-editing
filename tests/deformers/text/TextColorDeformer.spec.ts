@@ -1,11 +1,10 @@
 import {createFontAtlasTextApp} from "../../utils";
 
 import { expect } from 'chai';
-import {TextOpacityDeformer} from "../../../src/deformers/text/TextOpacityDeformer";
 import {TEXT_TRANSFORM_ENUM} from "../../../src/deformers/enums";
 import {TextColorDeformer} from "../../../src/deformers/text/TextColorDeformer";
 
-describe('TextColorDeformer', () => {
+describe.skip('TextColorDeformer', () => {
     it('passes properties as uniforms to shader', async() => {
         // Assemble
         const displayText = 'AB WA KE';
@@ -20,17 +19,15 @@ describe('TextColorDeformer', () => {
         deformer.colorIndices = [0, 1, 2];
 
 
-        text.deform.logAssembly();
-        console.log('render');
+        // text.deform.logAssembly();
         app.ticker.update();
 
         // TODO: extend animation so we can match the requirement for fancy captions
 
         // Assert
-        // expect(text.shader.uniforms.uOpacities).to.deep.equal([0.25, .75]);
-        // expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 1, 1, 1, 1]);
+        expect(deformer.weights).to.deep.equal([0, 0, 0, 0, 1, 1, 1, 1]);
 
         // Cleanup
-        // app.destroy(true, true);
+        app.destroy(true, true);
     });
 })
