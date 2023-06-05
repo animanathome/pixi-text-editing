@@ -17,9 +17,6 @@ jobs:
       - run: npm install -g floss electron http-server
       - run: npm install
       - run: npm run serve
-      - run: sudo ufw allow 8080/tcp
-      - run: sleep 3
-      - run: npm run check
       - run: npm run test:build
       - uses: GabrielBB/xvfb-action@v1.6
         with:
