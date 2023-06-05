@@ -7,7 +7,7 @@ describe('fontAtlas', () => {
     it('can render latin glyphs', async() => {
         // Arrange
         const fontLoader = new FontLoader();
-        const url = LOCALHOST + 'Roboto-Bold.ttf';
+        const url = LOCALHOST + 'Montserrat-Regular.ttf';
         fontLoader.sourceUrl = url;
         await fontLoader.load();
 
