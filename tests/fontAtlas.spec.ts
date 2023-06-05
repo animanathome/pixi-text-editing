@@ -8,6 +8,7 @@ describe('fontAtlas', () => {
         // Arrange
         const fontLoader = new FontLoader();
         const url = LOCALHOST + 'Montserrat-Regular.ttf';
+        console.log('loading font', url);
         fontLoader.sourceUrl = url;
         await fontLoader.load();
 
