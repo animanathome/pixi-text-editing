@@ -23,3 +23,7 @@ jobs:
       - uses: GabrielBB/xvfb-action@v1.6
         with:
           run: floss --path ./dist/test.js
+      - uses: actions/upload-artifact@v3
+        with:
+          name: test-image-results
+          path: ./test/artifacts
