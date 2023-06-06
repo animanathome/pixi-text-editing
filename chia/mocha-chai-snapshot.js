@@ -50,12 +50,17 @@ module.exports = function (chai, utils) {
         writeImageToDisk(currentTestImage, actual);
 
         const expectedTestImage = path.join(EXPECTED_DIR, imageName);
+
+        let result = true;
+        let message = '';
         if (!fs.existsSync(expectedTestImage)) {
-            throw new Error(`Image does not exist`);
+            result = false;
+            message = `Image does not exist`;
         }
         if (!doImagesMatch(currentTestImage, expectedTestImage)) {
-            throw new Error(`Image does not match snapshot`);
+            result = false;
+            message = `Image does not match snapshot`;
         }
-        return true;
+        this.assert(result, message);
     });
 };
