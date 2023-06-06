@@ -19,6 +19,7 @@ const writeImageToDisk = (file, buffer) => {
 }
 
 const doImagesMatch = (currentImageFile, expectedImageFile) => {
+    // inspired by https://stackoverflow.com/questions/18510897/how-to-compare-two-images-using-node-js
     const img1 = PNG.sync.read(fs.readFileSync(currentImageFile));
     const img2 = PNG.sync.read(fs.readFileSync(expectedImageFile));
     const {width, height} = img1;
@@ -27,6 +28,7 @@ const doImagesMatch = (currentImageFile, expectedImageFile) => {
     const difference = pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
     const diffImageFile = path.join(ARTIFACTS_DIR, path.basename(currentImageFile));
     if (difference > 0) {
+        console.log('images do not match - difference: ' + difference)
         writeImageToDisk(diffImageFile, PNG.sync.write(diff));
         return false;
     }
@@ -51,9 +53,6 @@ module.exports = function (chai, utils) {
             // no previous test image exists
             return false;
         }
-
-        // compare images - based on
-        // https://stackoverflow.com/questions/18510897/how-to-compare-two-images-using-node-js
         return doImagesMatch(currentTestImage, expectedTestImage);
     });
 };
