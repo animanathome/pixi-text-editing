@@ -25,5 +25,5 @@ jobs:
           run: floss --path ./dist/test.js
       - uses: actions/upload-artifact@v3
         with:
-          name: test-image-results
+          name: test-image-artifacts
           path: ./tests/artifacts

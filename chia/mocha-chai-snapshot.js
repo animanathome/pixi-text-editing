@@ -3,6 +3,8 @@ const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
 const path = require('path');
 
+// inspired by https://github.com/monojitb02/mocha-chai-snapshot
+
 // This directory contains the snapshots which are currently being generated when running the tests
 const CURRENT_DIR = './tests/current/';
 // This directory contains the expected snapshots
@@ -28,7 +30,6 @@ const doImagesMatch = (currentImageFile, expectedImageFile) => {
     const difference = pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
     const diffImageFile = path.join(ARTIFACTS_DIR, path.basename(currentImageFile));
     if (difference > 0) {
-        console.log('images do not match - difference: ' + difference)
         writeImageToDisk(diffImageFile, PNG.sync.write(diff));
         return false;
     }
@@ -50,9 +51,11 @@ module.exports = function (chai, utils) {
 
         const expectedTestImage = path.join(EXPECTED_DIR, imageName);
         if (!fs.existsSync(expectedTestImage)) {
-            // no previous test image exists
-            return false;
+            throw new Error(`Image does not exist`);
         }
-        return doImagesMatch(currentTestImage, expectedTestImage);
+        if (!doImagesMatch(currentTestImage, expectedTestImage)) {
+            throw new Error(`Image does not match snapshot`);
+        }
+        return true;
     });
 };
