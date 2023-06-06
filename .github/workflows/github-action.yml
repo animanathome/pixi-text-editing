@@ -24,6 +24,7 @@ jobs:
         with:
           run: floss --path ./dist/test.js
       - uses: actions/upload-artifact@v3
+        if: always()
         with:
           name: test-image-artifacts
           path: ./tests/artifacts
