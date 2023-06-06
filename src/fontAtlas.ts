@@ -3,7 +3,7 @@ import {difference, uniq} from 'lodash';
 import {FontLoader} from "./fontLoader";
 import {direction, forString} from "./Script";
 
-const VERBOSE = true
+const VERBOSE = false;
 
 type FontAtlasSettings = {
     font?: FontLoader,

@@ -27,4 +27,8 @@ describe('fontAtlas', function() {
         const imageData = await extractImageData(atlas.canvas);
         expect(imageData).to.matchesSnapshot(this);
     });
+
+    it('runs the next test', () => {
+        expect(true).to.be.true;
+    })
 })
