@@ -61,6 +61,6 @@ module.exports = function (chai, utils) {
             result = false;
             message = `Image does not match snapshot`;
         }
-        this.assert(true, message);
+        this.assert(result, message);
     });
 };
