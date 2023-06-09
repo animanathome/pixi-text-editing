@@ -51,7 +51,7 @@ module.exports = function (chai, utils) {
 
         // save the current image to the current directory
         const currentTestImage = path.join(CURRENT_DIR, imageName);
-        if (!fs.existsSync(currentTestImage)) {
+        if (fs.existsSync(currentTestImage)) {
             fs.unlinkSync(currentTestImage);
         }
         writeImageToDisk(currentTestImage, actual);
