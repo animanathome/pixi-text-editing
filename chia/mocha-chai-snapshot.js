@@ -27,7 +27,7 @@ const doImagesMatch = (currentImageFile, expectedImageFile) => {
     const {width, height} = img1;
     const diff = new PNG({width, height});
 
-    const difference = pixelmatch(img1.data, img2.data, diff.data, width, height, {threshold: 0.1});
+    const difference = pixelmatch(img1.data, img2.data, diff.data, width, height, { threshold: 0.1 });
     const diffImageFile = path.join(ARTIFACTS_DIR, path.basename(currentImageFile));
     if (difference > 0) {
         writeImageToDisk(diffImageFile, PNG.sync.write(diff));
@@ -46,17 +46,23 @@ module.exports = function (chai, utils) {
         const testTitle = context.title.replace(/\s+/g, '-');
         const imageName = `${suiteTitle}-${testTitle}.png`;
 
+        // save the current image to the current directory
         const currentTestImage = path.join(CURRENT_DIR, imageName);
+        if (!fs.existsSync(currentTestImage)) {
+            fs.unlinkSync(currentTestImage);
+        }
         writeImageToDisk(currentTestImage, actual);
 
+        // load the expected image from the expected directory
         const expectedTestImage = path.join(EXPECTED_DIR, imageName);
-
         let result = true;
         let message = '';
         if (!fs.existsSync(expectedTestImage)) {
             result = false;
             message = `Image does not exist`;
         }
+
+        // compare the current image with the expected image
         if (!doImagesMatch(currentTestImage, expectedTestImage)) {
             result = false;
             message = `Image does not match snapshot`;
