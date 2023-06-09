@@ -5,6 +5,7 @@ import chaiSnapshot from '../chia/mocha-chai-snapshot'
 chai.use(chaiSnapshot);
 import {extractImageData, LOCALHOST} from "./utils";
 
+
 describe('fontAtlas', function() {
     it('can render latin glyphs', async function(){
         // Arrange

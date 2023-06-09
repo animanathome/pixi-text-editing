@@ -37,6 +37,9 @@ const doImagesMatch = (currentImageFile, expectedImageFile) => {
 }
 
 module.exports = function (chai, utils) {
+    /**
+     * Assert that the current image matches the expected snapshot
+     */
     utils.addMethod(chai.Assertion.prototype, "matchesSnapshot", function (passedContext) {
         const actual = utils.flag(this, 'object');
 
