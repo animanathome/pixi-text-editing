@@ -1,7 +1,7 @@
 import('./resources.spec');
 import('./fontAtlas.spec');
 import('./fontLoader.spec');
-// import('./fontAtlasText.spec');
+import('./fontAtlasText.spec');
 // import('./fontAtlasTextCaret.spec');
 // import('./fontAtlasTextSelection.spec');
 // import('./fontAtlasTextManipulator.spec');
