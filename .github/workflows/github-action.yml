@@ -10,25 +10,34 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
           lfs: true
-      - uses: actions/setup-node@v3
+      - name: Setup node
+        uses: actions/setup-node@v3
         with:
           node-version: 16
-      - run: npm install -g floss electron http-server
-      - run: npm install
-      - run: npm run serve
-      - run: npm run test:build
-      - uses: coactions/setup-xvfb@v1
+      - name: Install electron
+        run: npm install -g floss electron http-server
+      - name: Install npm dependencies
+        run: npm install
+      - name: Start server
+        run: npm run serve
+      - name: Build tests
+        run: npm run test:build
+      - name: Run headless test
+        uses: coactions/setup-xvfb@v1
         with:
           run: floss --path ./dist/test.js
-      - uses: actions/upload-artifact@v3
+      - name: Upload images with artifacts
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-image-artifacts
           path: ./tests/artifacts
-      - uses: actions/upload-artifact@v3
+      - name: Upload generated images
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: test-image-current
