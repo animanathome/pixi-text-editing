@@ -1,6 +1,7 @@
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
 import chai, { expect } from 'chai';
+// @ts-ignore
 import chaiSnapshot from '../chia/mocha-chai-snapshot'
 chai.use(chaiSnapshot);
 import {extractImageData, LOCALHOST} from "./utils";

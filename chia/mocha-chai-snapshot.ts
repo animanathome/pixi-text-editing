@@ -1,3 +1,6 @@
+import {Buffer} from "buffer";
+import {Context} from "mocha";
+
 const fs = require('fs');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
@@ -13,14 +16,22 @@ const EXPECTED_DIR = './tests/expected/';
 // If the test fails, the difference is written to this directory
 const ARTIFACTS_DIR = './tests/artifacts/';
 
-const writeImageToDisk = (file, buffer) => {
+declare global {
+    export namespace Chai {
+        interface Assertion {
+            matchesSnapshot(passedContext: Context): void;
+        }
+    }
+}
+
+const writeImageToDisk = (file: string, buffer: Buffer) => {
     if (!fs.existsSync(path.dirname(file))) {
         fs.mkdirSync(path.dirname(file));
     }
     fs.writeFileSync(file, buffer);
 }
 
-const doImagesMatch = (currentImageFile, expectedImageFile) => {
+const doImagesMatch = (currentImageFile: string, expectedImageFile: string) => {
     // inspired by https://stackoverflow.com/questions/18510897/how-to-compare-two-images-using-node-js
     const img1 = PNG.sync.read(fs.readFileSync(currentImageFile));
     const img2 = PNG.sync.read(fs.readFileSync(expectedImageFile));
@@ -37,9 +48,6 @@ const doImagesMatch = (currentImageFile, expectedImageFile) => {
 }
 
 module.exports = function (chai, utils) {
-    /**
-     * Assert that the current image matches the expected snapshot
-     */
     utils.addMethod(chai.Assertion.prototype, "matchesSnapshot", function (passedContext) {
         const actual = utils.flag(this, 'object');
 
