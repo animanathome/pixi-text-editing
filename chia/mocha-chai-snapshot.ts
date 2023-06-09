@@ -33,6 +33,7 @@ const writeImageToDisk = (file: string, buffer: Buffer) => {
 
 const doImagesMatch = (currentImageFile: string, expectedImageFile: string) => {
     // inspired by https://stackoverflow.com/questions/18510897/how-to-compare-two-images-using-node-js
+    // TODO: use https://stackoverflow.com/questions/4196453/simple-and-fast-method-to-compare-images-for-similarity
     const img1 = PNG.sync.read(fs.readFileSync(currentImageFile));
     const img2 = PNG.sync.read(fs.readFileSync(expectedImageFile));
     const {width, height} = img1;
