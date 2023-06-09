@@ -3,9 +3,11 @@ import * as fs from "fs";
 
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
-import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
+import {FontAtlasText} from "../src/fontAtlasText";
+import {Rectangle} from "../src/rectangle";
 
 export const LOCALHOST = 'http://localhost:8080/resources/'
+const VERBOSE = false;
 
 export const extractImageData = async(canvas: HTMLCanvasElement) => {
     const blob: Blob = await new Promise(resolve => canvas.toBlob(resolve));
@@ -34,21 +36,60 @@ export const getRenderedPixels = (renderer:PIXI.Renderer) => {
 
 export const writeDataUrlToDisk = (url, outputFile = 'test') => {
     const base64Data = url.replace(/^data:image\/png;base64,/, "");
-    fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {
-        console.log(err);
-    });
+    fs.writeFile(`./tests/${outputFile}.png`, base64Data, 'base64', function (err) {});
 }
 
+export const createRectangleApp = () => {
+    const width = 128;
+    const height = 128;
+    const app = new PIXI.Application({
+        backgroundColor: 0xffffff,
+        antialias: true,
+        autoStart: false,
+        width,
+        height,
+    });
+    document.body.appendChild(app.view);
+    app.view.style.height = `${height}px`;
+    app.view.style.width = `${width}px`;
+
+    const gridTexture = PIXI.Texture.from(LOCALHOST + 'grid.png');
+    const grid = new PIXI.Sprite(gridTexture);
+    app.stage.addChild(grid);
+
+    const rectangle = new Rectangle({
+        x: 32, y:32,
+        width:64, height:64
+    });
+    app.stage.addChild(rectangle);
+
+    return {
+        app,
+        rectangle
+    }
+}
+
+/**
+ * Convenience function to create a simple PIXI app with a preloaded FontAtlasText object. This object can be used in
+ * tests.
+ * @param displayText
+ * @param width
+ * @param height
+ * @param resolution
+ * @param fontSize
+ * @param fontAtlasSize
+ * @param fontAtlasResolution
+ * @param fontUrl
+ */
 export const createFontAtlasTextApp = async({
         displayText = 'abc',
-        transformType = TRANSFORM_TYPE.NONE,
         width = 128,
         height = 128,
         resolution = 2,
         fontSize = 12,
         fontAtlasSize = 12,
         fontAtlasResolution = 128,
-        fontUrl = LOCALHOST + 'Roboto-Regular.ttf'
+        fontUrl = '../../../resources/Roboto-Regular.ttf'
     }) => {
 
     const app = new PIXI.Application({
@@ -65,7 +106,6 @@ export const createFontAtlasTextApp = async({
 
     const {fontLoader, atlas, text} = await createFontAtlasText({
         displayText,
-        transformType,
         width,
         height,
         fontAtlasSize,
@@ -75,6 +115,7 @@ export const createFontAtlasTextApp = async({
     })
 
     app.stage.addChild(text);
+    // text.deform.logAssembly();
     app.ticker.update();
 
     return {
@@ -87,7 +128,6 @@ export const createFontAtlasTextApp = async({
 
 export const createFontAtlasText = async({
      displayText = 'abc',
-     transformType= TRANSFORM_TYPE.LINE,
      width = 128,
      height = 128,
      fontAtlasSize = 12,
@@ -98,12 +138,15 @@ export const createFontAtlasText = async({
     const fontLoader = new FontLoader();
     fontLoader.sourceUrl = fontUrl;
     await fontLoader.load();
+    VERBOSE && console.log('loaded font', fontLoader.sourceUrl)
 
     const atlas = new FontAtlas({
-        font: fontLoader.font,
+        fontLoader,
         resolution: fontAtlasResolution,
         fontSize: fontAtlasSize,
     })
+    atlas.update();
+
     // pre-load glyphs
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz');
     atlas.addGlyphsForString('abcdefghijklmnopqrstuvwxyz'.toUpperCase());
@@ -113,10 +156,9 @@ export const createFontAtlasText = async({
     text.atlas = atlas;
     text.maxHeight = width;
     text.maxWidth = height;
-    text.transformType = transformType;
     text.fontSize = fontSize;
     text.text = displayText;
-    text._build();
+    text._update();
 
     return {
         fontLoader,

@@ -29,6 +29,9 @@ describe('FontAtlasTextSelection', () => {
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(14)
             expect(roundedBounds.height).to.equal(12)
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('a double line selection', async() => {
@@ -57,6 +60,9 @@ describe('FontAtlasTextSelection', () => {
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(28)
             expect(roundedBounds.height).to.equal(24)
+
+            // Cleanup
+            app.destroy(true, true);
         })
 
         it('a multi line selection', async() => {
@@ -91,6 +97,9 @@ describe('FontAtlasTextSelection', () => {
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(28)
             expect(roundedBounds.height).to.equal(36)
+
+            // Cleanup
+            app.destroy(true, true);
         })
     })
 })

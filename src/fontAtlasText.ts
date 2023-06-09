@@ -1,26 +1,20 @@
 import * as PIXI from 'pixi.js';
-import {DRAW_MODES} from 'pixi.js';
 import {FontAtlasTextGeometry, LEFT, RIGHT} from "./fontAtlasTextGeometry";
 import {FontAtlas} from "./fontAtlas";
 import {CARET_POSITION} from "./fontAtlasTextCaret";
-import {deformVertexSrc, simpleVertexSrc, transformVertexSrc} from "./vertexShader";
-import {textureFragmentSrc} from "./fragmentShader";
 import {CurveData} from "./curveData";
 import {MeshMixin} from "./meshMixin";
-import {average} from "./utils";
+import {DeformerStack} from "./deformers/deformerStack";
+import {AnimationStack} from "./animation/animationStack";
 
-export enum TRANSFORM_TYPE {
-    NONE,
-    BOUNDS,
-    LINE,
-    WORD,
-    GLYPH
-}
+const VERBOSE = false;
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
+    // TODO: make into a property
+    //  is this the same as tint?
+    _color = [1.0, 0.0, 0.0, 1.0];
     _text = 'hello world!';
-    _textMesh = null;
     _dirty = true; // should use PIXI update properties so as _transformID, see Mesh
     maxWidth = 512;
     maxHeight = 512;
@@ -30,29 +24,44 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     _fontFactor = 1;
     _tokenIndex = 0;
 
-    // make this into a deformer!
-    _transformType = TRANSFORM_TYPE.NONE;
-    _transforms = [];
-    _scales = [];
-
-    // make this into a deformer!
-    _curveTexture:PIXI.Texture= undefined;
-    _curveData = undefined;
-    _pathSegment = 1;
-    _spineOffset = 0;
-    _spineLength = 1;
-    _pathOffset = 0;
-    _flow = 1;
-
     _tokens = [];
     _lines = [];
     _words = [];
     // TODO: rename to GeometryBuilder instead?
     _fontAtlasTextGeometry = new FontAtlasTextGeometry();
+    _deformerStack: DeformerStack; // shader stack? here we build  shader
+
+    // _time = 0;
+    _animationStack: AnimationStack; // here we really always animate shaders...
+
+    get deform() {
+        return this._deformerStack;
+    }
+
+    get anim() {
+        return this._animationStack;
+    }
 
     set atlas(atlas: FontAtlas) {
+        VERBOSE && console.log('set atlas', atlas);
+
         this._atlas = atlas;
         this._fontAtlasTextGeometry.atlasResolution = atlas.resolution;
+        this._deformerStack = new DeformerStack(this, {uvs: true});
+        this._animationStack = new AnimationStack(this);
+
+        // NOTE: we should probably set this up during construction
+        // TODO: Do we still need this? This should just run during update no?
+        // @ts-ignore
+        this._deformerStack.on('deformerAdded', () => {
+            VERBOSE && console.log('deformer added');
+            this._buildShader();
+        });
+        // @ts-ignore
+        this._deformerStack.on('deformerChanged', () => {
+            VERBOSE && console.log('deformer changed');
+            this._buildShader();
+        });
     }
 
     get atlas() {
@@ -101,109 +110,12 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
+    // @deprecated
     _setUniform(property, value) {
         if (!this._shader) {
             return
         }
         this._shader.uniforms[property] = value;
-    }
-
-    get transformType() {
-        return this._transformType;
-    }
-
-    set transformType(value) {
-        this._transformType = value;
-        this._dirty = true;
-    }
-
-    // TODO: rename to translation
-    get transforms() {
-        return this._transforms;
-    }
-
-    set transforms(value: number[]) {
-        this._validateTransforms(value);
-        this._setUniform('transforms', value);
-    }
-
-    // individual scale values
-    get scales() {
-        return this._scales;
-    }
-
-    set scales(value: number[]) {
-        this._validateTransforms(value);
-        this._setUniform('scales', value);
-    }
-
-    // TODO: rename to _validateTransformValues
-    _validateTransforms(value: number[]) {
-        let coordinateCount = 2; // x and y - can be for translate or scale
-        let expectedLength = -1;
-        switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
-                expectedLength = coordinateCount;
-                break;
-            case TRANSFORM_TYPE.LINE:
-                expectedLength = this.lines.length * coordinateCount;
-                break;
-            case TRANSFORM_TYPE.WORD:
-                expectedLength = this.words.length * coordinateCount;
-                break;
-            case TRANSFORM_TYPE.GLYPH:
-                expectedLength = this.glyph.length * coordinateCount;
-                break;
-        }
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
-    }
-
-    // curve deform
-    get pathOffset() {
-        return this._pathOffset;
-    }
-
-    set pathOffset(value) {
-        this._pathOffset = value;
-        this._setUniform('pathOffset', value);
-    }
-
-    get pathSegment() {
-        return this._pathSegment;
-    }
-
-    set pathSegment(value) {
-        this._pathSegment = value;
-        this._setUniform('pathSegment', value);
-    }
-
-    set flow(value) {
-        this._flow = value;
-        this._setUniform('flow', value);
-    }
-
-    get flow() {
-        return this._flow;
-    }
-
-    get spineOffset() {
-        return this._spineOffset;
-    }
-
-    set spineOffset(value) {
-        this._spineOffset = value;
-        this._setUniform('spineOffset', value);
-    }
-
-    get spineLength() {
-        return this._spineLength;
-    }
-
-    set spineLength(value) {
-        this._spineLength = value;
-        this._setUniform('spineLength', value);
     }
 
     /**
@@ -230,33 +142,37 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     containsGlyph(x: number, y: number) {
-        if (this._curveData) {
-            ({x, y} = this._curveData.invertPosition(x, y));
-        }
+        // TODO: refactor to use deformer stack
+        // if (this._curveData) {
+        //     ({x, y} = this._curveData.invertPosition(x, y));
+        // }
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.containsGlyph(x, y, {start: 0, end: glyphCount});
     }
 
     closestGlyph(x: number, y: number) {
-        if (this._curveData) {
-            ({x, y} = this._curveData.invertPosition(x, y));
-        }
+        // TODO: refactor to use deformer stack
+        // if (this._curveData) {
+        //     ({x, y} = this._curveData.invertPosition(x, y));
+        // }
         const glyphCount = this._fontAtlasTextGeometry._glyph.length - 1;
         return this._fontAtlasTextGeometry.closestGlyph(x, y, {start: 0, end: glyphCount});
     }
 
     closestWord(x: number, y: number) {
-        if (this._curveData) {
-            ({x, y} = this._curveData.invertPosition(x, y));
-        }
+        // TODO: refactor to use deformer stack
+        // if (this._curveData) {
+        //     ({x, y} = this._curveData.invertPosition(x, y));
+        // }
         const [index, _] = this.closestGlyph(x, y);
         return this.glyphWordIndex(index);
     }
 
     closestLine(x: number, y: number) {
-        if (this._curveData) {
-            ({x, y} = this._curveData.invertPosition(x, y));
-        }
+        // TODO: refactor to use deformer stack
+        // if (this._curveData) {
+        //     ({x, y} = this._curveData.invertPosition(x, y));
+        // }
         const [index, _] = this.closestGlyph(x, y);
         return this.glyphLineIndex(index);
     }
@@ -386,16 +302,51 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         return this._words;
     }
 
-    _build() {
+    /**
+     * Determines if the text is dirty and needs any of its elements to be rebuilt. This includes the text,
+     * deformation stack and animation. Note to be confused with _dirty.
+     */
+    get dirty() {
+        if (this.anim.dirty) {
+            return true;
+        }
+        if (this.deform.dirty) {
+            return true;
+        }
+        return this._dirty;
+    }
+
+    /**
+     * Here we update the internal state. We don't really build any new objects which the caller can interact with
+     * separately.
+     */
+    _update() {
+        VERBOSE && console.log('text build', this.dirty)
         if (!this._dirty) {
+            // it's important that we keep evaluating this while the text hasn't been fully updated.
+            // this will allow us to easily determine whether everything is up-to-date.
+            VERBOSE && console.log('nothing to do')
             return;
         }
-        this._calculateFontFactor();
-        this._deleteGeometry();
-        this._buildGlyphs();
-        this._layoutGlyphs();
-        this._buildGeometry();
-        this._buildShader();
+        if (!this.atlas.loaded) {
+            VERBOSE && console.log('unable to build text, atlas not loaded')
+            return;
+        }
+        if (this._dirty) {
+            this._calculateFontFactor();
+            this._deleteGeometry();
+            this._buildGlyphs();
+            this._layoutGlyphs();
+            this._buildGeometry();
+            this._buildShader();
+        }
+        if (this.deform.dirty) {
+            this.deform.update();
+            this._buildShader();
+        }
+        if (this.anim.dirty) {
+            this.anim.update();
+        }
         this._dirty = false;
     }
 
@@ -553,186 +504,27 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
         this._dirty = true;
     }
 
-    set curveTexture(value: PIXI.Texture) {
-        this._curveTexture = value;
-        this._dirty = true;
-    }
-
-    _generateScaleAnchors() {
-        let anchors = []
-        switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
-                anchors = [this._generateBoundScaleAnchors()]; break;
-            case TRANSFORM_TYPE.LINE:
-                anchors = this._generateLineScaleAnchors(); break;
-            case TRANSFORM_TYPE.WORD:
-                anchors = this._generateWordScaleAnchors(); break;
-            case TRANSFORM_TYPE.GLYPH:
-                anchors = this._generateGlyphScaleAnchors(); break;
-        }
-        return anchors.flatMap(item => [item.x, item.y]);
-    }
-
-    _generateBoundScaleAnchors() {
-        const {x, y, width, height} = this.getBounds();
-        return {
-            x: x + (width / 2),
-            y: y + (height / 2),
-        };
-    }
-
-    // TODO: specify type of position for anchor {x, y}
-    _generateLineScaleAnchors() {
-        let scaleAnchors = [];
-        const lineRanges = this.lineGlyphRanges();
-        for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
-            const lineStart = lineRanges[lineIndex][0];
-            const lineEnd = lineRanges[lineIndex][1];
-            const scaleAnchor = average(
-                this._fontAtlasTextGeometry._getGlyphCenter(lineStart),
-                this._fontAtlasTextGeometry._getGlyphCenter(lineEnd));
-            scaleAnchors.push(scaleAnchor);
-        }
-        return scaleAnchors;
-    }
-
-    _generateWordScaleAnchors() {
-        let scaleAnchors = [];
-        const wordRanges = this.words;
-        for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
-            const wordRange = wordRanges[wordIndex];
-            const wordStart = wordRange[0];
-            const wordEnd = wordRange[wordRange.length - 1];
-            const scaleAnchor = average(
-                this._fontAtlasTextGeometry._getGlyphCenter(wordStart),
-                this._fontAtlasTextGeometry._getGlyphCenter(wordEnd));
-            scaleAnchors.push(scaleAnchor);
-        }
-        return scaleAnchors;
-    }
-
-    _generateGlyphScaleAnchors() {
-        return this.glyph.map((glyph, index) => this._fontAtlasTextGeometry.getGlyphCenter(index));
-    }
-
-    _generateWeights() {
-        let weights = [];
-        switch (this.transformType) {
-            case TRANSFORM_TYPE.BOUNDS:
-                weights = this._generateBoundWeights(); break;
-            case TRANSFORM_TYPE.LINE:
-                weights = this._generateLineWeights(); break;
-            case TRANSFORM_TYPE.WORD:
-                weights = this._generateWordWeights(); break;
-            case TRANSFORM_TYPE.GLYPH:
-                weights = this._generateGlyphWeights(); break;
-        }
-        return weights;
-    }
-
-    _generateBoundWeights() {
-        return this.glyph.map((glyph, index) => [0, 0, 0, 0]).flat();
-    }
-
-    _generateLineWeights() {
-        const weights:number[][] = [];
-        const lineRanges = this.lineGlyphRanges();
-        for (let lineIndex = 0; lineIndex < lineRanges.length; lineIndex++) {
-            const lineStart = lineRanges[lineIndex][0];
-            const lineEnd = lineRanges[lineIndex][1];
-            for (let i = lineStart; i <= lineEnd; i++) {
-                // each glyph has 4 vertices so we need to provide a weight for each one
-                weights.push([lineIndex, lineIndex, lineIndex, lineIndex])
-            }
-        }
-        return (weights as any).flat();
-    }
-
-    _generateWordWeights() {
-        const weights:number[][] = [];
-        const wordRanges = this.words;
-        let prevEnd = 0;
-        for (let wordIndex = 0; wordIndex < wordRanges.length; wordIndex++) {
-            const wordRange = wordRanges[wordIndex];
-            const wordStart = wordRange[0];
-            const wordEnd = wordRange[wordRange.length - 1];
-
-            // generate weights for any spaces or new lines
-            for (let i = prevEnd + 1; i < wordStart; i++) {
-                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
-            }
-
-            // fill in the same weight for each glyph within a word
-            for (let i = wordStart; i <= wordEnd; i++) {
-                // each glyph has 4 vertices so we need to provide a weight for each one
-                weights.push([wordIndex, wordIndex, wordIndex, wordIndex])
-            }
-            prevEnd = wordEnd;
-        }
-        return (weights as any).flat();
-    }
-
-    _generateGlyphWeights() {
-        return this.glyph.map((glyph, index) => [index, index, index, index]).flat();
-    }
-
     _buildGeometry() {
-        // build geometry
-        // TODO: this is a bit strange ... we generate weights from the geometry which we're building next?
-        const weights = this._generateWeights();
-        const geometry = this._fontAtlasTextGeometry.build(weights);
+        const geometry = this._fontAtlasTextGeometry.build();
         this._geometry = geometry;
     }
 
+    set color(value) {
+        this._color = value;
+    }
+
+    get color() {
+        return this._color;
+    }
+
     _buildShader() {
-        // build shader
-        // TODO: make into a property
-        //  is this the same as tint?
-        const color = [1.0, 0.0, 0.0, 1.0];
-
-        let shader;
-        // simple
-        // TODO: add transforms support - we should make this into a deformation stack so we only adds it in
-        //  when its necessary
-        if (!this._curveData || !this._curveTexture) {
-            let uniforms = {
-                uSampler2: this.atlas.texture[0],
-                uColor: color,
-            };
-
-            let vertexShader;
-            if (this.transformType === TRANSFORM_TYPE.NONE) {
-               vertexShader = simpleVertexSrc(true);
-            }
-            else {
-                uniforms = Object.assign({}, uniforms, {
-                    transforms: this.transforms,
-                    scaleAnchors: this._generateScaleAnchors(),
-                    scales: this.scales,
-                });
-                vertexShader = transformVertexSrc(true, this.glyph.length);
-            }
-            // TODO: when the transform count changes, we need to rebuild this shader
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
-        }
-        // deformed
-        else {
-            const uniforms = {
-                // color
-                uSampler2: this.atlas.texture[0], // glyph texture
-                uColor: color, // glyph color
-
-                // curve deform
-                texture: this._curveTexture,
-                pathOffset: this._pathOffset,
-                pathSegment: this._pathSegment,
-                spineOffset: this._spineOffset,
-                spineLength: this._spineLength,
-                flow: this._flow,
-            };
-            let vertexShader = deformVertexSrc(true);
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
-        }
+        let uniforms = Object.assign({
+            uSampler2: this.atlas.texture[0],
+            uColor: this.color,
+        }, this.deform._combineUniforms())
+        const vertexShader = this.deform._buildVertexShader();
+        const fragmentShader = this.deform._buildFragmentShader();
+        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
         this._shader = shader;
     }
 
@@ -764,7 +556,8 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _render(renderer: PIXI.Renderer) {
-        this._build();
+        VERBOSE && console.log('render')
+        this._update();
         this._renderDefault(renderer);
     }
 }

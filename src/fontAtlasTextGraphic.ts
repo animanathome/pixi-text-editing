@@ -2,7 +2,10 @@ import * as PIXI from "pixi.js";
 import {FontAtlasText} from "./fontAtlasText";
 import {deformVertexSrc, simpleVertexSrc, transformVertexSrc} from "./vertexShader";
 import {colorFragmentSrc, rectangleFragmentSrc, textureFragmentSrc} from "./fragmentShader";
+import {MeshMixin} from "./meshMixin";
+import {DeformerStack} from "./deformers/deformerStack";
 
+const VERBOSE = false;
 export enum GRAPHIC_TYPE {
     BOUNDS,
     LINE,
@@ -17,121 +20,42 @@ type Padding = {
     bottom: number,
 }
 
-export class FontAtlasTextGraphic extends PIXI.Container{
+export class FontAtlasTextGraphic extends MeshMixin(PIXI.Container){
     _fontAtlasText = null;
     _mesh: PIXI.Mesh = null;
     _dirty = true;
     _graphicType: GRAPHIC_TYPE = GRAPHIC_TYPE.WORD;
+    _graphicCount: number = 0;
     _padding: Padding = {
-        left: 1,
-        right: 1,
-        top: 1,
-        bottom: 1,
+        left: 0,
+        right: 0,
+        top: 0,
+        bottom: 0,
     };
-    _xInvert: boolean = false;
-    _yInvert: boolean = false;
-    _xProgress: number = 1.0;
-    _yProgress: number = 1.0;
-    _color: number[] = [1.0, 0.0, 0.0, 1.0];
-
-    // TODO: make into a mixin and re-use in text
-    _transforms = [0.0, 0.0];
-
-    // TODO: make into a mixin and re-use in text
-    _curveTexture:PIXI.Texture= undefined;
-    _curveData = undefined;
-    _pathSegment = 1;
-    _spineOffset = 0;
-    _spineLength = 1;
-    _pathOffset = 0;
-    _flow = 1;
+    _color: number[] = [0.0, 1.0, 0.0, 1.0];
+    _deformerStack: DeformerStack;
 
     constructor(fontAtlasText: FontAtlasText) {
         super();
         this._fontAtlasText = fontAtlasText;
-        this._createMesh(new PIXI.Geometry());
+        this._deformerStack = new DeformerStack(this, {uvs: false});
+
+        // @ts-ignore
+        this._deformerStack.on('deformerAdded', () => {
+            VERBOSE && console.log('deformer added');
+            this._buildShader();
+        });
+        // when do we need this? what exactly is changed? uniforms should just sync up. Maybe when we need to
+        // re-calculate attributes?
+        // @ts-ignore
+        this._deformerStack.on('deformerChanged', () => {
+            VERBOSE && console.log('deformer changed');
+            this._buildShader();
+        });
     }
 
-    get pathOffset() {
-        return this._pathOffset;
-    }
-
-    set pathOffset(value) {
-        this._pathOffset = value;
-        this._setUniform('pathOffset', value);
-    }
-
-    get pathSegment() {
-        return this._pathSegment;
-    }
-
-    set pathSegment(value) {
-        this._pathSegment = value;
-        this._setUniform('pathSegment', value);
-    }
-
-    set flow(value) {
-        this._flow = value;
-        this._setUniform('flow', value);
-    }
-
-    get flow() {
-        return this._flow;
-    }
-
-    get spineOffset() {
-        return this._spineOffset;
-    }
-
-    set spineOffset(value) {
-        this._spineOffset = value;
-        this._setUniform('spineOffset', value);
-    }
-
-    get spineLength() {
-        return this._spineLength;
-    }
-
-    set spineLength(value) {
-        this._spineLength = value;
-        this._setUniform('spineLength', value);
-    }
-
-
-    get xInvert() {
-        return this._xInvert;
-    }
-
-    set xInvert(value: boolean) {
-        this._xInvert = value;
-        this._setUniform('xInvert', value);
-    }
-
-    get xProgress() {
-        return this._xProgress;
-    }
-
-    set xProgress(value: number) {
-        this._xProgress = value;
-        this._setUniform('xProgress', value);
-    }
-
-    get yInvert() {
-        return this._yInvert;
-    }
-
-    set yInvert(value: boolean) {
-        this._yInvert = value;
-        this._setUniform('yInvert', value);
-    }
-
-    get yProgress() {
-        return this._yProgress;
-    }
-
-    set yProgress(value: number) {
-        this._yProgress = value;
-        this._setUniform('yProgress', value);
+    get deform() {
+        return this._deformerStack;
     }
 
     get color() {
@@ -150,33 +74,6 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         this._mesh.shader.uniforms[property] = value;
     }
 
-    get transforms() {
-        return this._transforms;
-    }
-
-    set transforms(value: number[]) {
-        this._validateTransforms(value);
-        this._setUniform('transforms', value);
-    }
-
-    _validateTransforms(value: number[]) {
-        let expectedLength = -1;
-        switch (this.graphicType) {
-            case GRAPHIC_TYPE.BOUNDS:
-                expectedLength = 2;
-                break;
-            case GRAPHIC_TYPE.LINE:
-                expectedLength = this._fontAtlasText.lines.length * 2;
-                break;
-            case GRAPHIC_TYPE.WORD:
-                expectedLength = this._fontAtlasText.words.length * 2;
-                break;
-        }
-        if (value.length !== expectedLength) {
-            throw Error(`Invalid number of values, expected ${expectedLength}`);
-        }
-    }
-
     set graphicType(value: GRAPHIC_TYPE) {
         this._graphicType = value;
         this._dirty = true;
@@ -186,20 +83,39 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         return this._graphicType;
     }
 
+    get graphicCount() {
+        return this._graphicCount;
+    }
+
     get padding() {
         return this._padding;
     }
 
-    _update() {
-        if(!this._dirty) {
-            return;
-        }
+    _buildGeometry() {
+        let vertices, indices, uvs, weights = [];
+        let count;
         switch (this._graphicType) {
-            case GRAPHIC_TYPE.BOUNDS: this._buildBoundsGraphics(); break;
-            case GRAPHIC_TYPE.LINE: this._buildLineGraphics(); break;
-            case GRAPHIC_TYPE.WORD: this._buildWordGraphics(); break;
+            case GRAPHIC_TYPE.BOUNDS:
+                ({vertices, indices, uvs, weights, count} = this._buildBoundsGraphics());
+                break;
+            case GRAPHIC_TYPE.LINE:
+                ({vertices, indices, uvs, weights, count} = this._buildLineGraphics());
+                break;
+            case GRAPHIC_TYPE.WORD:
+                ({vertices, indices, uvs, weights, count} = this._buildWordGraphics());
+                break;
             default: console.log('unknown');
         }
+
+        const geometry = new PIXI.Geometry();
+        geometry.addAttribute('aVertexPosition', vertices, 2);
+        geometry.addAttribute('aUvs', uvs, 2);
+        geometry.addAttribute('aWeight', weights, 1);
+        geometry.addIndex(indices);
+        this._geometry = geometry;
+        this._graphicCount = count;
+
+        this._weights = weights; // for debugging
     }
 
     _buildBoundsGraphics() {
@@ -208,10 +124,14 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         const x1 = bounds.x + bounds.width + this.padding.right
         const y0 = bounds.y - this.padding.top;
         const y1 = bounds.y + bounds.height + this.padding.bottom;
-        const {vertices, uvs, indices, weights} = this._buildRectangle(x0, x1, y0, y1, 0, 0);
-        const geometry = this._buildGeometry(vertices, uvs, indices, weights);
-        this._mesh.geometry = geometry;
-        this._dirty = false;
+        const {vertices, indices, uvs, weights} = this._buildRectangle(x0, x1, y0, y1, 0, 0);
+        return {
+            vertices,
+            indices,
+            uvs,
+            weights,
+            count: 1
+        }
     }
 
     _buildLineGraphics() {
@@ -220,12 +140,12 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             const [start, end] = this._fontAtlasText._getLineGlyphRange(i)
             selection.push([start, end]);
         }
-        this._buildSelection(selection);
+        return this._buildSelection(selection);
     }
 
     _buildWordGraphics() {
         const selection = this._fontAtlasText.words as number[][];
-        this._buildSelection(selection);
+        return this._buildSelection(selection);
     }
 
     /**
@@ -268,7 +188,7 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             vertices,
             indices,
             uvs,
-            weights,
+            weights
         }
     }
 
@@ -280,6 +200,7 @@ export class FontAtlasTextGraphic extends PIXI.Container{
         const allIndices:number[][] = [];
         const allUvs:number[][] = [];
         const allWeights:number[][] = [];
+        let count = 0;
         let wordIndex = 0;
         for(let word of selection) {
             const glyphStartIndex = word[0];
@@ -300,67 +221,58 @@ export class FontAtlasTextGraphic extends PIXI.Container{
             allUvs.push(uvs);
             allWeights.push(weights);
             wordIndex++;
+            count++;
         }
-        const geometry = this._buildGeometry(
-            allVertices.flat(),
-            allUvs.flat(),
-            allIndices.flat(),
-            allWeights.flat()
-        );
-        this._mesh.geometry = geometry;
+        return {
+            vertices: allVertices.flat(),
+            indices: allIndices.flat(),
+            uvs: allUvs.flat(),
+            weights: allWeights.flat(),
+            count
+        }
+    }
+
+    _deleteGeometry() {
+        if (!this._geometry) {
+            return;
+        }
+        this._geometry.destroy();
+        this._geometry = null;
+    }
+
+    _buildShader() {
+        VERBOSE && console.log('_buildShader');
+        // build shader
+        // TODO: make into a property
+        //  is this the same as tint?
+        // const color = [1.0, 0.0, 0.0, 1.0];
+
+        let uniforms = Object.assign({
+            uColor: this.color,
+            translationMatrix: this.transform.worldTransform.toArray(true)
+        }, this.deform._combineUniforms())
+        const vertexShader = this.deform._buildVertexShader();
+        const fragmentShader = this.deform._buildFragmentShader();
+        const shader = PIXI.Shader.from(vertexShader, fragmentShader, uniforms);
+        this._shader = shader;
+    }
+
+    _build() {
+        if (!this._dirty) {
+            return;
+        }
+        this._deleteGeometry();
+        this._buildGeometry();
+        this._buildShader();
         this._dirty = false;
     }
 
-    // TODO: we can reuse this in fontAtlasTextGeometry
-    _buildGeometry(vertices: number[], uvs: number[], indices: number[], weights: number[]) {
-        const geometry = new PIXI.Geometry();
-        geometry.addAttribute('aVertexPosition', vertices, 2);
-        geometry.addAttribute('aUvs', uvs, 2);
-        geometry.addAttribute('aWeight', weights, 1)
-        geometry.addIndex(indices);
-        return geometry;
-    }
-
-    // TODO: we need to fill in scales and scaleAnchors here as well
-    _createMesh(geometry) {
-        let shader;
-        if (!this._curveData || !this._curveTexture) {
-            const uniforms = {
-                transforms: this.transforms,
-                uColor: this.color,
-                xInvert: this.xInvert,
-                yInvert: this.yInvert,
-                xProgress: this.xProgress,
-                yProgress: this.yProgress,
-            };
-            // TODO: when the transform count changes, we need to rebuild the shader!
-            const vertexShader = transformVertexSrc(true, 4);
-            shader = PIXI.Shader.from(vertexShader, rectangleFragmentSrc, uniforms);
-        }
-        else {
-            const uniforms = {
-                // curve deform
-                texture: this._curveTexture,
-                pathOffset: this._pathOffset,
-                pathSegment: this._pathSegment,
-                spineOffset: this._spineOffset,
-                spineLength: this._spineLength,
-                flow: this._flow,
-            };
-            let vertexShader = deformVertexSrc(true);
-            shader = PIXI.Shader.from(vertexShader, textureFragmentSrc, uniforms);
-        }
-
-        const mesh = new PIXI.Mesh(geometry, shader);
-        this._mesh = mesh;
-        this.addChild(mesh);
-    }
-
     _render(renderer: PIXI.Renderer) {
-        // we need to make sure our text is up to date
-        this._fontAtlasText._render(renderer);
-
-        this._update();
-        super._render(renderer);
+        this._build();
+        if (this.deform.dirty) {
+            this.deform.update();
+            this._buildShader();
+        }
+        this._renderDefault(renderer);
     }
 }

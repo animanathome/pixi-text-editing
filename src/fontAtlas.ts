@@ -3,19 +3,20 @@ import {difference, uniq} from 'lodash';
 import {FontLoader} from "./fontLoader";
 import {direction, forString} from "./Script";
 
-const VERBOSE = false;
-
 type FontAtlasSettings = {
-    font?: FontLoader,
+    fontLoader?: FontLoader,
     fontSize?: number,
     resolution?: number,
     paddingInX?: number,
     paddingInY?: number,
+    fillStyle?: string,
     debugBounds?: boolean,
 };
 
+const VERBOSE = false;
+
 export class FontAtlas {
-    font = undefined;
+    fontLoader : FontLoader = undefined;
     fontSize = 48;
     resolution = 512;
     paddingInX = 6;
@@ -44,24 +45,52 @@ export class FontAtlas {
     wordSpacing = 0;
     script = 'latn';
     direction = 'ltr';
+    fillStyle = 'white';
 
     x = 0;
     y = 0;
     prevId = undefined;
     constructor(settings?: FontAtlasSettings) {
-        this.font = settings.font ?? this.font;
+        VERBOSE && console.log('create font atlas', settings);
+        this.fontLoader = settings.fontLoader;
         this.fontSize = settings.fontSize ?? this.fontSize;
         this.resolution = settings.resolution ?? this.resolution;
         this.paddingInX = settings.paddingInX ?? this.paddingInX;
         this.paddingInY = settings.paddingInY ?? this.paddingInY;
+        this.fillStyle = settings.fillStyle ?? this.fillStyle;
         this.debugBounds = settings.debugBounds ?? this.debugBounds;
+    }
 
-        this._setupCanvas();
-        this._setupAtlas();
+    /**
+     * An Atlas is considered loaded when it has a canvas and its properties set.
+     */
+    get loaded() {
+        return this.canvas && this.familyName;
+    }
+
+    update() {
+        VERBOSE && console.log('update');
+        if (!this.fontLoader.loaded()) {
+            VERBOSE && console.log('unable to continue, font not loaded yet')
+            return;
+        }
+        if (!this.canvas) {
+            this._setupCanvas();
+        }
+        if (!this.familyName) {
+            this._initProps();
+        }
+    }
+
+    get font() {
+        if (!this.fontLoader.loaded()) {
+            throw new Error('Font not loaded');
+        }
+        return this.fontLoader.font;
     }
 
     _setupCanvas() {
-        VERBOSE && console.log('_setupCanvas()');
+        VERBOSE && console.log('setup canvas')
         this.canvas = document.createElement('canvas') as HTMLCanvasElement;
         this.canvas.width = this.resolution;
         this.canvas.height = this.resolution;
@@ -70,18 +99,21 @@ export class FontAtlas {
         // background color
         // this.context.beginPath();
         // this.context.fillRect(0, 0, this.resolution, this.resolution);
-        // this.context.fillStyle = "red";
+        this.context.fillStyle = this.fillStyle;
         // this.context.fill();
 
         this.context.scale(1, -1);
     }
 
     _clearCanvas() {
+        if (!this.context) {
+            return;
+        }
         this.context.clearRect(0, 0, this.canvas.width, -this.canvas.height);
     }
 
-     _setupAtlas() {
-        VERBOSE && console.log('_setupAtlas()');
+     _initProps() {
+        VERBOSE && console.log('init props');
         const scale = this.fontSize / this.font.unitsPerEm;
         const ascent = this.font.ascent * scale;
         const descent = this.font.descent * scale;
@@ -149,6 +181,7 @@ export class FontAtlas {
     }
 
     _addGlyph(character) {
+        VERBOSE && console.log('_addGlyph', character)
         const glyphId = this._glyphsForString(character);
         const glyph = this.font.getGlyph(glyphId);
 
@@ -271,7 +304,7 @@ export class FontAtlas {
         return storedGlyphs;
     }
 
-    clear() {
+    destroy() {
         this.texture.forEach(texture => texture.destroy(true));
         this.texture = [];
         this.textureId = 0;

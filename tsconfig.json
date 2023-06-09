@@ -5,6 +5,7 @@
     "module": "es2020",
     "target": "es5",
     "allowJs": true,
+    "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "lib": [
@@ -14,6 +15,10 @@
       "dom.iterable"
     ]
   },
+  "include": [
+      "src/**/*",
+      "tests/**/*",
+  ],
   "typeRoots": [
     "./typings",
   ]

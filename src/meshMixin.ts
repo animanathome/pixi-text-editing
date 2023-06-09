@@ -7,7 +7,7 @@ export type MeshMixinInterface = {
      * Can be shared between multiple Mesh objects.
      * @type {PIXI.Shader|PIXI.MeshMaterial}
      */
-    get shader(): PIXI.MeshMaterial;
+    get shader(): PIXI.MeshMaterial | PIXI.Shader;
     /**
      * Represents the WebGL state the Mesh required to render, excludes shader and geometry. E.g.,
      * blend mode, culling, depth testing, direction of rendering triangles, backface, etc.
@@ -47,7 +47,7 @@ export type PublicConstructor<T> = new (props: GetConstructorParameters<T>) => T
  */
 export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
     const Derived = class extends (Base as any) implements MeshMixinInterface {
-        _shader : PIXI.MeshMaterial = null;
+        _shader : PIXI.MeshMaterial | PIXI.Shader = null;
         _geometry : PIXI.Geometry = null;
         _state: PIXI.State = PIXI.State.for2d();
         _size: number = 0;
@@ -91,22 +91,31 @@ export const MeshMixin = <TBase extends MixinBase>(Base: TBase) => {
         }
 
         _renderDefault(renderer: PIXI.Renderer) {
+            // console.log('rendering default');
             if (!this.shader || !this.geometry) {
                 console.log('no shader or geometry available. Nothing to render');
                 return;
             }
-            this.shader.alpha = this.worldAlpha;
-            // if the shader has an update method, call it. This is where PIXI updates both the color
-            // and uvMatrix if dirty
-            if (this.shader.update)
-            {
-                this.shader.update();
-            }
+            // this.shader.alpha = this.worldAlpha;
+            // // if the shader has an update method, call it. This is where PIXI updates both the color
+            // // and uvMatrix if dirty
+            // if (this.shader.update)
+            // {
+            //     this.shader.update();
+            // }
             renderer.batch.flush();
 
-            this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
+            // console.log('renderer', renderer.CONTEXT_UID);
+            // const bufferSystem = renderer.buffer;
+            // for (let i = 0; i < this.geometry.buffers.length; i++) {
+            //     const buffer = this.geometry.buffers[i];
+            //     const GLbuffer = buffer._glBuffers[renderer.CONTEXT_UID] || bufferSystem.createGLBuffer(buffer);
+            //     // bufferSystem.update(buffer);
+            // }
 
-            renderer.shader.bind(this.shader);
+            this.shader.uniforms.translationMatrix = this.transform.worldTransform.toArray(true);
+            // console.log('binding shader', this)
+            renderer.shader.bind(this.shader, false);
             renderer.state.set(this.state);
             renderer.geometry.bind(this.geometry, this.shader);
             renderer.geometry.draw(this.drawMode, this.size, this.start, this.geometry.instanceCount);

@@ -4,7 +4,8 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   mode: 'development',
-  entry: './src/index.ts',
+  watch: true,
+  entry: './demos/index.ts',
   target: 'web',
   module: {
     rules: [
@@ -34,7 +35,7 @@ module.exports = {
   devtool: 'source-map',
   output: {
     filename: 'main.js',
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, 'dist/demos'),
   },
   plugins: [
       new webpack.ProvidePlugin({

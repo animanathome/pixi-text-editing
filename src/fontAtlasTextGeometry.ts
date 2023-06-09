@@ -1,6 +1,5 @@
 import * as PIXI from "pixi.js";
 import {average, dist} from "./utils";
-import {TRANSFORM_TYPE} from "./fontAtlasText";
 
 export const LEFT = 0;
 export const RIGHT = 1;
@@ -11,6 +10,8 @@ export class FontAtlasTextGeometry {
     _indexArray = [];
     _glyph = [];
     _glyphCenters = [];
+
+    // why do we need this here?
     atlasResolution = 256; // atlas atlasResolution
 
     clear() {
@@ -209,8 +210,8 @@ export class FontAtlasTextGeometry {
         // vertex order to create a triangle/polygon
         const indexOffset = this._glyph.length * 4;
         const indices = [
-            0 + indexOffset, 1 + indexOffset, 2 + indexOffset,
-            2 + indexOffset, 3 + indexOffset, 0 + indexOffset,
+            indexOffset, 1 + indexOffset, 2 + indexOffset,
+            2 + indexOffset, 3 + indexOffset, indexOffset,
         ];
 
         const uvs = this._generateGlyphUVs(metrics);
@@ -246,20 +247,18 @@ export class FontAtlasTextGeometry {
         return vertexArray;
     }
 
-    // renaming to vertex array
     _generateGlyphVertices(metrics, multi) {
         const x0 = (0 + metrics.leftBearing) * multi;
         const x1 = (metrics.width + metrics.leftBearing) * multi;
         const y0 = (0 + metrics.topBearing) * multi;
         const y1 = (metrics.height + metrics.topBearing) * multi;
 
-        const glyphVertices = [
+        return [
             x1, y1,
             x1, y0,
             x0, y0,
             x0, y1,
         ];
-        return glyphVertices;
     }
 
     _generateGlyphUVs(metrics) {
@@ -277,11 +276,10 @@ export class FontAtlasTextGeometry {
         return glyphUVs;
     }
 
-    build(weights: number[]) : PIXI.Geometry {
+    build() : PIXI.Geometry {
         const geometry = new PIXI.Geometry();
         geometry.addAttribute('aVertexPosition', this._vertexArray, 2);
         geometry.addAttribute('aUvs', this._uvArray, 2);
-        geometry.addAttribute('aWeight', weights, 1)
         geometry.addIndex(this._indexArray);
         return geometry;
     }
