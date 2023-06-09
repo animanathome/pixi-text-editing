@@ -8,20 +8,21 @@
     "demos": "webpack --config webpack.demos.config.js --watch",
     "build": "webpack --config webpack.prod.config.js",
     "test:build": "webpack --config webpack.test.config.js &",
-    "test:run": "floss --path ./dist/test.js --debug",
+    "test:run": "floss --path ./dist/test.js -- disableHardwareAcceleration",
     "test": "npm run serve && npm run test:build && npm run test:run",
     "serve": "./scripts/start_server.sh"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "clean-webpack-plugin": "^4.0.0",
     "fontkit-next": "^1.8.3",
     "lodash": "^4.17.21",
     "pixi.js": "^6.2.0",
     "three": "^0.146.0"
   },
   "devDependencies": {
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
     "@types/chai": "^4.3.0",
     "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.0.0",
@@ -29,6 +30,7 @@
     "@types/whatwg-fetch": "^0.0.33",
     "buffer": "^6.0.3",
     "chai": "^4.3.4",
+    "clean-webpack-plugin": "^4.0.0",
     "dat.gui": "^0.7.9",
     "electron": "^13.6.9",
     "floss": "^5.0.1",
