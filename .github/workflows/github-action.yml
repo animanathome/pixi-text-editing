@@ -20,7 +20,7 @@ jobs:
       - run: npm install
       - run: npm run serve
       - run: npm run test:build
-      - uses: GabrielBB/xvfb-action@v1.6
+      - uses: coactions/setup-xvfb@v1
         with:
           run: floss --path ./dist/test.js
       - uses: actions/upload-artifact@v3
