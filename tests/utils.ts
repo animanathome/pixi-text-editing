@@ -7,6 +7,13 @@ import {FontAtlasText, TRANSFORM_TYPE} from "../src/fontAtlasText";
 
 export const LOCALHOST = 'http://localhost:8080/resources/'
 
+export const extractImageData = async(canvas: HTMLCanvasElement) => {
+    const blob: Blob = await new Promise(resolve => canvas.toBlob(resolve));
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    return buffer
+}
+
 export const roundBounds = (bounds) => {
     return {
         x: Math.round(bounds.x),

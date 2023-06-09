@@ -7,7 +7,7 @@
   "scripts": {
     "build": "webpack --config webpack.prod.config.js",
     "test:build": "webpack --config webpack.test.config.js &",
-    "test:run": "floss --path ./dist/test.js",
+    "test:run": "floss --path ./dist/test.js -- disableHardwareAcceleration",
     "test": "npm run serve && npm run test:build && npm run test:run",
     "serve": "./scripts/start_server.sh"
   },
@@ -20,6 +20,8 @@
     "three": "^0.146.0"
   },
   "devDependencies": {
+    "pixelmatch": "^5.3.0",
+    "pngjs": "^7.0.0",
     "@types/chai": "^4.3.0",
     "@types/lodash": "^4.14.178",
     "@types/mocha": "^9.0.0",

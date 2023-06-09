@@ -1,3 +1,3 @@
 // @ts-ignore
-import('./teardown');
 import('./resources.spec');
+import('./fontAtlas.spec');

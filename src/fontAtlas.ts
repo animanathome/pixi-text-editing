@@ -3,6 +3,8 @@ import {difference, uniq} from 'lodash';
 import {FontLoader} from "./fontLoader";
 import {direction, forString} from "./Script";
 
+const VERBOSE = false;
+
 type FontAtlasSettings = {
     font?: FontLoader,
     fontSize?: number,
@@ -59,6 +61,7 @@ export class FontAtlas {
     }
 
     _setupCanvas() {
+        VERBOSE && console.log('_setupCanvas()');
         this.canvas = document.createElement('canvas') as HTMLCanvasElement;
         this.canvas.width = this.resolution;
         this.canvas.height = this.resolution;
@@ -78,6 +81,7 @@ export class FontAtlas {
     }
 
      _setupAtlas() {
+        VERBOSE && console.log('_setupAtlas()');
         const scale = this.fontSize / this.font.unitsPerEm;
         const ascent = this.font.ascent * scale;
         const descent = this.font.descent * scale;
