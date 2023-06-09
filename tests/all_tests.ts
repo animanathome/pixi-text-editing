@@ -1,4 +1,5 @@
-// @ts-ignore
+import('./resources.spec');
+import('./fontAtlas.spec');
 // import('./fontLoader.spec');
 // import('./fontAtlasText.spec');
 // import('./fontAtlasTextCaret.spec');
@@ -25,6 +26,3 @@
 // import('./interpolationCache.spec');
 // import('./animation/animationStack.spec');
 // import('./textPlayground.spec');
-
-import('./resources.spec');
-import('./fontAtlas.spec');
