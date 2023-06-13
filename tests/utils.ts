@@ -17,6 +17,7 @@ export const extractImageData = async(canvas: HTMLCanvasElement) => {
 }
 
 export const roundBounds = (bounds) => {
+    VERBOSE && console.log('roundBounds', bounds);
     return {
         x: Math.round(bounds.x),
         y: Math.round(bounds.y),

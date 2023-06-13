@@ -1,9 +1,7 @@
 import {FontLoader} from "../src/fontLoader";
 import {FontAtlas} from "../src/fontAtlas";
-import chai, { expect } from 'chai';
-// @ts-ignore
-import chaiSnapshot from '../chia/mocha-chai-snapshot'
-chai.use(chaiSnapshot);
+require('./chia/matchesSnapshot');
+import { expect } from 'chai';
 import {extractImageData, LOCALHOST} from "./utils";
 
 
@@ -17,10 +15,12 @@ describe('fontAtlas', function() {
 
         // Act
         const atlas = new FontAtlas({
-            fontLoader: fontLoader.font,
+            fontLoader: fontLoader,
             resolution: 64,
             fontSize: 12,
+            fillStyle: 'black',
         })
+        atlas.update();
         // render and store glyph data for each character in the following string
         atlas.addGlyphsForString('abcd');
         atlas.addGlyphsForString('cdef');

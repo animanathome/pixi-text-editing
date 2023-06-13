@@ -90,8 +90,10 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
 
     set fontSize(value) {
         if (value === this.fontSize) {
+            VERBOSE && console.log(`fontSize not changed: ${value}`);
             return;
         }
+        VERBOSE && console.log('set fontSize', value);
         this._fontSize = value;
         this._dirty = true;
     }
