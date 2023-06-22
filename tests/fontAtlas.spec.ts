@@ -5,7 +5,7 @@ import { expect } from 'chai';
 import {extractImageData, LOCALHOST} from "./utils";
 
 
-describe('fontAtlas', function() {
+describe('FontAtlas', function() {
     it('can render latin glyphs', async function(){
         // Arrange
         const fontLoader = new FontLoader();

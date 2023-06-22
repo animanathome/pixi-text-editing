@@ -1,7 +1,7 @@
 import {BaseDeformer} from "../base/BaseDeformer";
 import {TEXT_TRANSFORM_ENUM} from "../enums";
 
-const VERBOSE = false;
+const VERBOSE = true;
 
 export class TextDeformer extends BaseDeformer {
     _transformType = TEXT_TRANSFORM_ENUM.BOUNDS;
@@ -27,10 +27,12 @@ export class TextDeformer extends BaseDeformer {
     _resetState() {
         VERBOSE && console.log('reset state');
         const expectedLength = this._expectTransformsLength(1);
+        console.log('expected length', expectedLength);
         this._resetStateOnProperties(expectedLength);
     }
 
     _resetStateOnProperties(length: number) {
+        console.log('reset state on properties', length);
         // abstract class
     }
 

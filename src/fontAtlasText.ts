@@ -7,7 +7,7 @@ import {MeshMixin} from "./meshMixin";
 import {DeformerStack} from "./deformers/deformerStack";
 import {AnimationStack} from "./animation/animationStack";
 
-const VERBOSE = false;
+const VERBOSE = true;
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {
@@ -324,7 +324,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
      */
     _update() {
         VERBOSE && console.log('text build', this.dirty)
-        if (!this._dirty) {
+        if (!this._dirty && !this.deform.dirty && !this.anim.dirty) {
             // it's important that we keep evaluating this while the text hasn't been fully updated.
             // this will allow us to easily determine whether everything is up-to-date.
             VERBOSE && console.log('nothing to do')
@@ -520,6 +520,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _buildShader() {
+        VERBOSE && console.log('build shader');
         let uniforms = Object.assign({
             uSampler2: this.atlas.texture[0],
             uColor: this.color,

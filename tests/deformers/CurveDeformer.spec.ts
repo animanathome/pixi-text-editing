@@ -1,7 +1,8 @@
-import { expect } from 'chai';
+require('../chia/matchesSnapshot');
+import {expect} from 'chai';
 import * as PIXI from 'pixi.js';
 import * as THREE from 'three';
-import {createFontAtlasTextApp, createRectangleApp} from "../utils";
+import {createFontAtlasTextApp, createRectangleApp, extractImageData} from "../utils";
 import {buildCurveData, createCurveTexture, getStraightLinePositions} from "../../src/curveDeformer";
 import {CurveDeformer} from "../../src/deformers/base/CurveDeformer";
 import {TEXT_TRANSFORM_ENUM} from "../../src/deformers/enums";
@@ -51,13 +52,14 @@ describe('CurveDeformer', () => {
         expect(curveDeformer.animatableProperties).to.eql(expectedResult);
     });
 
-    describe('can be combined with', () => {
-        it('text deformer', async() => {
+    describe('combines with', () => {
+        it('text deformer', async function() {
             // Assemble
             const displayText = 'Hello World!';
             const {text, app} = await createFontAtlasTextApp({displayText});
             document.body.appendChild(app.view);
 
+            // Act
             const offsetX = 0;
             const offsetY = -16;
             const radius = 48;
@@ -89,17 +91,20 @@ describe('CurveDeformer', () => {
 
             // Assert
             expect(text.deform.deformers.length).to.be.equal(2);
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
 
             // Cleanup
             app.destroy(true, true);
         });
 
-        it('vertex deformer', async() => {
+        it('vertex deformer', async function()  {
             // Assemble
             const {app, rectangle} = createRectangleApp();
             rectangle.width = 32;
             rectangle.height = 32;
 
+            // Act
             const start = new PIXI.Point(-64, -64);
             const end = new PIXI.Point(64, 64);
             const points = getStraightLinePositions(start, end, 5);
@@ -111,7 +116,6 @@ describe('CurveDeformer', () => {
             });
             const dataTexture = createCurveTexture(positions, normals, tangents);
 
-            // Act
             const vertexDeformer = new VertexTransformDeformer();
             vertexDeformer.offset.x = -18;
             vertexDeformer.offset.y = -18;
@@ -126,6 +130,8 @@ describe('CurveDeformer', () => {
 
             // Assert
             expect(rectangle.deform.deformers.length).to.be.equal(2);
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
 
             // Cleanup
             app.destroy(true, true);

@@ -1,3 +1,4 @@
+import process from 'process';
 import {Buffer} from "buffer";
 import {Context} from "mocha";
 const {Assertion} = require("chai");
@@ -6,6 +7,9 @@ const fs = require('fs');
 const PNG = require('pngjs').PNG;
 const pixelmatch = require('pixelmatch');
 const path = require('path');
+
+const DEBUG = process.env.DEBUG === '1';
+console.log('DEBUG', DEBUG);
 
 // inspired by https://github.com/monojitb02/mocha-chai-snapshot
 
@@ -43,6 +47,30 @@ const doImagesMatch = (currentImageFile: string, expectedImageFile: string) => {
     return true;
 }
 
+/**
+ * Get an array of all the titles given the specified context.
+ * @param context
+ * @param titles
+ */
+function getParentTitle(context, titles: Array<string>) {
+    if ('title' in context && context.title.length > 0) {
+        titles.push(context.title.replace(/\s+/g, '-'));
+    }
+    if (context.parent) {
+        getParentTitle(context.parent, titles);
+    }
+    return titles;
+}
+
+/**
+ * Get the full test name.
+ * @param context
+ */
+function getImageName(context) {
+    const parent_titles = getParentTitle(context, []);
+    return parent_titles.reverse().join('-');
+}
+
 declare global {
     export namespace Chai {
         interface Assertion {
@@ -54,9 +82,8 @@ Assertion.addMethod("matchesSnapshot", function (passedContext) {
     const actual = this._obj as Buffer;
     const context = passedContext.test ? passedContext.test : passedContext
 
-    const suiteTitle = context.parent.title.replace(/\s+/g, '-');
-    const testTitle = context.title.replace(/\s+/g, '-');
-    const imageName = `${suiteTitle}-${testTitle}.png`;
+    const title = getImageName(context);
+    const imageName = `${title}.png`;
 
     // save the current image to the current directory
     const currentTestImage = path.join(CURRENT_DIR, imageName);
@@ -69,7 +96,13 @@ Assertion.addMethod("matchesSnapshot", function (passedContext) {
     const expectedTestImage = path.join(EXPECTED_DIR, imageName);
     let result = true;
     let message = '';
+
+    // we only need to evaluate this condition when on CI
     if (!fs.existsSync(expectedTestImage)) {
+        if (DEBUG) {
+            console.warn(`Image ${imageName} does not exist yet. Please copy current result into expected folder`)
+            return true;
+        }
         result = false;
         message = `Image does not exist`;
     }
