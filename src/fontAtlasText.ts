@@ -7,7 +7,7 @@ import {MeshMixin} from "./meshMixin";
 import {DeformerStack} from "./deformers/deformerStack";
 import {AnimationStack} from "./animation/animationStack";
 
-const VERBOSE = true;
+const VERBOSE = false;
 
 // TODO: Look at PIXI.Mesh. This object has all the necessary properties to enable rendering
 export class FontAtlasText extends MeshMixin(PIXI.Container) {

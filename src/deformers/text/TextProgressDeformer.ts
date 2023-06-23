@@ -33,7 +33,6 @@ export class TextProgressDeformer extends TextDeformer {
     }
 
     set progresses(value: number[]) {
-        console.log('set progresses', value);
         this._validateData(value, 1);
         this._progresses = value;
     }
@@ -43,7 +42,6 @@ export class TextProgressDeformer extends TextDeformer {
     }
 
     set direction(value: TRANSFORM_DIRECTION) {
-        console.log('set direction', value);
         this._direction = value;
     }
 
@@ -171,7 +169,6 @@ export class TextProgressDeformer extends TextDeformer {
 
     _resetStateOnProperties(length: number) {
         this._progresses = new Array(length).fill(1.0);
-        console.log('reset progresses', this._progresses);
     }
 
     // we could move this to the geometry build step
