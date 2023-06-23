@@ -18,7 +18,6 @@ describe('TextTransformDeformer', () => {
             fontSize: 24,
             fontAtlasSize: 24,
             fontAtlasResolution: 256,
-            fontUrl: '../../../resources/Roboto-Bold.ttf'
         });
         document.body.appendChild(app.view);
 
