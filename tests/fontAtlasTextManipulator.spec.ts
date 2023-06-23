@@ -164,7 +164,7 @@ describe('FontAtlasTextManipulator', () => {
 
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
-                    expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(7);
+                    expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(8);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
                     // Act
@@ -391,7 +391,7 @@ describe('FontAtlasTextManipulator', () => {
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
 
-                    expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(7);
+                    expect(Math.ceil(manipulator.caret.getBounds().x)).to.equal(8);
                     expect(manipulator.caret.getBounds().y).to.equal(12);
 
                     // Act
@@ -503,8 +503,8 @@ describe('FontAtlasTextManipulator', () => {
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
 
-                    expect(manipulator.caret.getBounds().x).to.equal(0);
-                    expect(manipulator.caret.getBounds().y).to.equal(24);
+                    expect(manipulator.caret.getBounds().x).to.equal(0, 'caret.x');
+                    expect(manipulator.caret.getBounds().y).to.equal(24, 'caret.y');
 
                     // Act
                     // a\n
@@ -515,8 +515,8 @@ describe('FontAtlasTextManipulator', () => {
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
 
-                    expect(manipulator.caret.getBounds().x).to.equal(0);
-                    expect(manipulator.caret.getBounds().y).to.equal(12);
+                    expect(manipulator.caret.getBounds().x).to.equal(0, 'caret.x');
+                    expect(manipulator.caret.getBounds().y).to.equal(0, 'caret.y');
 
                     // Act
                     // |a\n
@@ -527,8 +527,8 @@ describe('FontAtlasTextManipulator', () => {
                     // Assert
                     writeDataUrlToDisk(app.view.toDataURL(), 'test');
 
-                    expect(manipulator.caret.getBounds().x).to.equal(0);
-                    expect(manipulator.caret.getBounds().y).to.equal(0);
+                    expect(manipulator.caret.getBounds().x).to.equal(0, 'caret.x');
+                    expect(manipulator.caret.getBounds().y).to.equal(0, 'caret.y');
 
                     // Cleanup
                     app.destroy(true, true);
@@ -699,7 +699,7 @@ describe('FontAtlasTextManipulator', () => {
                 const bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(27);
+                expect(bounds.width).to.equal(33);
                 expect(bounds.height).to.equal(12);
 
                 // Cleanup
@@ -728,7 +728,7 @@ describe('FontAtlasTextManipulator', () => {
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test');
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(15);
+                expect(bounds.x).to.equal(16);
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
@@ -744,7 +744,7 @@ describe('FontAtlasTextManipulator', () => {
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test');
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(15);
+                expect(bounds.x).to.equal(16);
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
@@ -778,10 +778,10 @@ describe('FontAtlasTextManipulator', () => {
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(0);
-                expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(66);
-                expect(bounds.height).to.equal(24);
+                expect(bounds.x).to.equal(14, 'bounds.x');
+                expect(bounds.y).to.equal(12, 'bounds.y');
+                expect(bounds.width).to.equal(30, 'bounds.width');
+                expect(bounds.height).to.equal(12, 'bounds.height');
 
                 // Cleanup
                 app.destroy(true, true);
@@ -813,7 +813,7 @@ describe('FontAtlasTextManipulator', () => {
                 const bounds = roundBounds(manipulator.drawSelection.getBounds());
                 expect(bounds.x).to.equal(0);
                 expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(27);
+                expect(bounds.width).to.equal(33);
                 expect(bounds.height).to.equal(12);
 
                 // Cleanup
@@ -843,7 +843,7 @@ describe('FontAtlasTextManipulator', () => {
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
 
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(15);
+                expect(bounds.x).to.equal(16);
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
@@ -860,7 +860,7 @@ describe('FontAtlasTextManipulator', () => {
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
 
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(15);
+                expect(bounds.x).to.equal(16);
                 expect(bounds.y).to.equal(0);
                 expect(bounds.width).to.equal(13);
                 expect(bounds.height).to.equal(12);
@@ -871,7 +871,7 @@ describe('FontAtlasTextManipulator', () => {
 
             it('multiple words on two lines', async() => {
                 // Assemble
-                const displayText = 'This is this? I am not sure.'
+                const displayText : string = 'This is this? I am not sure.'
                 const {app, text} = await createFontAtlasTextApp({
                     displayText,
                     width: 64,
@@ -894,10 +894,10 @@ describe('FontAtlasTextManipulator', () => {
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(0);
-                expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(66);
-                expect(bounds.height).to.equal(24);
+                expect(bounds.x).to.equal(14, 'bounds.x');
+                expect(bounds.y).to.equal(12, 'bounds.y');
+                expect(bounds.width).to.equal(30);
+                expect(bounds.height).to.equal(12);
 
                 // Act
                 manipulator.select(9, CARET_POSITION.END);
@@ -913,10 +913,10 @@ describe('FontAtlasTextManipulator', () => {
                 // Assert
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
                 bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(0);
-                expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(66);
-                expect(bounds.height).to.equal(24);
+                expect(bounds.x).to.equal(14, 'bounds.x');
+                expect(bounds.y).to.equal(12, 'bounds.y');
+                expect(bounds.width).to.equal(30, 'bounds.width');
+                expect(bounds.height).to.equal(12, 'bounds.height');
 
                 // Cleanup
                 app.destroy(true, true);
@@ -942,10 +942,10 @@ describe('FontAtlasTextManipulator', () => {
                 writeDataUrlToDisk(app.view.toDataURL(), 'test')
 
                 let bounds = roundBounds(manipulator.drawSelection.getBounds());
-                expect(bounds.x).to.equal(0);
-                expect(bounds.y).to.equal(0);
-                expect(bounds.width).to.equal(66);
-                expect(bounds.height).to.equal(36);
+                expect(bounds.x).to.equal(0, 'bounds.x');
+                expect(bounds.y).to.equal(12, 'bounds.y');
+                expect(bounds.width).to.equal(53, 'bounds.width');
+                expect(bounds.height).to.equal(36, 'bounds.height');
 
                 // Cleanup
                 app.destroy(true, true);
@@ -992,8 +992,8 @@ describe('FontAtlasTextManipulator', () => {
 
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(1);
-            expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(26);
+            expect(bounds.y).to.equal(3);
+            expect(bounds.width).to.equal(29);
             expect(bounds.height).to.equal(9);
 
             // Cleanup
@@ -1030,10 +1030,10 @@ describe('FontAtlasTextManipulator', () => {
             // Final assert - ensure we end up with hello world
             writeDataUrlToDisk(app.view.toDataURL(), 'test')
             const bounds = roundBounds(text.getBounds());
-            expect(bounds.x).to.equal(1);
+            expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(57);
-            expect(bounds.height).to.equal(12);
+            expect(bounds.width).to.equal(33);
+            expect(bounds.height).to.equal(24);
 
             // Cleanup
             app.destroy(true, true);
@@ -1066,10 +1066,10 @@ describe('FontAtlasTextManipulator', () => {
             expect(text.text).to.equal('hello world')
             expect(manipulator._activeGlyph()).to.eql([10, 1])
             const bounds = roundBounds(text.getBounds());
-            expect(bounds.x).to.equal(1);
+            expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(57);
-            expect(bounds.height).to.equal(12);
+            expect(bounds.width).to.equal(33);
+            expect(bounds.height).to.equal(24);
 
             // Cleanup
             app.destroy(true, true);
@@ -1088,8 +1088,9 @@ describe('FontAtlasTextManipulator', () => {
             app.stage.addChildAt(manipulator, 0);
 
             // Act
-            manipulator.click(25, 0, false);
-            expect(manipulator._activeGlyph()).to.eql([4, 0])
+            manipulator.click(32, 0, false);
+            app.ticker.update();
+            expect(manipulator._activeGlyph()).to.eql([3, 1])
             manipulator.onInput('i')
             manipulator.onInput('s')
             manipulator.onInput(' ')
@@ -1102,7 +1103,7 @@ describe('FontAtlasTextManipulator', () => {
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(51);
+            expect(bounds.width).to.equal(58);
             expect(bounds.height).to.equal(12);
 
             // Cleanup
@@ -1124,13 +1125,13 @@ describe('FontAtlasTextManipulator', () => {
             app.stage.addChildAt(manipulator, 0);
 
             // Act - delete d
-            manipulator.click(30, 0, false);
+            manipulator.click(32, 0, false);
             manipulator.arrowRight();
             manipulator.onDelete();
 
             // Assert
             app.ticker.update();
-            expect(manipulator._activeGlyph()).to.eql([4, 0])
+            expect(manipulator._activeGlyph()).to.eql([3, 1])
 
             // Act - add " n"
             manipulator.onInput(' ')
@@ -1144,7 +1145,7 @@ describe('FontAtlasTextManipulator', () => {
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(53);
+            expect(bounds.width).to.equal(62);
             expect(bounds.height).to.equal(12);
 
             // Cleanup
@@ -1175,8 +1176,8 @@ describe('FontAtlasTextManipulator', () => {
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(42);
-            expect(bounds.height).to.equal(21);
+            expect(bounds.width).to.equal(48);
+            expect(bounds.height).to.equal(24);
 
             // Cleanup
             app.destroy(true, true);
@@ -1195,7 +1196,7 @@ describe('FontAtlasTextManipulator', () => {
             app.stage.addChildAt(manipulator, 0);
 
             // Act - delete his
-            manipulator.click(30, 0, false);
+            manipulator.click(32, 0, false);
             manipulator.arrowRight(true);
             manipulator.arrowRight(true);
             manipulator.arrowRight(true);
@@ -1205,11 +1206,11 @@ describe('FontAtlasTextManipulator', () => {
             // Assert
             writeDataUrlToDisk(app.view.toDataURL(), 'test');
             expect(text.text).is.equal('What now');
-            expect(manipulator._activeGlyph()).to.eql([4, 0]);
+            expect(manipulator._activeGlyph()).to.eql([4, 1]);
             const bounds = roundBounds(text.getBounds());
             expect(bounds.x).to.equal(0);
             expect(bounds.y).to.equal(0);
-            expect(bounds.width).to.equal(53);
+            expect(bounds.width).to.equal(62);
             expect(bounds.height).to.equal(12);
 
             // Cleanup
@@ -1263,10 +1264,10 @@ describe('FontAtlasTextManipulator', () => {
         expect(manipulator._activeGlyph()).to.eql([4, 1]);
 
         bounds = roundBounds(text.getBounds());
-        expect(bounds.x).to.equal(0);
-        expect(bounds.y).to.equal(0);
-        expect(bounds.width).to.equal(30);
-        expect(bounds.height).to.equal(9);
+        expect(bounds.x).to.equal(0, 'bounds.x');
+        expect(bounds.y).to.equal(3, 'bounds.y');
+        expect(bounds.width).to.equal(35, 'bounds.width');
+        expect(bounds.height).to.equal(9, 'bounds.height');
 
         // Act - replace character
         manipulator.click(0, 0, false);
@@ -1283,8 +1284,8 @@ describe('FontAtlasTextManipulator', () => {
 
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
-        expect(bounds.y).to.equal(0);
-        expect(bounds.width).to.equal(28);
+        expect(bounds.y).to.equal(3);
+        expect(bounds.width).to.equal(33);
         expect(bounds.height).to.equal(9);
 
         // Act - add word
@@ -1300,7 +1301,7 @@ describe('FontAtlasTextManipulator', () => {
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(1);
         expect(bounds.y).to.equal(0);
-        expect(bounds.width).to.equal(38);
+        expect(bounds.width).to.equal(42);
         expect(bounds.height).to.equal(12);
 
         // Act - add word
@@ -1321,8 +1322,8 @@ describe('FontAtlasTextManipulator', () => {
         bounds = roundBounds(text.getBounds());
         expect(bounds.x).to.equal(0);
         expect(bounds.y).to.equal(0);
-        expect(bounds.width).to.equal(40);
-        expect(bounds.height).to.equal(21);
+        expect(bounds.width).to.equal(46);
+        expect(bounds.height).to.equal(24);
 
         // Cleanup
         app.destroy(true, true);

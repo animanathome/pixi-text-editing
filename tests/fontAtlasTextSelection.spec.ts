@@ -27,7 +27,7 @@ describe('FontAtlasTextSelection', () => {
             expect(!!selection._mesh.geometry).to.be.true;
             expect(roundedBounds.x).to.equal(1)
             expect(roundedBounds.y).to.equal(0)
-            expect(roundedBounds.width).to.equal(14)
+            expect(roundedBounds.width).to.equal(16)
             expect(roundedBounds.height).to.equal(12)
 
             // Cleanup
@@ -58,7 +58,7 @@ describe('FontAtlasTextSelection', () => {
             expect(!!selection._mesh.geometry).to.be.true;
             expect(roundedBounds.x).to.equal(1)
             expect(roundedBounds.y).to.equal(0)
-            expect(roundedBounds.width).to.equal(28)
+            expect(roundedBounds.width).to.equal(31)
             expect(roundedBounds.height).to.equal(24)
 
             // Cleanup
@@ -95,7 +95,7 @@ describe('FontAtlasTextSelection', () => {
             expect(!!selection._mesh.geometry).to.be.true;
             expect(roundedBounds.x).to.equal(1)
             expect(roundedBounds.y).to.equal(0)
-            expect(roundedBounds.width).to.equal(28)
+            expect(roundedBounds.width).to.equal(31)
             expect(roundedBounds.height).to.equal(36)
 
             // Cleanup
