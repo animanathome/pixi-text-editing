@@ -105,6 +105,7 @@ Assertion.addMethod("matchesSnapshot", function (passedContext) {
         }
         result = false;
         message = `Image does not exist`;
+        this.assert(result, message);
     }
 
     // compare the current image with the expected image
