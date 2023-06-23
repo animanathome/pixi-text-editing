@@ -29,7 +29,7 @@ jobs:
       - name: Run headless test
         uses: coactions/setup-xvfb@v1
         with:
-          run: floss --path ./dist/test.js
+          run: DEBUG=1 floss --path ./dist/test.js
       - name: Upload images with artifacts
         uses: actions/upload-artifact@v3
         if: always()
