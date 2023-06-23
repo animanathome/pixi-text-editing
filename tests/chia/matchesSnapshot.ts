@@ -105,13 +105,13 @@ Assertion.addMethod("matchesSnapshot", function (passedContext) {
         }
         result = false;
         message = `Image does not exist`;
-        this.assert(result, message);
     }
-
-    // compare the current image with the expected image
-    if (!doImagesMatch(currentTestImage, expectedTestImage)) {
-        result = false;
-        message = `Image does not match snapshot`;
+    else {
+        // compare the current image with the expected image
+        if (!doImagesMatch(currentTestImage, expectedTestImage)) {
+            result = false;
+            message = `Image does not match snapshot`;
+        }
     }
     this.assert(result, message);
 });
