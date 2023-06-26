@@ -5,13 +5,14 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "demos": "webpack --config webpack.demos.config.js --watch",
+    "demos:watch": "webpack --config webpack.demos.config.js --watch",
     "build": "webpack --config webpack.prod.config.js",
     "test:build": "webpack --config webpack.test.config.js &",
     "test:watch": "webpack --config webpack.test.config.js --watch &",
     "test:run": "floss --path ./dist/test.js",
     "test:debug": "DEBUG=1  floss --path ./dist/test.js --debug",
     "test": "npm run serve && npm run test:watch && npm run test:debug",
+    "demos": "npm run serve && npm run demos:watch",
     "serve": "./scripts/start_server.sh"
   },
   "author": "",
