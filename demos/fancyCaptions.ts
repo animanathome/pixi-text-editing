@@ -1,12 +1,13 @@
 import {buildTextCanvas} from "./utilities";
-import {ProgressTimeline, TickerTimeline} from "../src/animation/timeline";
+import {ProgressTimeline} from "../src/timeline/progressTimeline";
+import {TickerTimeline} from "../src/timeline/tickerTimeline";
 import {TextOpacityDeformer} from "../src/deformers/text/TextOpacityDeformer";
-import {TEXT_TRANSFORM_ENUM} from "../src/deformers/text/TextDeformer";
 import {ProgressIncrementer} from "../src/incrementer/progressIncrementer";
 import {InterpolationCache} from "../src/interpolationCache";
 import {FontAtlasTextGraphic, GRAPHIC_TYPE} from "../src/fontAtlasTextGraphic";
 import {TextGraphicOpacityDeformer} from "../src/deformers/text_graphic/TextGraphicOpacityDeformer";
-import {OneByOneIncrementer} from "../src/animation/oneByOne";
+import {OneByOneIncrementer} from "../src/incrementer/oneByOneIncrementer";
+import {TEXT_TRANSFORM_ENUM} from "../src/deformers/enums";
 
 
 export const focusOnWordByWordByUsingGraphic = async() => {

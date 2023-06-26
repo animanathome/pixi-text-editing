@@ -65,6 +65,7 @@ export class FontAtlas {
      * An Atlas is considered loaded when it has a canvas and its properties set.
      */
     get loaded() {
+        // this is more initialized than "loaded"
         return this.canvas && this.familyName;
     }
 
@@ -146,6 +147,9 @@ export class FontAtlas {
      * @param string
      */
     addGlyphsForString(string) {
+        if (!this.loaded) {
+            throw new Error('FontAtlas not loaded yet. Unable to add glyphs for string.');
+        }
         // NOTE: we shouldn't be able to change this once this is set.
         this.script = forString(string);
         this.direction = direction(this.script);
