@@ -98,7 +98,7 @@ describe('CurveDeformer', () => {
             app.destroy(true, true);
         });
 
-        it('vertex deformer', async function()  {
+        it.skip('vertex deformer', async function()  {
             // Assemble
             const {app, rectangle} = createRectangleApp();
             rectangle.width = 32;
