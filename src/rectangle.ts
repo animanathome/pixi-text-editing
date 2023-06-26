@@ -1,8 +1,9 @@
 import * as PIXI from 'pixi.js';
 import {MeshMixin} from "./meshMixin";
-import {simpleVertexSrc} from "./vertexShader";
 import {colorFragmentSrc} from "./fragmentShader";
 import {DeformerStack} from "./deformers/deformerStack";
+
+const VERBOSE = false;
 
 export class Rectangle extends MeshMixin(PIXI.Container) {
     _width: number = 1;
@@ -70,7 +71,7 @@ export class Rectangle extends MeshMixin(PIXI.Container) {
     }
 
     _buildShader() {
-        console.log('buildShader');
+        VERBOSE && console.log('buildShader');
         const color = [1.0, 0.0, 0.0, 1.0];
 
         let uniforms = Object.assign({

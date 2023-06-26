@@ -90,8 +90,10 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
 
     set fontSize(value) {
         if (value === this.fontSize) {
+            VERBOSE && console.log(`fontSize not changed: ${value}`);
             return;
         }
+        VERBOSE && console.log('set fontSize', value);
         this._fontSize = value;
         this._dirty = true;
     }
@@ -322,7 +324,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
      */
     _update() {
         VERBOSE && console.log('text build', this.dirty)
-        if (!this._dirty) {
+        if (!this._dirty && !this.deform.dirty && !this.anim.dirty) {
             // it's important that we keep evaluating this while the text hasn't been fully updated.
             // this will allow us to easily determine whether everything is up-to-date.
             VERBOSE && console.log('nothing to do')
@@ -518,6 +520,7 @@ export class FontAtlasText extends MeshMixin(PIXI.Container) {
     }
 
     _buildShader() {
+        VERBOSE && console.log('build shader');
         let uniforms = Object.assign({
             uSampler2: this.atlas.texture[0],
             uColor: this.color,

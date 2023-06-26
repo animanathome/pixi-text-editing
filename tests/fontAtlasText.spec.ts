@@ -20,22 +20,23 @@ describe('fontAtlasText', () => {
         document.body.appendChild(app.view);
         app.ticker.update();
 
-        document.body.appendChild(text.atlas.canvas);
-
-        global.text = text;
-        global.app = app;
+        // visual font atlas
+        // document.body.appendChild(text.atlas.canvas);
+        // text.atlas.canvas.style.background = 'black';
 
         // Assert fontSize 12
+        expect(text.fontSize).to.equal(12);
         let {height} = roundBounds(text.getBounds());
-        expect(height).to.equal(24);
+        expect(height).to.equal(50);
 
         // Act - increase the font size
-        text.fontSize = 14;
+        text.fontSize = 18;
+        expect(text.dirty).to.be.true;
         app.ticker.update();
 
         // Assert fontSize 18
         ({height} = roundBounds(text.getBounds()));
-        expect(height).to.equal(55);
+        expect(height).to.equal(75);
 
         // Cleanup
         app.destroy(true, true);
@@ -374,15 +375,15 @@ describe('fontAtlasText', () => {
             // Act and assert
             app.ticker.update();
             let roundedBounds = roundBounds(text.getBounds());
-            expect(roundedBounds.width).to.equal(115);
-            expect(roundedBounds.height).to.equal(35);
+            expect(roundedBounds.width).to.equal(128);
+            expect(roundedBounds.height).to.equal(38);
 
             // Act and assert
             text.text = 'Hello World!\n' + 'It\'s a new day';
             app.ticker.update();
             roundedBounds = roundBounds(text.getBounds());
-            expect(roundedBounds.width).to.equal(71);
-            expect(roundedBounds.height).to.equal(24);
+            expect(roundedBounds.width).to.equal(79);
+            expect(roundedBounds.height).to.equal(26);
 
             // Cleanup
             app.destroy(true, true);

@@ -38,8 +38,8 @@ describe('FontAtlasTextCaret', () => {
             // Assemble
             const {app, text} = await createFontAtlasTextApp({
                 displayText: "hello",
-                width: 28,
-                height: 28,
+                width: 32,
+                height: 32,
             })
             const caret = new FontAtlasTextCaret(text);
             caret.caretWidth = 2;
@@ -55,7 +55,7 @@ describe('FontAtlasTextCaret', () => {
             const roundedBounds = roundBounds(caret.getBounds());
             expect(caret._mesh.visible).to.be.true;
             expect(!!caret._mesh.geometry).to.be.true;
-            expect(roundedBounds.x).to.equal(25)
+            expect(roundedBounds.x).to.equal(29)
             expect(roundedBounds.y).to.equal(0)
             expect(roundedBounds.width).to.equal(2)
             expect(roundedBounds.height).to.equal(12)

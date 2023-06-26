@@ -17,6 +17,7 @@ export const extractImageData = async(canvas: HTMLCanvasElement) => {
 }
 
 export const roundBounds = (bounds) => {
+    VERBOSE && console.log('roundBounds', bounds);
     return {
         x: Math.round(bounds.x),
         y: Math.round(bounds.y),
@@ -89,7 +90,7 @@ export const createFontAtlasTextApp = async({
         fontSize = 12,
         fontAtlasSize = 12,
         fontAtlasResolution = 128,
-        fontUrl = '../../../resources/Roboto-Regular.ttf'
+        fontUrl = LOCALHOST + 'Montserrat-Regular.ttf'
     }) => {
 
     const app = new PIXI.Application({
@@ -116,7 +117,7 @@ export const createFontAtlasTextApp = async({
 
     app.stage.addChild(text);
     // text.deform.logAssembly();
-    app.ticker.update();
+    // app.ticker.update();
 
     return {
         app,

@@ -1,10 +1,10 @@
+require('./chia/matchesSnapshot');
 import {expect} from 'chai';
 import {TransformDeformer} from "../src/deformers/base/TransformDeformer";
-import {createFontAtlasTextApp, createRectangleApp} from "./utils";
+import {createFontAtlasTextApp, createRectangleApp, extractImageData} from "./utils";
 import {VertexTransformDeformer} from "../src/deformers/base/VertexTransformDeformer";
 import {TextProgressDeformer} from "../src/deformers/text/TextProgressDeformer";
 import {TRANSFORM_DIRECTION, TEXT_TRANSFORM_ENUM} from "../src/deformers/enums";
-import {Renderer} from "pixi.js";
 import {TextTransformDeformer} from "../src/deformers/text/TextTransformDeformer";
 import {CenterScaleTransformDeformer} from "../src/deformers/base/CenterScaleTransformDeformer";
 import * as PIXI from "pixi.js";
@@ -19,6 +19,7 @@ describe('DeformerStack', () => {
         // Act
         rectangle.deform.addDeformer(new TransformDeformer());
         rectangle.deform.addDeformer(new TransformDeformer());
+        app.ticker.update();
 
         // Assert
         expect(rectangle.deform.deformers.length).to.be.equal(2);
@@ -45,8 +46,8 @@ describe('DeformerStack', () => {
         app.destroy(true, true);
     });
 
-    describe('can mix multiple deformers of type', () => {
-        it('MATRIX', async() => {
+    describe('supports deformers', () => {
+        it('matrix', async function() {
             // Assemble
             const {app, rectangle} = createRectangleApp();
             rectangle.width = 10;
@@ -61,14 +62,18 @@ describe('DeformerStack', () => {
             rectangle.deform.addDeformer(matrixDeformer1);
             matrixDeformer1.position.y = 10;
 
+            app.ticker.update();
+
             // Assert
             expect(rectangle.deform.matrixDeformers.length).to.equal(2);
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
 
             // Cleanup
             app.destroy(true, true);
         });
 
-        it('VERTEX', async() => {
+        it('vertex', async function() {
             // Assemble
             const {app, rectangle} = createRectangleApp();
             rectangle.width = 10;
@@ -83,14 +88,18 @@ describe('DeformerStack', () => {
             rectangle.deform.addDeformer(vertexDeformer1);
             vertexDeformer1.offset.y = 10;
 
+            app.ticker.update();
+
             // Assert
             expect(rectangle.deform.vertexDeformers.length).to.equal(2);
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
 
             // Cleanup
             app.destroy(true, true);
         });
 
-        it('VERTEX and MATRIX', async() => {
+        it('vertex and matrix', async function() {
             // Assemble
             const {app, rectangle} = createRectangleApp();
             rectangle.width = 10;
@@ -113,72 +122,83 @@ describe('DeformerStack', () => {
             rectangle.deform.addDeformer(matrixDeformer3);
             matrixDeformer3.position.x = 10;
 
+            app.ticker.update();
+
             // Assert
             expect(rectangle.deform.vertexDeformers.length).to.equal(2);
-            // rectangle.deform.logAssembly();
-
-            // this should not error
-            // TODO: figure out how to catch the error
-            rectangle._render(app.renderer as Renderer);
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
 
             // Cleanup
             app.destroy(true, true);
         });
 
-        it('VERTEX AND UV', async() => {
+        it('vertex and uv', async function() {
+            // Assemble
             const { app, text } = await createFontAtlasTextApp({
-                displayText: 'A\nB'
+                displayText: 'A\nB',
+                width: 64,
+                height: 64
             });
+
+            // Act
             const progressDeformer = new TextProgressDeformer();
             text.deform.addDeformer(progressDeformer);
             progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
-
-            // text.deform.logAssembly();
-
-            // text._render(app.renderer as Renderer);
             app.ticker.update();
 
+            // Assert
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
+
+            // Cleanup
             app.destroy(true, true);
         });
 
-        it('VERTEX, VERTEX and UV', async() => {
+        it('vertex, vertex and uv', async function()  {
+            // Assemble
             const { app, text } = await createFontAtlasTextApp({
-                displayText: 'A\nCD'
+                displayText: 'A\nCD',
+                width: 64,
+                height: 64
             });
+
+            // Act
             const progressDeformer = new TextProgressDeformer();
             text.deform.addDeformer(progressDeformer);
             progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
 
-            // TODO:
-            //  currently we only support one transform type per shader/object
-            //  currently we create one shader per geometry, we should figure out
-            //  how we can reuse them
             const transformDeformer = new TextTransformDeformer();
             text.deform.addDeformer(transformDeformer);
             transformDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             transformDeformer.transforms = [5.0, 0.0, 10.0, 0.0];
 
-            // text.deform.logAssembly();
             app.ticker.update();
 
+            // Assert
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
+
+            // Cleanup
             app.destroy(true, true);
         });
 
-        it('MATRIX, VERTEX, VERTEX', async() => {
+        it('matrix, vertex, vertex', async function() {
+            // Assemble
             const { app, text } = await createFontAtlasTextApp({
                 displayText: 'HELLO'
             });
 
+            // Act
             const scaleDeformer = new CenterScaleTransformDeformer();
             text.deform.addDeformer(scaleDeformer);
             scaleDeformer.scaleX = 0.75;
             scaleDeformer.scaleY = 0.75;
 
-            // vertex deformer
             const transformDeformer = new TextTransformDeformer();
             text.deform.addDeformer(transformDeformer);
             transformDeformer.transformType = TEXT_TRANSFORM_ENUM.GLYPH;
@@ -190,9 +210,8 @@ describe('DeformerStack', () => {
                 0.0, 5.0
             ];
 
-            // vertex deformer
-            const start = new PIXI.Point(-128, 32);
-            const end = new PIXI.Point(128, -32);
+            const start = new PIXI.Point(-96, 32);
+            const end = new PIXI.Point(32, -32);
             const points = getStraightLinePositions(start, end, 5);
 
             const {positions, tangents, normals, length} = buildCurveData({
@@ -208,17 +227,23 @@ describe('DeformerStack', () => {
             textCurveDeformer.spineLength = length;
             textCurveDeformer.pathOffset = 0.5;
             text.deform.addDeformer(textCurveDeformer);
-
-            // text.deform.logAssembly();
             app.ticker.update();
 
+            // Assert
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
+
+            // Cleanup
             app.destroy(true, true);
         });
 
-        it('MATRIX, VERTEX and UV', async() => {
+        it('matrix, vertex and uv', async function() {
+            // Assemble
             const { app, text } = await createFontAtlasTextApp({
                 displayText: 'A\nCD'
             });
+
+            // Act
             const transformDeformer = new CenterScaleTransformDeformer();
             text.deform.addDeformer(transformDeformer);
             transformDeformer.scaleX = 0.5;
@@ -229,18 +254,21 @@ describe('DeformerStack', () => {
             progressDeformer.transformType = TEXT_TRANSFORM_ENUM.LINE;
             progressDeformer.direction = TRANSFORM_DIRECTION.BOTTOM_TO_TOP;
             progressDeformer.progresses = [0.5, 0.5];
-
-            // text.deform.logAssembly();
             app.ticker.update();
 
+            // Assert
+            const imageData = await extractImageData(app.view);
+            expect(imageData).to.matchesSnapshot(this);
+
+            // Cleanup
             app.destroy(true, true);
         });
 
-        it.skip('COLOR', async() => {
+        it.skip('color', async() => {
 
         });
 
-        it.skip('UV and COLOR', async() => {
+        it.skip('uv and color', async() => {
 
         });
     });
