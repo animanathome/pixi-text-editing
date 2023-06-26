@@ -98,6 +98,7 @@ describe('CurveDeformer', () => {
             app.destroy(true, true);
         });
 
+        // TODO: fix this test. Our image comparison keeps on complaining that the image is different.
         it.skip('vertex deformer', async function()  {
             // Assemble
             const {app, rectangle} = createRectangleApp();
