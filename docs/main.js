@@ -71337,6 +71337,7 @@ var FontLoader = /** @class */ (function (_super) {
                         buffer = _c.sent();
                         _c.label = 7;
                     case 7:
+                        console.log('buffer', buffer);
                         font = fontkit_next__WEBPACK_IMPORTED_MODULE_1__["default"].create(buffer);
                         this.status = FONT_STATUS.LOADED;
                         this.font = font;

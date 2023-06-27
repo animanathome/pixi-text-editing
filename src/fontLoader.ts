@@ -30,6 +30,7 @@ export class FontLoader extends PIXI.utils.EventEmitter{
                 const blob = await response.blob();
                 buffer = await blobToBuffer(blob);
             }
+            console.log('buffer', buffer);
             const font = fontkit.create(buffer);
             this.status = FONT_STATUS.LOADED;
             this.font = font;
