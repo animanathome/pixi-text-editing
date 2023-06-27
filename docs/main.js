@@ -71308,38 +71308,48 @@ var FontLoader = /** @class */ (function (_super) {
     }
     FontLoader.prototype.load = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var response, blob, buffer, font, e_1;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var response, buffer, _a, _b, blob, font, e_1;
+            return __generator(this, function (_c) {
+                switch (_c.label) {
                     case 0:
                         this.status = FONT_STATUS.LOADING;
-                        _a.label = 1;
+                        _c.label = 1;
                     case 1:
-                        _a.trys.push([1, 5, , 6]);
+                        _c.trys.push([1, 8, , 9]);
                         return [4 /*yield*/, fetch(this.sourceUrl)];
                     case 2:
-                        response = _a.sent();
+                        response = _c.sent();
                         console.log('response', response);
                         console.log('has arrayBuffer', typeof response.arrayBuffer === 'function');
-                        return [4 /*yield*/, response.blob()];
+                        console.log('has blob', typeof response.blob === 'function');
+                        buffer = void 0;
+                        if (!(typeof response.arrayBuffer === 'function')) return [3 /*break*/, 4];
+                        _b = (_a = Buffer).from;
+                        return [4 /*yield*/, response.arrayBuffer()];
                     case 3:
-                        blob = _a.sent();
+                        buffer = _b.apply(_a, [_c.sent()]);
+                        return [3 /*break*/, 7];
+                    case 4: return [4 /*yield*/, response.blob()];
+                    case 5:
+                        blob = _c.sent();
                         return [4 /*yield*/, blobToBuffer(blob)];
-                    case 4:
-                        buffer = _a.sent();
+                    case 6:
+                        buffer = _c.sent();
+                        _c.label = 7;
+                    case 7:
                         font = fontkit_next__WEBPACK_IMPORTED_MODULE_1__["default"].create(buffer);
                         this.status = FONT_STATUS.LOADED;
                         this.font = font;
                         this.emit('loaded');
                         VERBOSE && console.log("loaded font ".concat(this.sourceUrl));
-                        return [3 /*break*/, 6];
-                    case 5:
-                        e_1 = _a.sent();
+                        return [3 /*break*/, 9];
+                    case 8:
+                        e_1 = _c.sent();
                         this.status = FONT_STATUS.FAILED;
                         this.emit('error');
                         console.log("unable to load font ".concat(this.sourceUrl));
                         throw e_1;
-                    case 6: return [2 /*return*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
