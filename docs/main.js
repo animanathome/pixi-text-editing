@@ -71319,6 +71319,8 @@ var FontLoader = /** @class */ (function (_super) {
                         return [4 /*yield*/, fetch(this.sourceUrl)];
                     case 2:
                         response = _a.sent();
+                        console.log('response', response);
+                        console.log('has arrayBuffer', typeof response.arrayBuffer === 'function');
                         return [4 /*yield*/, response.blob()];
                     case 3:
                         blob = _a.sent();
