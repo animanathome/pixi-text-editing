@@ -67145,7 +67145,7 @@ var buildTextCanvas = function (text) { return __awaiter(void 0, void 0, void 0,
                 app.view.style.height = "".concat(height, "px");
                 app.view.style.width = "".concat(width, "px");
                 fontLoader = new _src_fontLoader__WEBPACK_IMPORTED_MODULE_1__.FontLoader();
-                fontUrl = './Roboto-Bold.ttf';
+                fontUrl = 'https://storage.googleapis.com/lumen5-site-css/Roboto-Regular.ttf';
                 console.log('fontUrl', fontUrl);
                 fontLoader.sourceUrl = fontUrl;
                 return [4 /*yield*/, fontLoader.load()];
