@@ -67146,12 +67146,10 @@ var buildTextCanvas = function (text) { return __awaiter(void 0, void 0, void 0,
                 app.view.style.width = "".concat(width, "px");
                 fontLoader = new _src_fontLoader__WEBPACK_IMPORTED_MODULE_1__.FontLoader();
                 fontUrl = 'https://storage.googleapis.com/lumen5-site-css/Roboto-Regular.ttf';
-                console.log('fontUrl', fontUrl);
                 fontLoader.sourceUrl = fontUrl;
                 return [4 /*yield*/, fontLoader.load()];
             case 1:
                 _a.sent();
-                console.log('loaded font');
                 atlas = new _src_fontAtlas__WEBPACK_IMPORTED_MODULE_2__.FontAtlas({
                     fontLoader: fontLoader,
                     resolution: 512,
@@ -71319,9 +71317,6 @@ var FontLoader = /** @class */ (function (_super) {
                         return [4 /*yield*/, fetch(this.sourceUrl)];
                     case 2:
                         response = _c.sent();
-                        console.log('response', response);
-                        console.log('has arrayBuffer', typeof response.arrayBuffer === 'function');
-                        console.log('has blob', typeof response.blob === 'function');
                         buffer = void 0;
                         if (!(typeof response.arrayBuffer === 'function')) return [3 /*break*/, 4];
                         _b = (_a = Buffer).from;
@@ -71337,7 +71332,6 @@ var FontLoader = /** @class */ (function (_super) {
                         buffer = _c.sent();
                         _c.label = 7;
                     case 7:
-                        console.log('buffer', buffer);
                         font = fontkit_next__WEBPACK_IMPORTED_MODULE_1__["default"].create(buffer);
                         this.status = FONT_STATUS.LOADED;
                         this.font = font;
